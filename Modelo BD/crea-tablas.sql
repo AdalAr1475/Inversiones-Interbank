@@ -1,11 +1,14 @@
-CREATE TABLE usuarios (
+DROP TABLE IF EXISTS Usuarios CASCADE;
+CREATE TABLE Usuarios (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('empresa', 'inversor')) NOT NULL,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE TABLE empresas (
+
+DROP TABLE IF EXISTS Empresas CASCADE;
+CREATE TABLE Empresas (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
   nombre VARCHAR(255) NOT NULL,
@@ -14,14 +17,18 @@ CREATE TABLE empresas (
   sector VARCHAR(100),
   pais VARCHAR(100)
 );
-CREATE TABLE inversores (
+
+DROP TABLE IF EXISTS Inversores CASCADE;
+CREATE TABLE Inversores (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
   nombre_completo VARCHAR(255),
-  dni VARCHAR(20),
+  dni CHAR(8),
   pais VARCHAR(100)
 );
-CREATE TABLE proyectos_inversion (
+
+DROP TABLE IF EXISTS Proyectos_inversion CASCADE;
+CREATE TABLE Proyectos_inversion (
   id SERIAL PRIMARY KEY,
   empresa_id INTEGER REFERENCES empresas(id) ON DELETE CASCADE,
   titulo VARCHAR(255),
@@ -32,7 +39,9 @@ CREATE TABLE proyectos_inversion (
   fecha_fin DATE,
   estado VARCHAR(20) CHECK (estado IN ('abierto', 'cerrado', 'cancelado')) DEFAULT 'abierto'
 );
-CREATE TABLE inversiones (
+
+DROP TABLE IF EXISTS Inversiones CASCADE;
+CREATE TABLE Inversiones (
   id SERIAL PRIMARY KEY,
   proyecto_id INTEGER REFERENCES proyectos_inversion(id) ON DELETE CASCADE,
   inversor_id INTEGER REFERENCES inversores(id) ON DELETE CASCADE,
@@ -41,21 +50,27 @@ CREATE TABLE inversiones (
   estado VARCHAR(20) CHECK (estado IN ('pendiente', 'firmado', 'rechazado')) DEFAULT 'pendiente',
   contrato_pdf TEXT -- URL o nombre del archivo en S3 u otro almacenamiento
 );
-CREATE TABLE mensajes (
+
+DROP TABLE IF EXISTS Mensajes CASCADE;
+CREATE TABLE Mensajes (
   id SERIAL PRIMARY KEY,
   remitente_id INTEGER REFERENCES usuarios(id),
   destinatario_id INTEGER REFERENCES usuarios(id),
   mensaje TEXT NOT NULL,
   enviado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-CREATE TABLE firmas_electronicas (
+
+DROP TABLE IF EXISTS Firmas_electronicas CASCADE;
+CREATE TABLE Firmas_electronicas (
   id SERIAL PRIMARY KEY,
   inversion_id INTEGER REFERENCES inversiones(id) ON DELETE CASCADE,
   usuario_id INTEGER REFERENCES usuarios(id),
   firmado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   hash_firma TEXT
 );
-CREATE TABLE pagos_stripe (
+
+DROP TABLE IF EXISTS Pagos_stripe CASCADE;
+CREATE TABLE Pagos_stripe (
   id SERIAL PRIMARY KEY,
   inversion_id INTEGER REFERENCES inversiones(id) ON DELETE CASCADE,
   stripe_payment_id VARCHAR(255),
