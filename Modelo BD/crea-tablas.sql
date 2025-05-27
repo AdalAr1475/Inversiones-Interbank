@@ -1,0 +1,65 @@
+CREATE TABLE usuarios (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('empresa', 'inversor')) NOT NULL,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE empresas (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+  nombre VARCHAR(255) NOT NULL,
+  ruc VARCHAR(20) UNIQUE NOT NULL,
+  descripcion TEXT,
+  sector VARCHAR(100),
+  pais VARCHAR(100)
+);
+CREATE TABLE inversores (
+  id SERIAL PRIMARY KEY,
+  usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+  nombre_completo VARCHAR(255),
+  dni VARCHAR(20),
+  pais VARCHAR(100)
+);
+CREATE TABLE proyectos_inversion (
+  id SERIAL PRIMARY KEY,
+  empresa_id INTEGER REFERENCES empresas(id) ON DELETE CASCADE,
+  titulo VARCHAR(255),
+  descripcion TEXT,
+  monto_requerido NUMERIC(12, 2),
+  retorno_estimado NUMERIC(5, 2), -- % esperado
+  fecha_inicio DATE,
+  fecha_fin DATE,
+  estado VARCHAR(20) CHECK (estado IN ('abierto', 'cerrado', 'cancelado')) DEFAULT 'abierto'
+);
+CREATE TABLE inversiones (
+  id SERIAL PRIMARY KEY,
+  proyecto_id INTEGER REFERENCES proyectos_inversion(id) ON DELETE CASCADE,
+  inversor_id INTEGER REFERENCES inversores(id) ON DELETE CASCADE,
+  monto_invertido NUMERIC(12, 2) NOT NULL,
+  fecha_inversion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  estado VARCHAR(20) CHECK (estado IN ('pendiente', 'firmado', 'rechazado')) DEFAULT 'pendiente',
+  contrato_pdf TEXT -- URL o nombre del archivo en S3 u otro almacenamiento
+);
+CREATE TABLE mensajes (
+  id SERIAL PRIMARY KEY,
+  remitente_id INTEGER REFERENCES usuarios(id),
+  destinatario_id INTEGER REFERENCES usuarios(id),
+  mensaje TEXT NOT NULL,
+  enviado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE firmas_electronicas (
+  id SERIAL PRIMARY KEY,
+  inversion_id INTEGER REFERENCES inversiones(id) ON DELETE CASCADE,
+  usuario_id INTEGER REFERENCES usuarios(id),
+  firmado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  hash_firma TEXT
+);
+CREATE TABLE pagos_stripe (
+  id SERIAL PRIMARY KEY,
+  inversion_id INTEGER REFERENCES inversiones(id) ON DELETE CASCADE,
+  stripe_payment_id VARCHAR(255),
+  monto NUMERIC(12, 2),
+  estado VARCHAR(20) CHECK (estado IN ('exitoso', 'fallido', 'pendiente')),
+  fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
