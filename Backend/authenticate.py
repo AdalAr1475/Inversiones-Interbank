@@ -83,35 +83,3 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         )
     
     return user
-
-# Roles de usuario
-
-# Dependencia para verificar si el usuario tiene rol de administrador
-def check_admin_role(user: models.Usuario = Depends(get_current_user)):
-    if user.id_rol != 1:
-        raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para realizar esta acción",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
-
-# Dependencia para verificar si el usuario tiene rol de inversor
-def check_investor_role(user: models.Usuario = Depends(get_current_user)):
-    if user.id_rol != 2:
-        raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para realizar esta acción",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
-
-# Dependencia para verificar si el usuario tiene rol de administrador o inversor
-def admin_or_investor_role(user: models.Usuario = Depends(get_current_user)):
-    if user.id_rol not in [1, 2]:
-        raise HTTPException(
-            status_code=403,
-            detail="No tienes permisos para realizar esta acción",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user

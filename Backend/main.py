@@ -2,23 +2,39 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from typing import Annotated
-from authenticate import authenticate_user, check_admin_role, create_token, get_hashed_password, check_investor_role, admin_or_investor_role
+from typing import Annotated, List
+from authenticate import authenticate_user, create_token, get_hashed_password, get_current_user
 from database import engine, get_db
 from sqlalchemy.orm import Session
 import models
+from funciones import validar_dni, validar_ruc
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
 # Definimos el modelo de datos para crear un usuario
-class UsuarioCreate(BaseModel):
-    nombre: str
-    apellido: str
+
+class UsuarioCreateInversor(BaseModel):
     email: str
     password: str
-    rol: str
+    nombre_completo: str
+    dni: str
+    pais: str
+
+class UsuarioCreateEmpresa(BaseModel):
+    email: str
+    password: str
+    nombre: str
+    ruc: str
+    descripcion: str
+    sector: str
+    pais: str
+
+class Usuario(BaseModel):
+    nombre: str
+    email: str
+    password: str
 
 # Dependencia para la sesión de la base de datos
 db_dependency = Annotated[Session, Depends(get_db)]
@@ -32,103 +48,113 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "token_type": "bearer"
     }
 
-@app.get("/roles", tags=["Publico"])
-async def get_roles(db: db_dependency):
-    # Obtener todos los roles de la base de datos
-    db_roles = db.query(models.Rol).all()
-    return db_roles
+@app.post("/usuario/inversor", response_model=None, dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
+async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
-@app.get("/usuario", tags=["Usuario"])
-async def get_usuario(db: db_dependency, user: models.Usuario = Depends(admin_or_investor_role)):
-
-    rol_name = db.query(models.Rol).filter(models.Rol.id == user.id_rol).first().nombre
-
-    return JSONResponse(
-        status_code=200,
-        content={
-            "message": "Usuario autenticado",
-            "usuario": {
-                "id": user.id,
-                "nombre": user.nombre,
-                "apellido": user.apellido,
-                "email": user.email,
-                "rol": rol_name
-            }
-        }
-    )
-
-@app.get("/admin", tags=["admin"])
-async def get_admin(db: db_dependency, user: models.Usuario = Depends(check_admin_role)):
-
-    rol_name = db.query(models.Rol).filter(models.Rol.id == user.id_rol).first().nombre
-
-    return JSONResponse(
-        status_code=200,
-        content={
-            "mensaje": "Admin autenticado",
-            "usuario": {
-                "id": user.id,
-                "nombre": user.nombre,
-                "apellido": user.apellido,
-                "email": user.email,
-                "rol": rol_name
-            }
-        }
-    )
-
-@app.get("/usuarios", tags=["admin"], dependencies=[Depends(check_admin_role)])
-async def get_usuarios(db: db_dependency):
-    # Obtener todos los usuarios de la base de datos
-    db_usuarios = db.query(models.Usuario).all()
-    return db_usuarios
-
-@app.get("/usuario/{id_usuario}", tags=["admin"], dependencies=[Depends(check_admin_role)]) 
-async def get_usuario(id_usuario: int, db: db_dependency):
-    # Obtener un usuario específico por ID
-    db_usuario = db.query(models.Usuario).filter(models.Usuario.id == id_usuario).first()
-    if not db_usuario:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return db_usuario
-
-@app.post("/usuario", tags=["Publico"])
-async def create_usuario(usuario: UsuarioCreate, db: db_dependency):
+    usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
     
-    # Verificar si el rol existe
-    db_rol = db.query(models.Rol).filter(models.Rol.nombre == usuario.rol).first()
-    if not db_rol:
-        raise HTTPException(status_code=400, detail="Rol no encontrado")
+    if not validar_dni(user.dni):
+        raise HTTPException(status_code=400, detail="Ingrese un dni valido")
     
-    # Verificar si el email ya está en uso
-    db_email = db.query(models.Usuario).filter(models.Usuario.email == usuario.email).first()
-    if db_email:
-        raise HTTPException(status_code=400, detail="El email ya está en uso")
+    password_hash = get_hashed_password(user.password)
 
-    # Crear el nuevo usuario
-    hashed_password = get_hashed_password(usuario.password)
-    
     new_usuario = models.Usuario(
-        nombre=usuario.nombre,
-        apellido=usuario.apellido,
-        email=usuario.email,
-        password_hash=hashed_password,
-        id_rol=db_rol.id
+        email = user.email,
+        password_hash = password_hash,
+        tipo_usuario = "inversor"
     )
 
     db.add(new_usuario)
     db.commit()
+
+    new_inversor = models.Inversor(
+        usuario_id = new_usuario.id,
+        nombre_completo = user.nombre_completo,
+        dni = user.dni,
+        pais = user.pais
+    )
+
+    db.add(new_inversor)
+    db.commit()
     db.refresh(new_usuario)
+    db.refresh(new_inversor)
+
     return JSONResponse(
         status_code=201, 
         content={
-            "message": "Usuario creado exitosamente", 
-            "usuario":
-            {
-                "id": new_usuario.id,
-                "nombre": new_usuario.nombre,
-                "apellido": new_usuario.apellido,
-                "email": new_usuario.email,
-                "rol": db_rol.nombre
-            }
+            "message": "Inversor creado exitosamente"
         }
     )
+
+@app.post("/usuario/empresa", dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
+async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
+
+    usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
+    
+    empresa_existente = db.query(models.Empresa).filter(models.Empresa.ruc==user.ruc).first()
+    if empresa_existente:
+        raise HTTPException(status_code=400, detail="El ruc ya se encuentra registrado")
+    
+    empresa_existente = db.query(models.Empresa).filter(models.Empresa.nombre==user.nombre).first()
+    if empresa_existente:
+        raise HTTPException(status_code=400, detail="El nombre ingresado ya se encuentra registrado")
+    
+    if not validar_ruc(user.ruc):
+        raise HTTPException(status_code=400, detail="Ingresar un ruc valido")
+
+    password_hash = get_hashed_password(user.password)
+
+    new_usuario = models.Usuario(
+        email=user.email,
+        password_hash=password_hash,
+        tipo_usuario="empresa"
+    )
+
+    db.add(new_usuario)
+    db.commit()
+
+    new_empresa = models.Empresa(
+        usuario_id=new_usuario.id,
+        nombre=user.nombre,
+        ruc=user.ruc,
+        descripcion=user.descripcion,
+        sector=user.sector,
+        pais=user.pais
+    )
+
+    db.add(new_empresa)
+    db.commit()
+    db.refresh(new_usuario)
+    db.refresh(new_empresa)
+
+    return JSONResponse(
+        status_code=201, 
+        content={
+            "message": "Empresa creada exitosamente"
+        }
+    )
+
+@app.get("/usuarios", dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
+async def get_roles(db: db_dependency):
+    db_usuarios = db.query(models.Usuario).all()
+
+    response = []
+
+    for user in db_usuarios:
+        if user.tipo_usuario=="inversor":
+            nombre = user.inversor.nombre_completo if user.inversor else None
+        else:
+            nombre = user.empresa.nombre if user.empresa else None
+
+        response.append({
+            "id": user.id,
+            "nombre": nombre,
+            "email": user.email
+        })
+
+    return JSONResponse(status_code=200,content=response)
 

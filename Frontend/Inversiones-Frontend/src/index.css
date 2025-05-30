@@ -57,17 +57,15 @@ button.global-style:hover {
 }
 button.global-style:focus{
   border-color: #f75a00;
-},
+}
 button.global-style:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-
-
 .cls_btn_recepcion:focus{
-  //border: 2px;
-  //border-style:solid;
-  //border-color: #00197f;
+  border: 2px;
+  border-style:solid;
+  border-color: #00197f;
   background-color: #00197f;
   border-color:#fff;
 }
