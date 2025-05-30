@@ -15,17 +15,17 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 
-class UsuarioCreateInversor(BaseModel):
+class Usuario(BaseModel):
+    nombre: str
     email: str
+
+class UsuarioCreateInversor(Usuario):
     password: str
-    nombre_completo: str
     dni: str
     pais: str
 
-class UsuarioCreateEmpresa(BaseModel):
-    email: str
+class UsuarioCreateEmpresa(Usuario):
     password: str
-    nombre: str
     ruc: str
     descripcion: str
     sector: str
@@ -47,7 +47,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "token_type": "bearer"
     }
 
-@app.post("/usuario/inversor", response_model=None, dependencies=[Depends(check_admin)], tags=["Admin"])
+@app.post("/inversor", response_model=None, tags=["Admin"], dependencies=[Depends(check_admin)])
 async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -61,6 +61,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     new_usuario = models.Usuario(
         email = user.email,
+        nombre = user.nombre,
         password_hash = password_hash,
         tipo_usuario = "inversor"
     )
@@ -70,7 +71,6 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     new_inversor = models.Inversor(
         usuario_id = new_usuario.id,
-        nombre_completo = user.nombre_completo,
         dni = user.dni,
         pais = user.pais
     )
@@ -87,7 +87,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
         }
     )
 
-@app.post("/usuario/empresa", dependencies=[Depends()], tags=["Usuario Autenticado"])
+@app.post("/empresa", tags=["Admin"], dependencies=[Depends(check_admin)])
 async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -98,8 +98,8 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
     if empresa_existente:
         raise HTTPException(status_code=400, detail="El ruc ya se encuentra registrado")
     
-    empresa_existente = db.query(models.Empresa).filter(models.Empresa.nombre==user.nombre).first()
-    if empresa_existente:
+    usuario_existente = db.query(models.Usuario).filter(models.Usuario.nombre==user.nombre).first()
+    if usuario_existente:
         raise HTTPException(status_code=400, detail="El nombre ingresado ya se encuentra registrado")
     
     if not validar_ruc(user.ruc):
@@ -109,6 +109,7 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     new_usuario = models.Usuario(
         email=user.email,
+        nombre=user.nombre,
         password_hash=password_hash,
         tipo_usuario="empresa"
     )
@@ -118,7 +119,6 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     new_empresa = models.Empresa(
         usuario_id=new_usuario.id,
-        nombre=user.nombre,
         ruc=user.ruc,
         descripcion=user.descripcion,
         sector=user.sector,
@@ -137,29 +137,46 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
         }
     )
 
-@app.post("/admin")
-async def create_admin(db: db_dependency, user: models.Usuario):
+@app.post("/admin", tags=["Admin"], dependencies=[Depends(check_admin)])
+async def create_admin(db: db_dependency, user: Usuario):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
     if usuario_existente:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
+    
+    usuario_existente = db.query(models.Usuario).filter(models.Usuario.nombre == user.nombre).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="El nombre ingresado ya esta en uso")
 
+    password_hash = get_hashed_password(user.password)
 
-@app.get("/usuarios", dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
-async def get_roles(db: db_dependency):
+    new_usuario = models.Usuario(
+        email=user.email,
+        nombre=user.nombre,
+        password_hash=password_hash,
+        tipo_usuario="admin"
+    )
+
+    db.add(new_usuario)
+    db.commit()
+    db.refresh(new_usuario)
+
+    return JSONResponse(
+        status_code=201,
+        content={
+            "message": "La cuenta admin se creo correctamente"
+        }
+    )
+
+@app.get("/usuarios", dependencies=[Depends(get_current_user)], tags=["Autenticación"])
+async def get_usuarios(db: db_dependency):
     db_usuarios = db.query(models.Usuario).all()
 
     response = []
-
     for user in db_usuarios:
-        if user.tipo_usuario=="inversor":
-            nombre = user.inversor.nombre_completo if user.inversor else None
-        else:
-            nombre = user.empresa.nombre if user.empresa else None
-
         response.append({
             "id": user.id,
-            "nombre": nombre,
+            "nombre": user.nombre,
             "email": user.email
         })
 

@@ -10,6 +10,7 @@ class Usuario(Base):
  
     id = Column(Integer, primary_key=True)
     email = Column(String(255), unique=True, nullable=False)
+    nombre = Column(String(255), nullable=False)
     password_hash = Column(Text, nullable=False)
     tipo_usuario = Column(String(20), nullable=False)
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
@@ -33,7 +34,6 @@ class Empresa(Base):
 
     id = Column(Integer, primary_key=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    nombre = Column(String(255), nullable=False)
     ruc = Column(String(20), unique=True, nullable=False)
     descripcion = Column(Text)
     sector = Column(String(100))
@@ -48,7 +48,6 @@ class Inversor(Base):
 
     id = Column(Integer, primary_key=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    nombre_completo = Column(String(255))
     dni = Column(String(8))
     pais = Column(String(100))
 
