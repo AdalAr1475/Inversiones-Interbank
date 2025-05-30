@@ -16,7 +16,7 @@ class Usuario(Base):
 
     __table_args__ = (
         CheckConstraint(
-            tipo_usuario.in_(['empresa', 'inversor']),
+            tipo_usuario.in_(['empresa', 'inversor','admin']),
             name="ck_tipo_usuario_valid"
         ),
     )

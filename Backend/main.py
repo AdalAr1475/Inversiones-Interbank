@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from typing import Annotated, List
-from authenticate import authenticate_user, create_token, get_hashed_password, get_current_user
+from authenticate import authenticate_user, create_token, get_hashed_password, get_current_user, check_admin
 from database import engine, get_db
 from sqlalchemy.orm import Session
 import models
@@ -47,7 +47,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "token_type": "bearer"
     }
 
-@app.post("/usuario/inversor", response_model=None, dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
+@app.post("/usuario/inversor", response_model=None, dependencies=[Depends(check_admin)], tags=["Admin"])
 async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -87,7 +87,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
         }
     )
 
-@app.post("/usuario/empresa", dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
+@app.post("/usuario/empresa", dependencies=[Depends()], tags=["Usuario Autenticado"])
 async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -136,6 +136,14 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
             "message": "Empresa creada exitosamente"
         }
     )
+
+@app.post("/admin")
+async def create_admin(db: db_dependency, user: models.Usuario):
+
+    usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="El email ya está registrado")
+
 
 @app.get("/usuarios", dependencies=[Depends(get_current_user)], tags=["Usuario Autenticado"])
 async def get_roles(db: db_dependency):

@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS Usuarios CASCADE;
 CREATE TABLE Usuarios (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
+  nombre VARCHAR(255) NOT NULL,
   password_hash TEXT NOT NULL,
   tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('empresa', 'inversor', 'admin')) NOT NULL,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -11,7 +12,6 @@ DROP TABLE IF EXISTS Empresas CASCADE;
 CREATE TABLE Empresas (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
-  nombre VARCHAR(255) NOT NULL,
   ruc VARCHAR(20) UNIQUE NOT NULL,
   descripcion TEXT,
   sector VARCHAR(100),
@@ -22,7 +22,6 @@ DROP TABLE IF EXISTS Inversores CASCADE;
 CREATE TABLE Inversores (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
-  nombre_completo VARCHAR(255),
   dni CHAR(8),
   pais VARCHAR(100)
 );
