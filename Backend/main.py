@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -7,6 +7,9 @@ from authenticate import authenticate_user, check_admin_role, create_token, get_
 from database import engine, get_db
 from sqlalchemy.orm import Session
 import models
+#Blockchain imports
+import hashlib
+from blockchain.contract_utils import sign_document, is_signed
 
 app = FastAPI()
 
@@ -132,3 +135,22 @@ async def create_usuario(usuario: UsuarioCreate, db: db_dependency):
         }
     )
 
+
+# BLOCKCHAIN ENDPOINTS
+
+def hash_document(file_bytes):
+    return '0x' + hashlib.sha256(file_bytes).hexdigest()
+
+@app.post("/sign-document/")
+async def sign(file: UploadFile = File(...)):
+    contents = await file.read()
+    doc_hash = hash_document(contents)
+    tx = sign_document(doc_hash)
+    return {"message": "Documento firmado", "tx_hash": tx}
+
+@app.post("/verify-document/")
+async def verify(file: UploadFile = File(...)):
+    contents = await file.read()
+    doc_hash = hash_document(contents)
+    signed = is_signed(doc_hash)
+    return {"hash": doc_hash, "signed": signed}
