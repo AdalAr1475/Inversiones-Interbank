@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -8,12 +8,12 @@ from database import engine, get_db
 from sqlalchemy.orm import Session
 import models
 from funciones import validar_dni, validar_ruc
+import hashlib
+from blockchain.contract_utils import sign_document, is_signed
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
-
-# Definimos el modelo de datos para crear un usuario
 
 class UsuarioCreateInversor(BaseModel):
     email: str
@@ -36,7 +36,6 @@ class Usuario(BaseModel):
     email: str
     password: str
 
-# Dependencia para la sesión de la base de datos
 db_dependency = Annotated[Session, Depends(get_db)]
 
 @app.post("/token") 
@@ -158,3 +157,19 @@ async def get_roles(db: db_dependency):
 
     return JSONResponse(status_code=200,content=response)
 
+def hash_document(file_bytes):
+    return '0x' + hashlib.sha256(file_bytes).hexdigest()
+
+@app.post("/sign-document/", tags=["Blockchain"])
+async def sign(file: UploadFile = File(...)):
+    contents = await file.read()
+    doc_hash = hash_document(contents)
+    tx = sign_document(doc_hash)
+    return {"message": "Documento firmado", "tx_hash": tx}
+
+@app.post("/verify-document/", tags=["Blockchain"])
+async def verify(file: UploadFile = File(...)):
+    contents = await file.read()
+    doc_hash = hash_document(contents)
+    signed = is_signed(doc_hash)
+    return {"hash": doc_hash, "signed": signed}
