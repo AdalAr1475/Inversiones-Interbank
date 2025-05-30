@@ -47,6 +47,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         "token_type": "bearer"
     }
 
+# Crear un nuevo inversor, se necesita permisos de admin
 @app.post("/inversor", response_model=None, tags=["Admin"], dependencies=[Depends(check_admin)])
 async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
@@ -87,6 +88,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
         }
     )
 
+# Crear una nueva empresa, se necesita logearse con una permisos de admin
 @app.post("/empresa", tags=["Admin"], dependencies=[Depends(check_admin)])
 async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
@@ -137,7 +139,9 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
         }
     )
 
-@app.post("/admin", tags=["Admin"], dependencies=[Depends(check_admin)])
+# Crear un nuevo admin, este eddponit no tiene autenticación para que puedan crear un correo y contraseña para logearte.
+# Una vez que ya crearon uno poner al costado de tags=["admin"] -> dependencies=[Depends(check_admin)]
+@app.post("/admin", tags=["Admin"])
 async def create_admin(db: db_dependency, user: Usuario):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -168,6 +172,7 @@ async def create_admin(db: db_dependency, user: Usuario):
         }
     )
 
+# Consulta de los usuarios en la base de datos, con logearse con cualquier cuenta (inversor, empresa, admin) funciona
 @app.get("/usuarios", dependencies=[Depends(get_current_user)], tags=["Autenticación"])
 async def get_usuarios(db: db_dependency):
     db_usuarios = db.query(models.Usuario).all()
