@@ -3,7 +3,7 @@ CREATE TABLE Usuarios (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('empresa', 'inversor')) NOT NULL,
+  tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('empresa', 'inversor', 'admin')) NOT NULL,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
