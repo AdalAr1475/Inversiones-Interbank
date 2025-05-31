@@ -10,6 +10,7 @@ import models
 from funciones import validar_dni, validar_ruc
 import hashlib
 from blockchain.contract_utils import sign_document, is_signed
+from routers import auth, users, documents
 
 app = FastAPI()
 
@@ -187,19 +188,8 @@ async def get_usuarios(db: db_dependency):
 
     return JSONResponse(status_code=200,content=response)
 
-def hash_document(file_bytes):
-    return '0x' + hashlib.sha256(file_bytes).hexdigest()
+#Tratar de separar los endpoints de todos los módulos en otros archivos, dentro de la carpeta routers
+#app.include_router(auth.router, prefix="/auth")
+#app.include_router(users.router, prefix="/users")
+app.include_router(documents.router, prefix="/documents")
 
-@app.post("/sign-document/", tags=["Blockchain"])
-async def sign(file: UploadFile = File(...)):
-    contents = await file.read()
-    doc_hash = hash_document(contents)
-    tx = sign_document(doc_hash)
-    return {"message": "Documento firmado", "tx_hash": tx}
-
-@app.post("/verify-document/", tags=["Blockchain"])
-async def verify(file: UploadFile = File(...)):
-    contents = await file.read()
-    doc_hash = hash_document(contents)
-    signed = is_signed(doc_hash)
-    return {"hash": doc_hash, "signed": signed}

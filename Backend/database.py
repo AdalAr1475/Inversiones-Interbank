@@ -1,9 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from os import getenv
 
 user = "postgres"
-password = "1234"
+password = getenv("DB_PASSWORD", "1234")
 host = "localhost:5432"
 database = "InversionesDB"
 
