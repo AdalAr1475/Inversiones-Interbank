@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from Backend import models
 from Backend.JWT.authenticate import check_admin, get_current_user, get_hashed_password
-from Backend.database import get_db, engine
+from Backend.conexion_db import get_db, engine
 from Backend.funciones import validar_dni, validar_ruc
 
 router = APIRouter()

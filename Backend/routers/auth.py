@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from requests import Session
 
 from Backend.JWT.authenticate import authenticate_user, create_token
-from Backend.database import get_db
+from Backend.conexion_db import get_db
 
 router = APIRouter()
 
