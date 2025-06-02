@@ -3,9 +3,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
-from conexion_db import get_db
+from db.conexion_db import get_db
 import bcrypt
-import models
+import db.models as models
 
 SECRET_KEY = "clave_secreta"
 ALGORITHM = "HS256"

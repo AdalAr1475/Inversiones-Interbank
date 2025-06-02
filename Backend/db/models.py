@@ -3,7 +3,7 @@ from sqlalchemy import (
     ForeignKey, CheckConstraint, UniqueConstraint, func
 )
 from sqlalchemy.orm import relationship
-from conexion_db import Base
+from db.conexion_db import Base
 
 class Usuario(Base):
     __tablename__ = "usuarios"
