@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Column, Integer, String, Text, Numeric, Date, DateTime,
-    ForeignKey, CheckConstraint, UniqueConstraint, func
+    ForeignKey, CheckConstraint, Boolean, func
 )
 from sqlalchemy.orm import relationship
 from db.conexion_db import Base
@@ -128,6 +128,39 @@ class FirmaElectronica(Base):
     usuario = relationship("Usuario", back_populates="firmas")
     inversor = relationship("Inversor", back_populates="firmas")
 
+class CuentaStripe(Base):
+    __tablename__ = "cuentas_stripe"
+
+    id = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), unique=True)
+    stripe_account_id = Column(String(255), nullable=True)  # ej. acct_1xxxxxxx, Nullable solo por mientras
+    tipo = Column(String(20), nullable=False)  # 'standard' | 'express' | 'custom'
+    activa = Column(Boolean, default=True)
+
+    usuario = relationship("Usuario")
+
+class Wallet(Base):
+    __tablename__ = "wallets"
+
+    id = Column(Integer, primary_key=True)
+    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), unique=True)
+    saldo = Column(Numeric(12, 2), default=0.00)
+    actualizado_en = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    inversor = relationship("Inversor")
+
+class RecargaWallet(Base):
+    __tablename__ = "recargas_wallet"
+
+    id = Column(Integer, primary_key=True)
+    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), nullable=False)
+    stripe_payment_intent = Column(String(255), nullable=True)  # ID del PaymentIntent de Stripe, por mientras opcional
+    monto = Column(Numeric(12, 2), nullable=False)
+    estado = Column(String(20), default="pendiente")  # exitoso | fallido | pendiente
+    fecha_recarga = Column(DateTime(timezone=True), server_default=func.now())
+
+    inversor = relationship("Inversor")
+
 
 class PagoStripe(Base):
     __tablename__ = "pagos_stripe"
@@ -138,6 +171,8 @@ class PagoStripe(Base):
     monto = Column(Numeric(12, 2))
     estado = Column(String(20))
     fecha_pago = Column(DateTime(timezone=True), server_default=func.now())
+    # Dentro de PagoStripe:
+    via_wallet = Column(Boolean, default=False)  # True si fue descontado del saldo wallet
 
     __table_args__ = (
         CheckConstraint(
