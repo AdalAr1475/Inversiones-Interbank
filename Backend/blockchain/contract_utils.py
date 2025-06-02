@@ -1,7 +1,8 @@
 import json
 import os
-from .web3_config import web3, account_address, private_key
+#from .web3_config import web3, account_address, private_key
 
+"""
 contract_abi = json.loads("""
 [
   {
@@ -20,7 +21,6 @@ contract_abi = json.loads("""
   }
 ]
 """)
-
 contract_address = web3.to_checksum_address(os.getenv("CONTRACT_ADDRESS"))
 contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
@@ -41,3 +41,4 @@ def sign_document(document_hash: str):
 def is_signed(document_hash: str) -> bool:
     doc_hash_bytes = bytes.fromhex(document_hash[2:])
     return contract.functions.signedDocuments(doc_hash_bytes).call()
+"""

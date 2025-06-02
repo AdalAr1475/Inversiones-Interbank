@@ -11,7 +11,7 @@ SECRET_KEY = "clave_secreta"
 ALGORITHM = "HS256"
 
 # Definimos el modelo de datos para la autenticación
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 # Funciones para manejar la autenticación y autorización de usuarios
 

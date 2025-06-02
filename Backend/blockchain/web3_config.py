@@ -10,8 +10,9 @@ PRIVATE_KEY = os.getenv("PRIVATE_KEY")
 
 assert WEB3_PROVIDER and ACCOUNT_ADDRESS and PRIVATE_KEY, "Faltan variables de entorno"
 
-web3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER))
-assert web3.is_connected(), "No se pudo conectar a Web3"
+#web3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER))
+#print("Conexión a nodo Web3:", web3.is_connected())
+#assert web3.is_connected(), "No se pudo conectar a Web3"
 
-account_address = web3.to_checksum_address(ACCOUNT_ADDRESS)
-private_key = PRIVATE_KEY
+#account_address = web3.to_checksum_address(ACCOUNT_ADDRESS)
+#private_key = PRIVATE_KEY
