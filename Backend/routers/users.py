@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import db.models as models
-from jwt.authenticate import check_admin, get_current_user, get_hashed_password
+from config_token.authenticate import check_admin, get_current_user, get_hashed_password
 from db.conexion_db import get_db, engine
 from funciones import validar_dni, validar_ruc
 

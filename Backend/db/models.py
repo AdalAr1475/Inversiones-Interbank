@@ -1,9 +1,11 @@
 from sqlalchemy import (
     Column, Integer, String, Text, Numeric, Date, DateTime,
-    ForeignKey, CheckConstraint, UniqueConstraint, func
+    ForeignKey, CheckConstraint, func
 )
 from sqlalchemy.orm import relationship
-from db.conexion_db import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 class Usuario(Base):
     __tablename__ = "usuarios"

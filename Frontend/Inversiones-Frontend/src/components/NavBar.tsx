@@ -1,9 +1,11 @@
-import { Link , useLocation } from "react-router-dom";
-import { useState , useEffect } from "react";
+import { Link , useLocation} from "react-router-dom";
+import { useState , useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const NavBar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation(); // Hook para detectar cambios de ruta
+  const { logout } = useContext(AuthContext);
 
   const handleToggle = (section: string) => {
     // Si el dropdown que clickeaste ya está abierto, ciérralo
@@ -19,6 +21,11 @@ const NavBar = () => {
     // Cuando cambia la ruta, cerramos cualquier menú abierto
     setOpenDropdown(null);
   }, [location.pathname]);
+
+  // Función para cerrar sesión
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <nav className="bg-[#a32d42] fixed top-0 left-0 w-full z-50 shadow-md py-3">
@@ -85,6 +92,14 @@ const NavBar = () => {
               </div>
             )}
           </div>
+
+          {/* Botón Cerrar sesión */}
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+          >
+            Cerrar sesión
+          </button>
 
         </div>
       </div>
