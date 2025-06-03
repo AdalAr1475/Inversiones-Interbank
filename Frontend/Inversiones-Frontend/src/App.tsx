@@ -21,9 +21,9 @@ const App = () => {
       <Route 
         path="/dashboard"
         element={
-          <LoginRoute>
-            <Layout />
-          </LoginRoute>
+        <LoginRoute>
+          <Layout />
+        </LoginRoute>
         }
       >
         <Route index element={<Prueba />} />

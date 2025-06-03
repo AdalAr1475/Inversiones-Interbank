@@ -49,7 +49,7 @@ def authenticate_user(db: Session, email: str, password_textplano: str):
 def create_token(datos: dict, time_expire: timedelta = None):
     datos_copia = datos.copy()
     now = datetime.now(timezone.utc)
-    expire = now + (time_expire or timedelta(minutes=10))
+    expire = now + (time_expire or timedelta(minutes=30))
     datos_copia.update({"exp": int(expire.timestamp())})
     token = jwt.encode(datos_copia, key=SECRET_KEY, algorithm=ALGORITHM)
     return token
