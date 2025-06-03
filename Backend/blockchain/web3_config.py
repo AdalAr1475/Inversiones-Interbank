@@ -4,15 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-WEB3_PROVIDER = os.getenv("WEB3_PROVIDER")
-ACCOUNT_ADDRESS = os.getenv("ACCOUNT_ADDRESS")
-PRIVATE_KEY = os.getenv("PRIVATE_KEY")
-
-assert WEB3_PROVIDER and ACCOUNT_ADDRESS and PRIVATE_KEY, "Faltan variables de entorno"
-
-#web3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER))
-#print("Conexión a nodo Web3:", web3.is_connected())
-#assert web3.is_connected(), "No se pudo conectar a Web3"
-
-#account_address = web3.to_checksum_address(ACCOUNT_ADDRESS)
-#private_key = PRIVATE_KEY
+web3 = Web3(Web3.HTTPProvider("http://127.0.0.1:8545"))  # Nodo local
+print("Conexión a nodo Web3:", web3.is_connected())
+account_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"  # Dirección Hardhat
+private_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"  # Clave privada correspondiente (usa con precaución solo localmente)

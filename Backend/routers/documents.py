@@ -1,8 +1,8 @@
 import hashlib
 from fastapi import APIRouter, UploadFile, File
-#from blockchain.contract_utils import sign_document, is_signed
+from blockchain.contract_utils import sign_document, is_signed
 from fastapi import APIRouter
-"""
+
 router = APIRouter()
 
 def hash_document(file_bytes):
@@ -21,4 +21,3 @@ async def verify(file: UploadFile = File(...)):
     doc_hash = hash_document(contents)
     signed = is_signed(doc_hash)
     return {"hash": doc_hash, "signed": signed}
-"""
