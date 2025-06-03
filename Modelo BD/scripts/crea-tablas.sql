@@ -5,6 +5,7 @@ CREATE TABLE Usuarios (
   nombre VARCHAR(255) NOT NULL,
   password_hash TEXT NOT NULL,
   tipo_usuario VARCHAR(20) CHECK (tipo_usuario IN ('empresa', 'inversor', 'admin')) NOT NULL,
+  wallet_address TEXT,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -39,6 +40,16 @@ CREATE TABLE Proyectos_inversion (
   estado VARCHAR(20) CHECK (estado IN ('abierto', 'cerrado', 'cancelado')) DEFAULT 'abierto'
 );
 
+DROP TABLE IF EXISTS Documentos_proyecto CASCADE;
+CREATE TABLE Documentos_proyecto (
+  id SERIAL PRIMARY KEY,
+  proyecto_id INTEGER REFERENCES Proyectos_inversion(id) ON DELETE CASCADE,
+  nombre VARCHAR(255),
+  descripcion TEXT,
+  url TEXT,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 DROP TABLE IF EXISTS Inversiones CASCADE;
 CREATE TABLE Inversiones (
   id SERIAL PRIMARY KEY,
@@ -62,10 +73,12 @@ CREATE TABLE Mensajes (
 DROP TABLE IF EXISTS Firmas_electronicas CASCADE;
 CREATE TABLE Firmas_electronicas (
   id SERIAL PRIMARY KEY,
-  inversion_id INTEGER REFERENCES inversiones(id) ON DELETE CASCADE,
-  usuario_id INTEGER REFERENCES usuarios(id),
+  usuario_id INTEGER REFERENCES Usuarios(id),
+  documento_id INTEGER REFERENCES Documentos_proyecto(id) ON DELETE CASCADE,
   firmado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  hash_firma TEXT
+  document_hash TEXT,
+  tx_hash TEXT,
+  tipo_documento VARCHAR(50) -- contrato, acuerdo, etc.
 );
 
 DROP TABLE IF EXISTS Pagos_stripe CASCADE;
