@@ -3,6 +3,8 @@ import { useContext } from "react";
 import Layout from "./layout/Layout";
 import Prueba from "./pages/Prueba";
 import Login from "./pages/Login";
+import Usuarios from "./pages/Usuarios";
+import LoginRoute from "./components/LoginRouter";
 import { AuthContext } from "./context/AuthContext";
 
 const App = () => {
@@ -13,24 +15,31 @@ const App = () => {
 
       <Route
         path="/login"
-        element={token ? <Navigate to="/home" replace /> : <Login />}
+        element={token ? <Navigate to="/dashboard" replace /> : <Login />}
       />
 
       <Route 
-        path="/home"
-        element={token ? <Layout /> : <Navigate to="/login" replace />}
+        path="/dashboard"
+        element={
+          <LoginRoute>
+            <Layout />
+          </LoginRoute>
+        }
       >
         <Route index element={<Prueba />} />
-        {/* Aquí puedes agregar más rutas principales si es necesario }
+        <Route path="usuarios" element={<Usuarios />} />
+        {/* Aquí puedes agregar más rutas principales si es necesario
         <Route path="programar-servicio" element={<ProgramarServicio />} />
         */}
       </Route>
-
-      <Route
-        path="*"
-        element={<Navigate to = {token ? "/home" : "/login"} replace />}
-      />
       
+    <Route
+      path="*"
+      element={
+        token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+      }
+    />
+    
     </Routes>
   );
 };

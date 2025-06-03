@@ -36,7 +36,7 @@ models.Base.metadata.create_all(bind=engine)
 db_dependency = Annotated[Session, Depends(get_db)]
 
 # Crear un nuevo inversor, se necesita permisos de admin
-@router.post("/inversor", response_model=None, tags=["Admin"], dependencies=[Depends(check_admin)])
+@router.post("/create-inversor", response_model=None, tags=["Autenticación"])
 async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -77,7 +77,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
     )
 
 # Crear una nueva empresa, se necesita logearse con una permisos de admin
-@router.post("/empresa", tags=["Admin"], dependencies=[Depends(check_admin)])
+@router.post("/create-empresa", tags=["Autenticación"])
 async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -129,7 +129,7 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
 # Crear un nuevo admin, este eddponit no tiene autenticación para que puedan crear un correo y contraseña para logearte.
 # Una vez que ya crearon uno poner al costado de tags=["admin"] -> dependencies=[Depends(check_admin)]
-@router.post("/admin", tags=["Admin"])
+@router.post("/create-admin", tags=["Admin"])
 async def create_admin(db: db_dependency, user: Usuario):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -161,7 +161,7 @@ async def create_admin(db: db_dependency, user: Usuario):
     )
 
 # Consulta de los usuarios en la base de datos, con logearse con cualquier cuenta (inversor, empresa, admin) funciona
-@router.get("/usuarios", dependencies=[Depends(get_current_user)], tags=["Autenticación"])
+@router.get("/get-usuarios", dependencies=[Depends(check_admin)], tags=["Autenticación"])
 async def get_usuarios(db: db_dependency):
     db_usuarios = db.query(models.Usuario).all()
 

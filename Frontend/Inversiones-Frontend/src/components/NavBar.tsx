@@ -1,4 +1,4 @@
-import { Link , useLocation} from "react-router-dom";
+import { Link , useLocation, useNavigate } from "react-router-dom";
 import { useState , useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
@@ -6,6 +6,7 @@ const NavBar = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const location = useLocation(); // Hook para detectar cambios de ruta
   const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleToggle = (section: string) => {
     // Si el dropdown que clickeaste ya está abierto, ciérralo
@@ -25,6 +26,11 @@ const NavBar = () => {
   // Función para cerrar sesión
   const handleLogout = () => {
     logout();
+  };
+
+  //
+  const handleUsuariosClick = () => {
+    navigate("/dashboard/usuarios");
   };
 
   return (
@@ -99,6 +105,13 @@ const NavBar = () => {
             className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
           >
             Cerrar sesión
+          </button>
+
+          <button 
+            onClick={handleUsuariosClick} 
+            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+          >
+            Usuarios
           </button>
 
         </div>

@@ -1,16 +1,13 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "@/context/AuthContext";
 import "./Login.css";
 
 function LoginPage() {
-  const { setToken } = useContext(AuthContext)
+  const { login } = useContext(AuthContext)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [loading, SetLoading] = useState(false)
-
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
 
   const validarForm = () => {
     if (!email || !password) {
@@ -22,43 +19,20 @@ function LoginPage() {
   }
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!validarForm()) return
-    SetLoading(true)
+    e.preventDefault();
+    if (!validarForm()) return;
 
-    const formData = new URLSearchParams()
-    formData.append("username", email)
-    formData.append("password", password)
-
+    setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/auth/token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formData.toString(),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.detail || "Autenticación Fallida!")
-      }
-
-      const data = await response.json()
-      setToken(data.access_token)
-      navigate("/home")
-
-
+      await login(email, password);
+      // El navigate se hace dentro del login en el contexto
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Un error ha ocurrido. Por favor intentelo más tarde.");
-      }
+      if (err instanceof Error) setError(err.message);
+      else setError("Un error ha ocurrido. Por favor intentelo más tarde.");
     } finally {
-      SetLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="contenedor">
