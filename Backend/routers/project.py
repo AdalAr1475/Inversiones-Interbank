@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.conexion_db import get_db
 from db.models import ProyectoInversion, Empresa
-
-router = APIRouter()
+from config_token.authenticate import get_current_user
+router = APIRouter(dependencies= [Depends(get_current_user)], tags=["Projects"])
 
 # ----------- Pydantic Schemas -----------
 from pydantic import BaseModel
@@ -20,7 +20,7 @@ class ProyectoCreate(BaseModel):
     fecha_fin: date
 
 # ----------- Endpoints -----------
-@router.post("/", tags=["Projects"])
+@router.post("/")
 def crear_proyecto(data: ProyectoCreate, db: Session = Depends(get_db)):
     # Verificar que la empresa exista
     empresa = db.query(Empresa).filter_by(id=data.empresa_id).first()

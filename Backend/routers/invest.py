@@ -8,9 +8,9 @@ from decimal import Decimal
 from pydantic import BaseModel
 from decimal import Decimal
 
-from sqlalchemy import func
+from  config_token.authenticate import get_current_user
 
-router = APIRouter()
+router = APIRouter(dependencies= [Depends(get_current_user)], tags=["Investment"])
 
 
 # ----------- Pydantic Schemas -----------
@@ -21,7 +21,7 @@ class InversionRequest(BaseModel):
 
 
 # ----------- Endpoints -----------
-@router.post("/invertir", tags=["Investment"])
+@router.post("/invertir")
 def invertir_en_proyecto(data: InversionRequest, db: Session = Depends(get_db)):
     # 1. Verificar existencia del proyecto
     proyecto = db.query(ProyectoInversion).filter_by(id=data.proyecto_id, estado="abierto").first()
@@ -53,9 +53,6 @@ def invertir_en_proyecto(data: InversionRequest, db: Session = Depends(get_db)):
 
     # 5. Actualizar el Wallet del inversor
     wallet_inversor.saldo -= data.monto
-
-    
-    
 
     db.add(nueva_inversion)
     db.add(wallet_inversor)

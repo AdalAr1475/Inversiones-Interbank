@@ -5,9 +5,9 @@ from db.models import Inversor, Wallet, RecargaWallet
 from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
+from config_token.authenticate import get_current_user
 
-
-router = APIRouter()
+router = APIRouter(dependencies= [Depends(get_current_user)], tags=["Payment"])
 
 # ----------- Pydantic Schemas -----------
 class RecargaRequest(BaseModel):
@@ -16,7 +16,7 @@ class RecargaRequest(BaseModel):
 
 # ----------- Endpoints -----------
 
-@router.post("/recargar-wallet/", tags=["Payment"])
+@router.post("/recargar-wallet/")
 def recargar_wallet(data: RecargaRequest, db: Session = Depends(get_db)):
     # Verificar que el inversor existe
     inversor = db.query(Inversor).filter_by(id=data.inversor_id).first()
@@ -44,14 +44,14 @@ def recargar_wallet(data: RecargaRequest, db: Session = Depends(get_db)):
 
     return {"mensaje": "Recarga registrada", "nuevo_saldo": str(wallet.saldo)}
 
-@router.get("/wallet/{inversor_id}", tags=["Payment"])
+@router.get("/wallet/{inversor_id}")
 def obtener_saldo(inversor_id: int, db: Session = Depends(get_db)):
     wallet = db.query(Wallet).filter_by(inversor_id=inversor_id).first()
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet no encontrada")
     return {"inversor_id": inversor_id, "saldo": str(wallet.saldo)}
 
-@router.get("/recargas/{inversor_id}", tags=["Payment"])
+@router.get("/recargas/{inversor_id}")
 def obtener_recargas(inversor_id: int, db: Session = Depends(get_db)):
     recargas = db.query(RecargaWallet).filter_by(inversor_id=inversor_id).all()
     return [
