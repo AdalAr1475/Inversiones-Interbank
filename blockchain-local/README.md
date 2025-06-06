@@ -1,13 +1,19 @@
-# Sample Hardhat Project
+# Instrucciones para uso:
+- Este módulo permite desplegar un contrato y utilizar los servicios de firma y verificación del backend. No es necesario hacer cambios en el código mientras el contrato permanzca igual. Considerar que debe realizar esto cada vez que apague el servicio (este levanta un entorno temporal, por lo que los contratos desplegados son volátiles).
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
-
-Try running some of the following tasks:
-
+1. Abra dos terminales en paralelo para este módulo. En VSC, abra un terminal y seleccione la cruz (+), arriba a la derecha, para abrir una segunda terminal.
+2. En la primera terminal, para levantar el servicio escriba: 
+   
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
 npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
+```
+3. En la segunda terminal, para desplegar el contrato escriba: 
+   
+```shell
+npx hardhat run scripts/deploy.js --network localhost
+```
+4. Regrese al backend y reinicie de ser necesario con: 
+   
+```shell
+uvicorn main:app --reload
 ```
