@@ -52,57 +52,7 @@ export default function EnsignaLanding() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-green-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-green-800">Ensigna</span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <a
-                href="#como-funciona"
-                className="text-gray-600 hover:text-green-600 transition-colors"
-              >
-                Cómo Funciona
-              </a>
-              <a
-                href="#oportunidades"
-                className="text-gray-600 hover:text-green-600 transition-colors"
-              >
-                Oportunidades
-              </a>
-              <a
-                href="#testimonios"
-                className="text-gray-600 hover:text-green-600 transition-colors"
-              >
-                Testimonios
-              </a>
-              <a
-                href="#contacto"
-                className="text-gray-600 hover:text-green-600 transition-colors"
-              >
-                Contacto
-              </a>
-            </nav>
-            <div className="flex items-center space-x-4">
-              <Link href="/auth/login">
-                <Button variant="ghost" className="text-green-600 hover:text-green-700">
-                  Iniciar Sesión
-                </Button>
-              </Link>
-              <Link href="/auth/register">
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
-                  Registrarse
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-green-50 to-white py-20 lg:py-16">
@@ -113,7 +63,7 @@ export default function EnsignaLanding() {
                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                   🤝 Conectamos Empresas e Inversores
                 </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 className="text-4xl font-primary lg:text-6xl font-bold text-gray-900 leading-tight">
                   La plataforma que
                   <span className="text-green-600"> conecta</span> oportunidades
                 </h1>
@@ -421,13 +371,15 @@ export default function EnsignaLanding() {
           </div>
 
           <div className="text-center mt-12">
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-50"
-            >
-              Ver Todas las Oportunidades
-            </Button>
+            <Link href="/oportunidades">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-50"
+              >
+                Ver Todas las Oportunidades
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
