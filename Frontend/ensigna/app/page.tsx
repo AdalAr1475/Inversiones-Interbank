@@ -1,3 +1,4 @@
+"use client"
 import {
   ArrowRight,
   Building2,
@@ -14,8 +15,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
+import { useEffect } from "react"
+// Importamos useEffect para el efecto de scrolling suave
 
 export default function EnsignaLanding() {
+  // Añadir efecto de desplazamiento suave cuando se hace clic en los enlaces de navegación
+  useEffect(() => {
+    // Función para manejar el desplazamiento suave
+    const handleSmoothScroll = (e: MouseEvent) => {
+      const target = e.target as HTMLAnchorElement
+
+      // Verificar si el elemento es un enlace interno con ancla (#)
+      if (target.tagName === "A" && target.getAttribute("href")?.startsWith("#")) {
+        e.preventDefault()
+        const id = target.getAttribute("href")?.substring(1)
+        const element = document.getElementById(id as string)
+
+        if (element) {
+          // Realizar desplazamiento suave
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          })
+        }
+      }
+    }
+
+    // Agregar evento a todos los enlaces
+    document.addEventListener("click", handleSmoothScroll)
+
+    // Limpiar el evento cuando el componente se desmonte
+    return () => {
+      document.removeEventListener("click", handleSmoothScroll)
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -29,16 +63,28 @@ export default function EnsignaLanding() {
               <span className="text-2xl font-bold text-green-800">Ensigna</span>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <a href="#como-funciona" className="text-gray-600 hover:text-green-600 transition-colors">
+              <a
+                href="#como-funciona"
+                className="text-gray-600 hover:text-green-600 transition-colors"
+              >
                 Cómo Funciona
               </a>
-              <a href="#oportunidades" className="text-gray-600 hover:text-green-600 transition-colors">
+              <a
+                href="#oportunidades"
+                className="text-gray-600 hover:text-green-600 transition-colors"
+              >
                 Oportunidades
               </a>
-              <a href="#testimonios" className="text-gray-600 hover:text-green-600 transition-colors">
+              <a
+                href="#testimonios"
+                className="text-gray-600 hover:text-green-600 transition-colors"
+              >
                 Testimonios
               </a>
-              <a href="#contacto" className="text-gray-600 hover:text-green-600 transition-colors">
+              <a
+                href="#contacto"
+                className="text-gray-600 hover:text-green-600 transition-colors"
+              >
                 Contacto
               </a>
             </nav>
@@ -49,7 +95,9 @@ export default function EnsignaLanding() {
                 </Button>
               </Link>
               <Link href="/auth/register">
-                <Button className="bg-green-600 hover:bg-green-700 text-white">Registrarse</Button>
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  Registrarse
+                </Button>
               </Link>
             </div>
           </div>
@@ -57,7 +105,7 @@ export default function EnsignaLanding() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-green-50 to-white py-20 lg:py-32">
+      <section className="relative bg-gradient-to-br from-green-50 to-white py-20 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
@@ -70,8 +118,9 @@ export default function EnsignaLanding() {
                   <span className="text-green-600"> conecta</span> oportunidades
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Ensigna facilita la inversión entre empresas y conecta startups con inversores individuales. Encuentra
-                  financiamiento o descubre las mejores oportunidades de inversión.
+                  Ensigna facilita la inversión entre empresas y conecta startups con inversores
+                  individuales. Encuentra financiamiento o descubre las mejores oportunidades de
+                  inversión.
                 </p>
               </div>
 
@@ -81,7 +130,9 @@ export default function EnsignaLanding() {
                   <TabsTrigger value="empresa">Busco Inversión</TabsTrigger>
                 </TabsList>
                 <TabsContent value="inversor" className="space-y-4">
-                  <p className="text-gray-600">Descubre empresas prometedoras y diversifica tu portafolio</p>
+                  <p className="text-gray-600">
+                    Descubre empresas prometedoras y diversifica tu portafolio
+                  </p> 
                   <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
                     Explorar Oportunidades
                     <ArrowRight className="ml-2 w-5 h-5" />
@@ -119,7 +170,7 @@ export default function EnsignaLanding() {
                     <Badge className="bg-green-100 text-green-800">Activas</Badge>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-green-100 duration-150 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                           <Building2 className="w-4 h-4 text-white" />
@@ -131,7 +182,7 @@ export default function EnsignaLanding() {
                       </div>
                       <div className="text-green-600 font-semibold">85% financiado</div>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center hover:bg-green-100 cursor-pointer duration-150 justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
                           <Briefcase className="w-4 h-4 text-white" />
@@ -143,7 +194,7 @@ export default function EnsignaLanding() {
                       </div>
                       <div className="text-green-600 font-semibold">62% financiado</div>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center hover:bg-green-100 cursor-pointer duration-150 justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center">
                           <TrendingUp className="w-4 h-4 text-white" />
@@ -221,7 +272,9 @@ export default function EnsignaLanding() {
                       <PieChart className="w-8 h-8 text-green-600" />
                     </div>
                     <CardTitle className="text-green-800">1. Explora Oportunidades</CardTitle>
-                    <CardDescription>Descubre empresas que buscan inversión en diferentes sectores</CardDescription>
+                    <CardDescription>
+                      Descubre empresas que buscan inversión en diferentes sectores
+                    </CardDescription>
                   </CardHeader>
                 </Card>
 
@@ -241,7 +294,9 @@ export default function EnsignaLanding() {
                       <DollarSign className="w-8 h-8 text-green-600" />
                     </div>
                     <CardTitle className="text-green-800">3. Invierte y Monitorea</CardTitle>
-                    <CardDescription>Realiza tu inversión y sigue el progreso desde tu dashboard</CardDescription>
+                    <CardDescription>
+                      Realiza tu inversión y sigue el progreso desde tu dashboard
+                    </CardDescription>
                   </CardHeader>
                 </Card>
               </div>
@@ -287,7 +342,9 @@ export default function EnsignaLanding() {
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-green-600 h-2 rounded-full" style={{ width: "85%" }}></div>
                   </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Ver Detalles
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -320,7 +377,9 @@ export default function EnsignaLanding() {
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-green-600 h-2 rounded-full" style={{ width: "62%" }}></div>
                   </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Ver Detalles
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -353,14 +412,20 @@ export default function EnsignaLanding() {
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-green-600 h-2 rounded-full" style={{ width: "43%" }}></div>
                   </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Ver Detalles
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
           <div className="text-center mt-12">
-            <Button size="lg" variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
               Ver Todas las Oportunidades
             </Button>
           </div>
@@ -404,8 +469,9 @@ export default function EnsignaLanding() {
                   <Badge className="bg-blue-100 text-blue-800">Empresa</Badge>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  "Gracias a Ensigna conseguimos el financiamiento que necesitábamos para expandir nuestro negocio. El
-                  proceso fue transparente y encontramos inversores que realmente creen en nuestro proyecto."
+                  &ldquo;Gracias a Ensigna conseguimos el financiamiento que necesitábamos para expandir nuestro
+                  negocio. El proceso fue transparente y encontramos inversores que realmente creen en nuestro
+                  proyecto.&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -425,9 +491,9 @@ export default function EnsignaLanding() {
                   <Badge className="bg-green-100 text-green-800">Inversor</Badge>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  "Como inversor, Ensigna me ha permitido diversificar mi portafolio invirtiendo en startups
-                  prometedoras. La plataforma es segura y me da toda la información que necesito para tomar decisiones
-                  informadas."
+                  &ldquo;Como inversor, Ensigna me ha permitido diversificar mi portafolio invirtiendo en startups
+                  prometedoras. La plataforma es segura y me da toda la información que necesito para tomar
+                  decisiones informadas.&rdquo;
                 </p>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">
@@ -448,18 +514,20 @@ export default function EnsignaLanding() {
       <section className="py-20 bg-gradient-to-r from-green-600 to-green-700">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white">¿Listo para conectar con oportunidades?</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-white">
+              ¿Listo para conectar con oportunidades?
+            </h2>
             <p className="text-xl text-green-100">
               Únete a la comunidad de empresas e inversores que están construyendo el futuro
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100">
+              <Button size="lg" className="bg-white text-green-600 border cursor-pointer border-white  hover:bg-transparent hover:text-white">
                 Soy Inversor
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-green-600"
+                className="border-white cursor-pointer text-white bg-transparent hover:bg-white hover:text-green-600"
               >
                 Busco Inversión
               </Button>
@@ -490,17 +558,26 @@ export default function EnsignaLanding() {
               <h3 className="font-semibold mb-4">Para Empresas</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Publicar Oportunidad
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Dashboard Empresa
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Recursos
                   </a>
                 </li>
@@ -510,17 +587,26 @@ export default function EnsignaLanding() {
               <h3 className="font-semibold mb-4">Para Inversores</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Explorar Oportunidades
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Dashboard Inversor
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Análisis de Mercado
                   </a>
                 </li>
@@ -530,17 +616,26 @@ export default function EnsignaLanding() {
               <h3 className="font-semibold mb-4">Soporte</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Centro de Ayuda
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Contacto
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-green-400 transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-green-400 transition-colors"
+                  >
                     Términos y Condiciones
                   </a>
                 </li>
