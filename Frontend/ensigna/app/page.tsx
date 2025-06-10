@@ -10,6 +10,8 @@ import {
   Briefcase,
   PieChart,
 } from "lucide-react"
+import Header from "@/components/header";
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -52,7 +54,7 @@ export default function EnsignaLanding() {
 
   return (
     <div className="min-h-screen bg-white">
-      
+      <Header/>
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-green-50 to-white py-20 lg:py-16">
