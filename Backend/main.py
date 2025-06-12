@@ -1,6 +1,10 @@
 from fastapi import FastAPI
+<<<<<<< HEAD
 from routers import crear_usuarios
 from routers import auth, documents, payment, invest, project
+=======
+from routers import auth, stripe_webhook, users, documents, stripe_logic, project
+>>>>>>> 59fbbdc27cabe7b6559c924f5beb1d57590a7628
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -25,6 +29,6 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth")
 app.include_router(crear_usuarios.router, prefix="/users")
 app.include_router(documents.router, prefix="/documents", tags=["documents"])
-app.include_router(payment.router, prefix="/payment")
-app.include_router(invest.router, prefix="/invest")
 app.include_router(project.router, prefix="/project")
+app.include_router(stripe_logic.router, prefix="/stripe")
+app.include_router(stripe_webhook.router)
