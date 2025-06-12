@@ -1,10 +1,5 @@
 from fastapi import FastAPI
-<<<<<<< HEAD
-from routers import crear_usuarios
-from routers import auth, documents, payment, invest, project
-=======
-from routers import auth, stripe_webhook, users, documents, stripe_logic, project
->>>>>>> 59fbbdc27cabe7b6559c924f5beb1d57590a7628
+from routers import auth, stripe_webhook, crear_usuarios, documents, stripe_logic, project, payment, invest
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
