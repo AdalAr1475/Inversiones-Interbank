@@ -1,0 +1,27 @@
+"use client"; // Importante: marca esto como cliente
+
+import { createContext, useContext, useState } from "react";
+
+type SidebarContextType = {
+  collapsed: boolean;
+  setCollapsed: (value: boolean) => void;
+};
+
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+
+export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
+  const [collapsed, setCollapsed] = useState(false);
+  return (
+    <SidebarContext.Provider value={{ collapsed, setCollapsed }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+};
+
+export const useSidebar = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useSidebar debe usarse dentro de SidebarProvider");
+  }
+  return context;
+};

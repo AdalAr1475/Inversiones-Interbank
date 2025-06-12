@@ -101,12 +101,12 @@ export default function Header() {    const pathname = usePathname();
               ) : (
                 <>
                   <Link href="/auth/login">
-                    <Button variant="ghost" className="text-green-600 hover:text-green-700">
+                    <Button variant="ghost" className="text-green-600 shadow cursor-pointer hover:text-green-700">
                       Iniciar Sesión
                     </Button>
                   </Link>
                   <Link href="/auth/register">
-                    <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    <Button className="bg-green-600 hover:bg-green-700 shadow cursor-pointer text-white">
                       Registrarse
                     </Button>
                   </Link>

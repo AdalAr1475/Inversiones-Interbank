@@ -11,7 +11,10 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-
+import HeaderLat from "@/components/header-lat"
+import { useSidebar } from "@/context/SidebarContext";
+import DialogComponent from "@/components/dialog"
+import { useDialog } from "@/context/DialogContext"
 // Datos de ejemplo para las oportunidades de inversión (igual que en page.tsx)
 const proyectosData = [
   {
@@ -126,8 +129,14 @@ export default function ProyectoDetallePage() {
     return <Building2 className="w-8 h-8 text-white" />
   }
   
+  const {collapsed} = useSidebar();
+  const {setOpen} = useDialog();
   return (
-    <div className="min-h-screen bg-white">
+    
+    <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
+      <HeaderLat />
+      <DialogComponent />
+      {/* Encabezado del proyecto */}
       <div className="bg-green-50 py-10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6">
@@ -478,8 +487,8 @@ export default function ProyectoDetallePage() {
                     <span className="font-medium">${proyecto.minInversion}</span>
                   </div>
                 </div>
-                
-                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white">
+
+                <Button onClick={() => setOpen(true)} size="lg" className="w-full bg-green-600 cursor-pointer hover:bg-green-700 text-white">
                   Invertir ahora
                 </Button>
                 

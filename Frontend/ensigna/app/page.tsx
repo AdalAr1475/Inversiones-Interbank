@@ -11,7 +11,7 @@ import {
   PieChart,
 } from "lucide-react"
 import Header from "@/components/header";
-
+import CardInvest from "@/components/card-invest";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -266,110 +266,31 @@ export default function EnsignaLanding() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="border-green-100 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-blue-100 text-blue-800">Tecnología</Badge>
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    85% financiado
-                  </Badge>
-                </div>
-                <CardTitle className="text-green-800">TechStart AI</CardTitle>
-                <CardDescription>Plataforma de IA para automatización empresarial</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Objetivo:</span>
-                    <span className="font-semibold">$500,000</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Recaudado:</span>
-                    <span className="font-semibold text-green-600">$425,000</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Inversores:</span>
-                    <span className="font-semibold">23</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: "85%" }}></div>
-                  </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                    Ver Detalles
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-green-100 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-green-100 text-green-800">Sostenibilidad</Badge>
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    62% financiado
-                  </Badge>
-                </div>
-                <CardTitle className="text-green-800">EcoSolutions</CardTitle>
-                <CardDescription>Soluciones de energía renovable para empresas</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Objetivo:</span>
-                    <span className="font-semibold">$1,000,000</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Recaudado:</span>
-                    <span className="font-semibold text-green-600">$620,000</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Inversores:</span>
-                    <span className="font-semibold">31</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: "62%" }}></div>
-                  </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                    Ver Detalles
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-green-100 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-purple-100 text-purple-800">Fintech</Badge>
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    43% financiado
-                  </Badge>
-                </div>
-                <CardTitle className="text-green-800">FinanceFlow</CardTitle>
-                <CardDescription>Gestión financiera para pequeñas empresas</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Objetivo:</span>
-                    <span className="font-semibold">$750,000</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Recaudado:</span>
-                    <span className="font-semibold text-green-600">$322,500</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Inversores:</span>
-                    <span className="font-semibold">18</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: "43%" }}></div>
-                  </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                    Ver Detalles
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CardInvest
+              category="Tecnología"
+              title="TechStart AI"
+              description="Plataforma de IA para automatización empresarial"
+              goal={500000}
+              raised={425000}
+              investors={23}
+            />
+            <CardInvest
+              category="Sostenibilidad"
+              title="EcoSolutions"
+              description="Soluciones de energía renovable para empresas"
+              goal={1000000}
+              raised={620000}
+              investors={31}
+            />
+            <CardInvest
+              category="Fintech"
+              title="FinanceFlow"
+              description="Gestión financiera para pequeñas empresas"
+              goal={750000}
+              raised={322500}
+              investors={18}
+            />
+            
           </div>
 
           <div className="text-center mt-12">
@@ -377,7 +298,7 @@ export default function EnsignaLanding() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-green-600 text-green-600 hover:bg-green-50"
+                className="border-green-600 cursor-pointer text-green-600 hover:text-green-600 hover:shadow-md"
               >
                 Ver Todas las Oportunidades
               </Button>

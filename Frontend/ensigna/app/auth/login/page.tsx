@@ -9,11 +9,15 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { useState } from "react"
+import { redirect } from "next/navigation"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [userType, setUserType] = useState("inversor")
+  const handleLogin = () => {
 
+    userType === "inversor" ? redirect("/dashboard/inversor") : redirect("/dashboard/empresa")
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
@@ -160,7 +164,7 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-11">
+              <Button onClick={handleLogin} className="w-full cursor-pointer bg-green-600 hover:bg-green-700 text-white h-11">
                 Iniciar Sesión
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

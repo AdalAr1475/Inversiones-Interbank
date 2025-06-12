@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import HeaderLat from "@/components/header-lat";
+import Link from "next/link"
 
 export default function DashboardInversor() {
   return (
@@ -13,6 +14,7 @@ export default function DashboardInversor() {
       <div className="ml-56 transition-all duration-300">
         {/* Main Content */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard del Inversor</h1>
             <p className="text-gray-600">Gestiona tus inversiones y descubre nuevas oportunidades</p>
@@ -147,6 +149,9 @@ export default function DashboardInversor() {
                     </div>
                   </div>
                 </CardContent>
+                <Link href="/dashboard/inversor/inversiones" className="text-sm mx-auto text-center hover:text-green-700 duration-150 text-green-600">
+                  Ver Detalles de Inversiones
+                </Link>
               </Card>
             </TabsContent>
 

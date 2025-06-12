@@ -1,5 +1,6 @@
 
-
+import { SidebarProvider } from "@/context/SidebarContext"; // Ajusta el path si es necesario
+import { DialogProvider } from "@/context/DialogContext";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -24,8 +25,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-primary`}
       >
-       
-        {children}
+       <SidebarProvider>
+        <DialogProvider>
+          {children}
+        </DialogProvider>
+       </SidebarProvider>
+        
       </body>
     </html>
   );

@@ -7,8 +7,10 @@ app = FastAPI()
 #Tratar de separar los endpoints de todos los módulos en otros archivos, dentro de la carpeta routers
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://localhost:3000"
 ]
+
 
 app.add_middleware(
     CORSMiddleware,
