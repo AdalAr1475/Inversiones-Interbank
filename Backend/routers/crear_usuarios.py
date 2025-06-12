@@ -5,27 +5,32 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 import db.models as models
-from config_token.authenticate import check_admin, get_current_user, get_hashed_password
+from config_token.authenticate import get_hashed_password
 from db.conexion_db import get_db, engine
 from funciones import validar_dni, validar_ruc
 
 router = APIRouter()
 
-class Usuario(BaseModel):
-    nombre: str
+class UsuarioCreateInversor(BaseModel):
     email: str
-
-class UsuarioCreateInversor(Usuario):
     password: str
+    nombre_inversor: str
+    apellido_inversor: str
+    dni: str
+    telefono: str
+    experiencia: str
     dni: str
     pais: str
 
-class UsuarioCreateEmpresa(Usuario):
+class UsuarioCreateEmpresa(BaseModel):
+    email: str
     password: str
+    nombre_empresa: str
     ruc: str
     descripcion: str
     sector: str
     pais: str
+    ubicacion: str
 
 class Usuario(BaseModel):
     nombre: str
@@ -35,8 +40,8 @@ class Usuario(BaseModel):
 models.Base.metadata.create_all(bind=engine)
 db_dependency = Annotated[Session, Depends(get_db)]
 
-# Crear un nuevo inversor, se necesita permisos de admin
-@router.post("/create-inversor", response_model=None, tags=["Autenticación"])
+# Crear un nuevo inversor
+@router.post("/create-inversor", tags=["auth"])
 async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -50,7 +55,6 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     new_usuario = models.Usuario(
         email = user.email,
-        nombre = user.nombre,
         password_hash = password_hash,
         tipo_usuario = "inversor"
     )
@@ -60,7 +64,11 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
 
     new_inversor = models.Inversor(
         usuario_id = new_usuario.id,
+        nombre_inversor = user.nombre_inversor,
+        apellido_inversor = user.apellido_inversor,
         dni = user.dni,
+        telefono = user.telefono,
+        experiencia = user.experiencia,
         pais = user.pais
     )
 
@@ -77,7 +85,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
     )
 
 # Crear una nueva empresa, se necesita logearse con una permisos de admin
-@router.post("/create-empresa", tags=["Autenticación"])
+@router.post("/create-empresa", tags=["auth"])
 async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
@@ -88,18 +96,19 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
     if empresa_existente:
         raise HTTPException(status_code=400, detail="El ruc ya se encuentra registrado")
     
-    usuario_existente = db.query(models.Usuario).filter(models.Usuario.nombre==user.nombre).first()
+    usuario_existente = db.query(models.Empresa).filter(models.Empresa.nombre_empresa==user.nombre_empresa).first()
     if usuario_existente:
         raise HTTPException(status_code=400, detail="El nombre ingresado ya se encuentra registrado")
     
+    """
     if not validar_ruc(user.ruc):
         raise HTTPException(status_code=400, detail="Ingresar un ruc valido")
+    """
 
     password_hash = get_hashed_password(user.password)
 
     new_usuario = models.Usuario(
         email=user.email,
-        nombre=user.nombre,
         password_hash=password_hash,
         tipo_usuario="empresa"
     )
@@ -109,9 +118,11 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
 
     new_empresa = models.Empresa(
         usuario_id=new_usuario.id,
+        nombre_empresa=user.nombre_empresa,
         ruc=user.ruc,
         descripcion=user.descripcion,
         sector=user.sector,
+        ubicacion=user.ubicacion,
         pais=user.pais
     )
 
@@ -127,41 +138,8 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
         }
     )
 
-# Crear un nuevo admin, este eddponit no tiene autenticación para que puedan crear un correo y contraseña para logearte.
-# Una vez que ya crearon uno poner al costado de tags=["admin"] -> dependencies=[Depends(check_admin)]
-@router.post("/create-admin", tags=["Admin"])
-async def create_admin(db: db_dependency, user: Usuario):
-
-    usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
-    if usuario_existente:
-        raise HTTPException(status_code=400, detail="El email ya está registrado")
-    
-    usuario_existente = db.query(models.Usuario).filter(models.Usuario.nombre == user.nombre).first()
-    if usuario_existente:
-        raise HTTPException(status_code=400, detail="El nombre ingresado ya esta en uso")
-
-    password_hash = get_hashed_password(user.password)
-
-    new_usuario = models.Usuario(
-        email=user.email,
-        nombre=user.nombre,
-        password_hash=password_hash,
-        tipo_usuario="admin"
-    )
-
-    db.add(new_usuario)
-    db.commit()
-    db.refresh(new_usuario)
-
-    return JSONResponse(
-        status_code=201,
-        content={
-            "message": "La cuenta admin se creo correctamente"
-        }
-    )
-
 # Consulta de los usuarios en la base de datos, con logearse con cualquier cuenta (inversor, empresa, admin) funciona
-@router.get("/get-usuarios", dependencies=[Depends(check_admin)], tags=["Autenticación"])
+@router.get("/get-usuarios", tags=["auth"])
 async def get_usuarios(db: db_dependency):
     db_usuarios = db.query(models.Usuario).all()
 
@@ -169,8 +147,11 @@ async def get_usuarios(db: db_dependency):
     for user in db_usuarios:
         response.append({
             "id": user.id,
-            "nombre": user.nombre,
-            "email": user.email
+            "nombre": db.query(models.Inversor).filter(models.Inversor.usuario_id == user.id).first().nombre_inversor if user.tipo_usuario == "inversor" else db.query(models.Empresa).filter(models.Empresa.usuario_id == user.id).first().nombre_empresa,
+            "email": user.email,
+            "tipo_usuario": user.tipo_usuario,
+            "password_hash": user.password_hash
+            
         })
 
     return JSONResponse(status_code=200,content=response)

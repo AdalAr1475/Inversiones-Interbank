@@ -20,7 +20,7 @@ export default function PerfilPage() {
       postRecarga({
         inversor_id: 2,
         monto: monto,
-      })
+      }, "")
       console.log("Holaaa");
       setMonto(0);
     } else {
@@ -31,6 +31,7 @@ export default function PerfilPage() {
   };
 
   return (
+    
     <SidebarProvider>
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex">
         <HeaderLat />

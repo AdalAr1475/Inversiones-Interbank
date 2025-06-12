@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Column, Integer, String, Text, Numeric, Date, DateTime,
+    TIMESTAMP, Column, Integer, String, Text, Numeric, Date, DateTime,
     ForeignKey, CheckConstraint, Boolean, func
 )
 from sqlalchemy.orm import relationship
@@ -10,38 +10,40 @@ Base = declarative_base()
 class Usuario(Base):
     __tablename__ = "usuarios"
  
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=False)
-    nombre = Column(String(255), nullable=False)
     password_hash = Column(Text, nullable=False)
     tipo_usuario = Column(String(20), nullable=False)
-    creado_en = Column(DateTime(timezone=True), server_default=func.now())
+    wallet_address = Column(Text)
+    creado_en = Column(TIMESTAMP, server_default=func.current_timestamp()) 
 
     __table_args__ = (
         CheckConstraint(
-            tipo_usuario.in_(['empresa', 'inversor','admin']),
+            tipo_usuario.in_(['empresa', 'inversor']),
             name="ck_tipo_usuario_valid"
         ),
     )
 
-    empresa = relationship("Empresa", back_populates="usuario", cascade="all, delete-orphan", uselist=False)
-    inversor = relationship("Inversor", back_populates="usuario", cascade="all, delete-orphan", uselist=False)
-    mensajes_remitente = relationship("Mensaje", back_populates="remitente", foreign_keys="Mensaje.remitente_id")
-    mensajes_destinatario = relationship("Mensaje", back_populates="destinatario", foreign_keys="Mensaje.destinatario_id")
+    empresas = relationship("Empresa", back_populates="usuario", cascade="all, delete")
+    inversores = relationship("Inversor", back_populates="usuario", cascade="all, delete")
+    mensajes_remitentes = relationship("Mensaje", foreign_keys="[Mensaje.remitente_id]", back_populates="remitente")
+    mensajes_destinatarios = relationship("Mensaje", foreign_keys="[Mensaje.destinatario_id]", back_populates="destinatario")
     firmas = relationship("FirmaElectronica", back_populates="usuario")
 
 
 class Empresa(Base):
     __tablename__ = "empresas"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
+    nombre_empresa = Column(String(255), nullable=False)
     ruc = Column(String(20), unique=True, nullable=False)
     descripcion = Column(Text)
-    sector = Column(String(100))
+    sector = Column(String(20), nullable=False)
+    ubicacion = Column(String(100), nullable=True)
     pais = Column(String(100))
 
-    usuario = relationship("Usuario", back_populates="empresa")
+    usuario = relationship("Usuario", back_populates="empresas")
     proyectos = relationship("ProyectoInversion", back_populates="empresa", cascade="all, delete-orphan")
 
 
@@ -50,10 +52,14 @@ class Inversor(Base):
 
     id = Column(Integer, primary_key=True)
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
+    nombre_inversor = Column(String(255), nullable=False)
+    apellido_inversor = Column(String(255), nullable=False)
     dni = Column(String(8))
+    telefono = Column(String(20))
+    experiencia = Column(String(20))
     pais = Column(String(100))
 
-    usuario = relationship("Usuario", back_populates="inversor")
+    usuario = relationship("Usuario", back_populates="inversores")
     inversiones = relationship("Inversion", back_populates="inversor", cascade="all, delete-orphan")
     firmas = relationship("FirmaElectronica", back_populates="inversor")
 
@@ -114,8 +120,8 @@ class Mensaje(Base):
     mensaje = Column(Text, nullable=False)
     enviado_en = Column(DateTime(timezone=True), server_default=func.now())
 
-    remitente = relationship("Usuario", foreign_keys=[remitente_id], back_populates="mensajes_remitente")
-    destinatario = relationship("Usuario", foreign_keys=[destinatario_id], back_populates="mensajes_destinatario")
+    remitente = relationship("Usuario", foreign_keys=[remitente_id], back_populates="mensajes_remitentes")
+    destinatario = relationship("Usuario", foreign_keys=[destinatario_id], back_populates="mensajes_destinatarios")
 
 
 class FirmaElectronica(Base):

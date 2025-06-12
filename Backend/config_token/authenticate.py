@@ -8,7 +8,7 @@ from db.conexion_db import get_db
 import bcrypt
 import db.models as models
 
-SECRET_KEY = "clave_secreta"
+SECRET_KEY = "MI_CLAVE_SECRETA"
 ALGORITHM = "HS256"
 
 # Definimos el modelo de datos para la autenticación
@@ -49,7 +49,7 @@ def authenticate_user(db: Session, email: str, password_textplano: str):
 def create_token(datos: dict, time_expire: timedelta = None):
     datos_copia = datos.copy()
     now = datetime.now(timezone.utc)
-    expire = now + (time_expire or timedelta(minutes=30))
+    expire = now + (time_expire or timedelta(minutes=1))
     datos_copia.update({"exp": int(expire.timestamp())})
     token = jwt.encode(datos_copia, key=SECRET_KEY, algorithm=ALGORITHM)
     return token
@@ -105,9 +105,15 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-# Función para autenticar a la cuenta admin
-def check_admin(user: models.Usuario = Depends(get_current_user)):
-    if user.tipo_usuario != "admin":
+# Funcion para autenticar a la cuenta inversor
+def check_inversor(user: models.Usuario = Depends(get_current_user)):
+    if user.tipo_usuario != "inversor":
+        raise HTTPException(status_code=403, detail="No tienes permisos suficientes")
+    return user
+
+# Funcion para autenticar a la cuenta empresa
+def check_empresa(user: models.Usuario = Depends(get_current_user)):
+    if user.tipo_usuario != "empresa":
         raise HTTPException(status_code=403, detail="No tienes permisos suficientes")
     return user
     

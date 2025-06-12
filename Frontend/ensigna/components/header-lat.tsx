@@ -2,8 +2,17 @@
 import { Menu, Home, User, BarChart2, LogOut, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useSidebar } from "@/context/SidebarContext";
+import { useRouter } from "next/navigation";
+
 export default function HeaderLat() {
   const {collapsed, setCollapsed} = useSidebar();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push("/");
+  };
+
   return (
     <aside className={`h-screen bg-green-100 border-r border-green-100 fixed top-0 left-0 z-40 transition-all duration-300 ${collapsed ? 'w-16' : 'w-56'}`}> 
       <div className="flex items-center justify-between px-4 py-4 border-b border-green-100">
@@ -32,10 +41,13 @@ export default function HeaderLat() {
           <User className="w-5 h-5" />
           <span className={`${collapsed ? 'hidden' : 'block'}`}>Perfil</span>
         </Link>
-        <Link href="#" className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors mt-8">
+        <button
+          onClick={handleLogout} // Llama a la función de logout
+          className="flex items-center gap-3 px-4 py-2 hover:bg-green-50 transition-colors mt-8"
+        >
           <LogOut className="w-5 h-5" />
           <span className={`${collapsed ? 'hidden' : 'block'}`}>Cerrar sesión</span>
-        </Link>
+        </button>
       </nav>
     </aside>
   );
