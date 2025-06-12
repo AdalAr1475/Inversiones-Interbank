@@ -4,7 +4,7 @@ import os
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from blockchain.contract_utils import sign_document, is_signed
 from db.conexion_db import get_db
-from utils.documents_utils import registrar_documento
+import utils.documents_utils as doc_utils
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi import APIRouter
@@ -62,11 +62,12 @@ class RegistrarDocumentoRequest(BaseModel):
     nombre: str
     descripcion: str
     contenido_base64: str
+    visibilidad: str = "privado"  # público | privado
 
 @router.post("/registrar-documento")
-def registrar_documento_endpoint(data: RegistrarDocumentoRequest):
+def registrar_documento(data: RegistrarDocumentoRequest):
     try:
-        documento_id = registrar_documento(
+        documento_id = doc_utils.registrar_documento(
             proyecto_id=data.proyecto_id,
             nombre=data.nombre,
             descripcion=data.descripcion,
@@ -90,3 +91,8 @@ def obtener_documento(documento_id: int):
         return FileResponse(path=result[0], filename=os.path.basename(result[0]), media_type='application/octet-stream')
     else:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
+    
+
+@router.get("/documentos/{proyecto_id}")
+def listar_documentos(proyecto_id: int):
+    return doc_utils.listar_documentos(proyecto_id)

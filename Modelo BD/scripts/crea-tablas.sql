@@ -52,7 +52,8 @@ CREATE TABLE Documentos_proyecto (
   nombre VARCHAR(255),
   descripcion TEXT,
   url TEXT,
-  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  visibilidad VARCHAR(10) CHECK (visibilidad IN ('público', 'privado')) DEFAULT 'privado'
 );
 
 DROP TABLE IF EXISTS Inversiones CASCADE;

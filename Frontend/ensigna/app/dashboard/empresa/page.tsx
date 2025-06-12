@@ -8,14 +8,83 @@ import {
   Plus,
   Eye,
   MessageSquare,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import HeaderLat from "@/components/header-lat"
-import ProtectedRoute from "@/components/ProtectedRoute"
+} from "lucide-react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import HeaderLat from "@/components/header-lat";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useEffect, useRef, useState } from "react";
+
+//Interfaces
+interface DocumentoProyecto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  url: string;
+  visibilidad: "público" | "privado";
+  creadoEn: string;
+  firmado: boolean;
+}
+
+//Hooks
+const [proyectoId, setProyectoId] = useState<number>(1); // Simulando un ID de proyecto
+const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
+
+const fileInputRef = useRef<HTMLInputElement | null>(null);
+const [uploading, setUploading] = useState(false);
+const [fileName, setFileName] = useState("");
+
+const handleUploadClick = () => {
+  if (fileInputRef.current) {
+    fileInputRef.current.click(); // abre el explorador de archivos
+  }
+};
+
+const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  setUploading(true);
+  setFileName(file.name);
+
+  const reader = new FileReader();
+  reader.onloadend = async () => {
+    const base64 = (reader.result as string).split(",")[1];
+
+    await axios.post("/api/registrar-documento", {
+      proyecto_id: proyectoId,
+      nombre: file.name,
+      descripcion: "Documento subido desde UI", // podrías añadir input para esto
+      contenido_base64: base64,
+      visibilidad: "privado", // o público según el caso
+    });
+
+    // Actualiza lista de documentos
+    const res = await axios.get(`/api/documentos/${proyectoId}`);
+    setDocumentos(res.data);
+    setFileName("");
+    setUploading(false);
+  };
+
+  reader.readAsDataURL(file);
+};
+
+useEffect(() => {
+  // Aquí podrías consumir una API que traiga los documentos
+  fetch("/api/documentos-empresa") // Ejemplo
+    .then((res) => res.json())
+    .then((data) => setDocumentos(data));
+}, []);
 
 export default function DashboardEmpresa() {
   return (
@@ -27,19 +96,27 @@ export default function DashboardEmpresa() {
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard de Empresa</h1>
-              <p className="text-gray-600">Gestiona tu campaña de financiamiento y conecta con inversores</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Dashboard de Empresa
+              </h1>
+              <p className="text-gray-600">
+                Gestiona tu campaña de financiamiento y conecta con inversores
+              </p>
             </div>
 
             {/* Stats Cards */}
             <div className="grid md:grid-cols-4 gap-6 mb-8">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Recaudado</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Total Recaudado
+                  </CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">$425,000</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    $425,000
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-600 flex items-center">
                       <ArrowUpRight className="w-3 h-3 mr-1" />
@@ -52,34 +129,46 @@ export default function DashboardEmpresa() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Inversores</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Inversores
+                  </CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">23</div>
-                  <p className="text-xs text-muted-foreground">+3 esta semana</p>
+                  <p className="text-xs text-muted-foreground">
+                    +3 esta semana
+                  </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Días Restantes</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Días Restantes
+                  </CardTitle>
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">12</div>
-                  <p className="text-xs text-muted-foreground">de 60 días totales</p>
+                  <p className="text-xs text-muted-foreground">
+                    de 60 días totales
+                  </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Visualizaciones</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Visualizaciones
+                  </CardTitle>
                   <Eye className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">1,247</div>
-                  <p className="text-xs text-muted-foreground">+89 esta semana</p>
+                  <p className="text-xs text-muted-foreground">
+                    +89 esta semana
+                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -99,21 +188,32 @@ export default function DashboardEmpresa() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <CardTitle>Estado de la Campaña</CardTitle>
-                          <Badge className="bg-green-100 text-green-800">Activa</Badge>
+                          <Badge className="bg-green-100 text-green-800">
+                            Activa
+                          </Badge>
                         </div>
-                        <CardDescription>TechStart AI - Plataforma de IA para automatización empresarial</CardDescription>
+                        <CardDescription>
+                          TechStart AI - Plataforma de IA para automatización
+                          empresarial
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">Progreso del financiamiento</span>
-                            <span className="text-sm font-semibold">85% completado</span>
+                            <span className="text-sm text-gray-600">
+                              Progreso del financiamiento
+                            </span>
+                            <span className="text-sm font-semibold">
+                              85% completado
+                            </span>
                           </div>
                           <Progress value={85} className="w-full h-3" />
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="text-gray-600">Recaudado:</span>
-                              <div className="font-semibold text-green-600">$425,000</div>
+                              <div className="font-semibold text-green-600">
+                                $425,000
+                              </div>
                             </div>
                             <div>
                               <span className="text-gray-600">Objetivo:</span>
@@ -135,8 +235,12 @@ export default function DashboardEmpresa() {
                               <DollarSign className="w-4 h-4 text-white" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-sm font-medium">Nueva inversión de $25,000</p>
-                              <p className="text-xs text-gray-600">Roberto Silva • Hace 2 horas</p>
+                              <p className="text-sm font-medium">
+                                Nueva inversión de $25,000
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                Roberto Silva • Hace 2 horas
+                              </p>
                             </div>
                           </div>
 
@@ -145,8 +249,12 @@ export default function DashboardEmpresa() {
                               <MessageSquare className="w-4 h-4 text-white" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-sm font-medium">Nuevo mensaje de inversor</p>
-                              <p className="text-xs text-gray-600">María González • Hace 5 horas</p>
+                              <p className="text-sm font-medium">
+                                Nuevo mensaje de inversor
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                María González • Hace 5 horas
+                              </p>
                             </div>
                           </div>
 
@@ -155,8 +263,12 @@ export default function DashboardEmpresa() {
                               <Eye className="w-4 h-4 text-white" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-sm font-medium">89 nuevas visualizaciones</p>
-                              <p className="text-xs text-gray-600">Esta semana</p>
+                              <p className="text-sm font-medium">
+                                89 nuevas visualizaciones
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                Esta semana
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -191,16 +303,24 @@ export default function DashboardEmpresa() {
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Tasa de conversión</span>
+                          <span className="text-sm text-gray-600">
+                            Tasa de conversión
+                          </span>
                           <span className="text-sm font-semibold">18.5%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Inversión promedio</span>
+                          <span className="text-sm text-gray-600">
+                            Inversión promedio
+                          </span>
                           <span className="text-sm font-semibold">$18,478</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Tiempo promedio</span>
-                          <span className="text-sm font-semibold">3.2 días</span>
+                          <span className="text-sm text-gray-600">
+                            Tiempo promedio
+                          </span>
+                          <span className="text-sm font-semibold">
+                            3.2 días
+                          </span>
                         </div>
                       </CardContent>
                     </Card>
@@ -212,7 +332,9 @@ export default function DashboardEmpresa() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Mis Inversores</CardTitle>
-                    <CardDescription>Lista de todos los inversores en tu campaña</CardDescription>
+                    <CardDescription>
+                      Lista de todos los inversores en tu campaña
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -223,11 +345,15 @@ export default function DashboardEmpresa() {
                           </div>
                           <div>
                             <h3 className="font-semibold">Roberto Silva</h3>
-                            <p className="text-sm text-gray-600">Inversor Ángel • Hace 2 horas</p>
+                            <p className="text-sm text-gray-600">
+                              Inversor Ángel • Hace 2 horas
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">$25,000</div>
+                          <div className="text-lg font-semibold text-green-600">
+                            $25,000
+                          </div>
                           <Button size="sm" variant="outline">
                             <MessageSquare className="w-4 h-4 mr-1" />
                             Mensaje
@@ -242,11 +368,15 @@ export default function DashboardEmpresa() {
                           </div>
                           <div>
                             <h3 className="font-semibold">María González</h3>
-                            <p className="text-sm text-gray-600">Empresaria • Hace 1 día</p>
+                            <p className="text-sm text-gray-600">
+                              Empresaria • Hace 1 día
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">$15,000</div>
+                          <div className="text-lg font-semibold text-green-600">
+                            $15,000
+                          </div>
                           <Button size="sm" variant="outline">
                             <MessageSquare className="w-4 h-4 mr-1" />
                             Mensaje
@@ -261,11 +391,15 @@ export default function DashboardEmpresa() {
                           </div>
                           <div>
                             <h3 className="font-semibold">Carlos Rodríguez</h3>
-                            <p className="text-sm text-gray-600">Fondo de Inversión • Hace 3 días</p>
+                            <p className="text-sm text-gray-600">
+                              Fondo de Inversión • Hace 3 días
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">$50,000</div>
+                          <div className="text-lg font-semibold text-green-600">
+                            $50,000
+                          </div>
                           <Button size="sm" variant="outline">
                             <MessageSquare className="w-4 h-4 mr-1" />
                             Mensaje
@@ -281,7 +415,9 @@ export default function DashboardEmpresa() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Centro de Mensajes</CardTitle>
-                    <CardDescription>Comunicación con inversores actuales y potenciales</CardDescription>
+                    <CardDescription>
+                      Comunicación con inversores actuales y potenciales
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -293,13 +429,19 @@ export default function DashboardEmpresa() {
                             </div>
                             <span className="font-semibold">Roberto Silva</span>
                           </div>
-                          <span className="text-sm text-gray-600">Hace 2 horas</span>
+                          <span className="text-sm text-gray-600">
+                            Hace 2 horas
+                          </span>
                         </div>
                         <p className="text-gray-700">
-                          "Excelente propuesta. Me interesa mucho el enfoque de IA que están desarrollando. ¿Podrían
-                          enviarme más detalles sobre el roadmap técnico?"
+                          "Excelente propuesta. Me interesa mucho el enfoque de
+                          IA que están desarrollando. ¿Podrían enviarme más
+                          detalles sobre el roadmap técnico?"
                         </p>
-                        <Button size="sm" className="mt-3 bg-green-600 hover:bg-green-700 text-white">
+                        <Button
+                          size="sm"
+                          className="mt-3 bg-green-600 hover:bg-green-700 text-white"
+                        >
                           Responder
                         </Button>
                       </div>
@@ -310,15 +452,23 @@ export default function DashboardEmpresa() {
                             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                               M
                             </div>
-                            <span className="font-semibold">María González</span>
+                            <span className="font-semibold">
+                              María González
+                            </span>
                           </div>
-                          <span className="text-sm text-gray-600">Hace 5 horas</span>
+                          <span className="text-sm text-gray-600">
+                            Hace 5 horas
+                          </span>
                         </div>
                         <p className="text-gray-700">
-                          "¿Cuál es el plan de escalabilidad para los próximos 3 años? Me gustaría entender mejor cómo
-                          planean usar el financiamiento."
+                          "¿Cuál es el plan de escalabilidad para los próximos 3
+                          años? Me gustaría entender mejor cómo planean usar el
+                          financiamiento."
                         </p>
-                        <Button size="sm" className="mt-3 bg-green-600 hover:bg-green-700 text-white">
+                        <Button
+                          size="sm"
+                          className="mt-3 bg-green-600 hover:bg-green-700 text-white"
+                        >
                           Responder
                         </Button>
                       </div>
@@ -331,12 +481,18 @@ export default function DashboardEmpresa() {
                             </div>
                             <span className="font-semibold">Ana Martínez</span>
                           </div>
-                          <span className="text-sm text-gray-600">Hace 1 día</span>
+                          <span className="text-sm text-gray-600">
+                            Hace 1 día
+                          </span>
                         </div>
                         <p className="text-gray-700">
-                          "Felicitaciones por el progreso. ¿Tienen planes de expansión internacional?"
+                          "Felicitaciones por el progreso. ¿Tienen planes de
+                          expansión internacional?"
                         </p>
-                        <Button size="sm" className="mt-3 bg-green-600 hover:bg-green-700 text-white">
+                        <Button
+                          size="sm"
+                          className="mt-3 bg-green-600 hover:bg-green-700 text-white"
+                        >
                           Responder
                         </Button>
                       </div>
@@ -349,57 +505,77 @@ export default function DashboardEmpresa() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Documentos de la Campaña</CardTitle>
-                    <CardDescription>Gestiona todos los documentos relacionados con tu financiamiento</CardDescription>
+                    <CardDescription>
+                      Gestiona todos los documentos relacionados con tu
+                      financiamiento.
+                    </CardDescription>
                   </CardHeader>
+
                   <CardContent>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold">Plan de Negocio</h3>
-                            <p className="text-sm text-gray-600">Actualizado hace 2 días</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Público</Badge>
-                        </div>
-                      </div>
-
-                      <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold">Estados Financieros</h3>
-                            <p className="text-sm text-gray-600">Actualizado hace 1 semana</p>
-                          </div>
-                          <Badge variant="outline">Privado</Badge>
-                        </div>
-                      </div>
-
-                      <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold">Pitch Deck</h3>
-                            <p className="text-sm text-gray-600">Actualizado hace 3 días</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Público</Badge>
-                        </div>
-                      </div>
-
-                      <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold">Términos Legales</h3>
-                            <p className="text-sm text-gray-600">Actualizado hace 1 día</p>
-                          </div>
-                          <Badge variant="outline">Privado</Badge>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
-                      <Button className="bg-green-600 hover:bg-green-700 text-white">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Subir Documento
+                    {/* Subida de documento nuevo */}
+                    <div className="mb-6">
+                      <Button onClick={handleUploadClick} disabled={uploading}>
+                        {uploading ? "Subiendo..." : "Subir nuevo documento"}
                       </Button>
+
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleUpload}
+                        hidden
+                      />
+
+                      {fileName && !uploading && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          Archivo seleccionado: {fileName}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Lista de documentos */}
+                    {documentos.length === 0 && (
+                      <p className="text-sm text-gray-500">
+                        No hay documentos aún.
+                      </p>
+                    )}
+
+                    {documentos.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-4 border rounded-lg hover:bg-gray-50 transition-colors space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold">{doc.nombre}</h3>
+                            <p className="text-sm text-gray-600">
+                              {doc.descripcion}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Subido el{" "}
+                              {new Date(doc.creadoEn).toLocaleDateString()}
+                            </p>
+                          </div>
+
+                          <div className="text-right">
+                            <Badge
+                              className={`${
+                                doc.visibilidad === "público"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {doc.visibilidad ?? "privado"}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {!doc.firmado && (
+                          <Button variant="outline" size="sm" className="mt-2">
+                            🔐 Firmar digitalmente
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -408,5 +584,5 @@ export default function DashboardEmpresa() {
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }
