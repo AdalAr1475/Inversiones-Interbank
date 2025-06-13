@@ -75,7 +75,7 @@ def decode_token(token: str):
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
         payload = decode_token(token)
-        email = payload.get("sub")
+        email = payload.get("email")
         if email is None:
             raise HTTPException(
                 status_code=401,

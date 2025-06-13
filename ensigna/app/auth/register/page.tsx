@@ -5,17 +5,169 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { redirect } from "next/navigation"
+import { jwtDecode } from "jwt-decode"
 
 export default function RegisterPage() {
+
+  // Estados para los campos de inversor
+  const [nombreInversor, setNombreInversor] = useState("");
+  const [apellidoInversor, setApellidoInversor] = useState("");
+  const [dni, setDni] = useState("");
+  const [paisInversor, setPaisInversor] = useState("");
+  const [emailInversor, setEmailInversor] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [experiencia, setExperiencia] = useState("");
+  const [passwordInversor, setPasswordInversor] = useState("");
+  const [confirmPasswordInversor, setConfirmPasswordInversor] = useState("");
+
+  // Estados para los campos de empresa
+  const [nombreEmpresa, setNombreEmpresa] = useState("");
+  const [ruc, setRuc] = useState("");
+  const [sector, setSector] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [emailEmpresa, setEmailEmpresa] = useState("");
+  const [ubicacion, setUbicacion] = useState("");
+  const [paisEmpresa, setPaisEmpresa] = useState("");
+  const [passwordEmpresa, setPasswordEmpresa] = useState("");
+  const [confirmPasswordEmpresa, setConfirmPasswordEmpresa] = useState("");
+
+  const [userType, setUserType] = useState("inversor");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [userType, setUserType] = useState("inversor")
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+      id: number
+      sub: string
+      tipo_usuario: string
+      exp: number
+  }
+  
+  useEffect(() => {
+    if (token) {
+      // Si ya está logueado, redirigir al dashboard correspondiente
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      const currentTime = Date.now() / 1000;
+      
+      // Verificar si el token ha expirado
+      if (decodedToken.exp < currentTime) {
+        localStorage.removeItem("token");
+        return
+      }
+
+      if (decodedToken.tipo_usuario === "empresa") {
+        redirect("/dashboard/empresa")
+      } else if (decodedToken.tipo_usuario === "inversor") {
+        redirect("/dashboard/inversor")
+      }
+    }
+  });
+
+  // Función para registrar
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    // Validación de campos obligatorios
+    if (userType === "inversor") {
+      if (!nombreInversor || !apellidoInversor || !emailInversor || !telefono || !passwordInversor || !confirmPasswordInversor) {
+        setErrorMsg("Por favor, completa todos los campos requeridos");
+        return;
+      }
+    } else {
+      if (!nombreEmpresa || !ruc || !sector || !emailEmpresa || !ubicacion || !passwordEmpresa || !confirmPasswordEmpresa) {
+        setErrorMsg("Por favor, completa todos los campos requeridos");
+        return;
+      }
+    }
+
+    // Validación de contraseñas
+    if (userType === "inversor" && passwordInversor !== confirmPasswordInversor) {
+      setErrorMsg("Las contraseñas no coinciden");
+      return;
+    } else if (userType === "empresa" && passwordEmpresa !== confirmPasswordEmpresa) {
+      setErrorMsg("Las contraseñas no coinciden");
+      return;
+    }
+
+    try {
+      let url = "";
+      let body = {};
+
+      if (userType === "inversor") {
+        if (passwordInversor !== confirmPasswordInversor) {
+          setErrorMsg("Las contraseñas no coinciden");
+          return;
+        }
+        url = "http://localhost:8000/users/create-inversor";
+        body = {
+          nombre_inversor: nombreInversor,
+          apellido_inversor: apellidoInversor,
+          dni: dni,
+          pais: paisInversor,
+          email: emailInversor,
+          telefono: telefono,
+          experiencia: experiencia,
+          password: passwordInversor,
+        };
+      } else {
+        if (passwordEmpresa !== confirmPasswordEmpresa) {
+          setErrorMsg("Las contraseñas no coinciden");
+          return;
+        }
+        url = "http://localhost:8000/users/create-empresa";
+        body = {
+          nombre_empresa: nombreEmpresa,
+          ruc: ruc,
+          sector: sector,
+          descripcion: descripcion,
+          ubicacion: ubicacion,
+          pais: paisEmpresa,
+          email: emailEmpresa,
+          password: passwordEmpresa,
+        };
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMsg(data.detail || "Error al crear la cuenta");
+      } else {
+        setSuccessMsg(data.message || "Cuenta creada exitosamente");
+        // Limpiar campos o redirigir después de unos segundos
+        setTimeout(() => {
+          // Limpiar campos
+          setNombreInversor("");
+          setApellidoInversor("");
+          setEmailInversor("");
+          setTelefono("");
+          setPasswordInversor("");
+          setConfirmPasswordInversor("");
+          setUserType("inversor");
+
+          // Redirigir a login
+          window.location.href = "/auth/login"; // Cambia esta línea si usas un router
+        }, 2000); // Esperar 2 segundos antes de redirigir
+      }
+    } catch (error) {
+      setErrorMsg("Error de conexión con el servidor");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
@@ -86,6 +238,7 @@ export default function RegisterPage() {
               <CardDescription>Únete a la plataforma de inversiones</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+
               <Tabs value={userType} onValueChange={setUserType} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="inversor">Inversor</TabsTrigger>
@@ -100,6 +253,8 @@ export default function RegisterPage() {
                         <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
                           id="nombre"
+                          value = {nombreInversor}
+                          onChange={(e) => setNombreInversor(e.target.value)}
                           placeholder="Juan"
                           className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                         />
@@ -109,6 +264,8 @@ export default function RegisterPage() {
                       <Label htmlFor="apellido">Apellido</Label>
                       <Input
                         id="apellido"
+                        value={apellidoInversor}
+                        onChange={(e) => setApellidoInversor(e.target.value)}
                         placeholder="Pérez"
                         className="border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -122,6 +279,8 @@ export default function RegisterPage() {
                         <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
                           id="dni"
+                          value={dni}
+                          onChange={(e) => setDni(e.target.value)}
                           placeholder="12345678"
                           className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                         />
@@ -133,6 +292,8 @@ export default function RegisterPage() {
                         <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <Input
                           id="pais"
+                          value={paisInversor}
+                          onChange={(e) => setPaisInversor(e.target.value)}
                           placeholder="Perú"
                           className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                         />
@@ -147,6 +308,8 @@ export default function RegisterPage() {
                       <Input
                         id="email-inversor"
                         type="email"
+                        value={emailInversor}
+                        onChange={(e) => setEmailInversor(e.target.value)}
                         placeholder="juan@email.com"
                         className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -159,6 +322,8 @@ export default function RegisterPage() {
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="telefono"
+                        value={telefono}
+                        onChange={(e) => setTelefono(e.target.value)}
                         placeholder="+1 234 567 8900"
                         className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -167,7 +332,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="experiencia">Experiencia en Inversiones</Label>
-                    <Select>
+                    <Select value={experiencia} onValueChange={setExperiencia}>
                       <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500">
                         <SelectValue placeholder="Selecciona tu nivel" />
                       </SelectTrigger>
@@ -187,6 +352,8 @@ export default function RegisterPage() {
                       <Input
                         id="password-inversor"
                         type={showPassword ? "text" : "password"}
+                        value={passwordInversor}
+                        onChange={(e) => setPasswordInversor(e.target.value)}
                         placeholder="••••••••"
                         className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -207,6 +374,8 @@ export default function RegisterPage() {
                       <Input
                         id="confirm-password"
                         type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPasswordInversor}
+                        onChange={(e) => setConfirmPasswordInversor(e.target.value)}
                         placeholder="••••••••"
                         className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -228,6 +397,8 @@ export default function RegisterPage() {
                       <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="empresa-nombre"
+                        value={nombreEmpresa}
+                        onChange={(e) => setNombreEmpresa(e.target.value)}
                         placeholder="Mi Empresa S.A."
                         className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -240,6 +411,8 @@ export default function RegisterPage() {
                       <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="ruc"
+                        value={ruc}
+                        onChange={(e) => setRuc(e.target.value)}
                         placeholder="20123456789"
                         className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -248,7 +421,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="sector">Sector</Label>
-                    <Select>
+                    <Select value={sector} onValueChange={setSector}>
                       <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500">
                         <SelectValue placeholder="Selecciona el sector" />
                       </SelectTrigger>
@@ -270,6 +443,8 @@ export default function RegisterPage() {
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="email-empresa"
+                        value={emailEmpresa}
+                        onChange={(e) => setEmailEmpresa(e.target.value)}
                         type="email"
                         placeholder="contacto@empresa.com"
                         className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
@@ -283,6 +458,8 @@ export default function RegisterPage() {
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="ubicacion"
+                        value={ubicacion}
+                        onChange={(e) => setUbicacion(e.target.value)}
                         placeholder="Ciudad, País"
                         className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                       />
@@ -293,6 +470,8 @@ export default function RegisterPage() {
                     <Label htmlFor="descripcion">Descripción Breve</Label>
                     <Textarea
                       id="descripcion"
+                      value={descripcion}
+                      onChange={(e) => setDescripcion(e.target.value)}
                       placeholder="Describe brevemente tu empresa y lo que hace..."
                       className="border-green-200 focus:border-green-500 focus:ring-green-500 min-h-[80px]"
                     />
@@ -304,6 +483,8 @@ export default function RegisterPage() {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="password-empresa"
+                        value={passwordEmpresa}
+                        onChange={(e) => setPasswordEmpresa(e.target.value)}
                         type={showPassword ? "text" : "password"}
                         placeholder="••••••••"
                         className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
@@ -324,6 +505,8 @@ export default function RegisterPage() {
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
                         id="confirm-password-empresa"
+                        value={confirmPasswordEmpresa}
+                        onChange={(e) => setConfirmPasswordEmpresa(e.target.value)}
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
@@ -340,30 +523,18 @@ export default function RegisterPage() {
                 </TabsContent>
               </Tabs>
 
-              <div className="space-y-4">
-                <div className="flex items-start space-x-2">
-                  <Checkbox id="terms" className="border-green-300 data-[state=checked]:bg-green-600 mt-1" />
-                  <Label htmlFor="terms" className="text-sm text-gray-600 leading-relaxed">
-                    Acepto los{" "}
-                    <Link href="/terms" className="text-green-600 hover:text-green-700">
-                      términos y condiciones
-                    </Link>{" "}
-                    y la{" "}
-                    <Link href="/privacy" className="text-green-600 hover:text-green-700">
-                      política de privacidad
-                    </Link>
-                  </Label>
+              {errorMsg && (
+                <div className="text-red-600 text-sm font-semibold text-center mb-2">
+                  {errorMsg}
                 </div>
-
-                <div className="flex items-start space-x-2">
-                  <Checkbox id="newsletter" className="border-green-300 data-[state=checked]:bg-green-600 mt-1" />
-                  <Label htmlFor="newsletter" className="text-sm text-gray-600">
-                    Quiero recibir noticias y actualizaciones sobre oportunidades de inversión
-                  </Label>
+              )}
+              {successMsg && (
+                <div className="text-green-600 text-sm font-semibold text-center mb-2">
+                  {successMsg}
                 </div>
-              </div>
+              )}
 
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-11">
+              <Button type="submit" onClick={handleRegister} className="w-full bg-green-600 hover:bg-green-700 text-white h-11">
                 Crear Cuenta
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -375,44 +546,6 @@ export default function RegisterPage() {
                 </Link>
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">O regístrate con</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="border-green-200 hover:bg-green-50">
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      fill="#EA4335"
-                    />
-                  </svg>
-                  Google
-                </Button>
-                <Button variant="outline" className="border-green-200 hover:bg-green-50">
-                  <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                  </svg>
-                  Twitter
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowUpRight,
   Users,
@@ -36,57 +38,57 @@ interface DocumentoProyecto {
   firmado: boolean;
 }
 
-//Hooks
-const [proyectoId, setProyectoId] = useState<number>(1); // Simulando un ID de proyecto
-const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
+export default function DashboardEmpresa() {
+  
+  //Hooks
+  const [proyectoId, setProyectoId] = useState<number>(1); // Simulando un ID de proyecto
+  const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [fileName, setFileName] = useState("");
 
-const fileInputRef = useRef<HTMLInputElement | null>(null);
-const [uploading, setUploading] = useState(false);
-const [fileName, setFileName] = useState("");
-
-const handleUploadClick = () => {
-  if (fileInputRef.current) {
-    fileInputRef.current.click(); // abre el explorador de archivos
-  }
-};
-
-const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  setUploading(true);
-  setFileName(file.name);
-
-  const reader = new FileReader();
-  reader.onloadend = async () => {
-    const base64 = (reader.result as string).split(",")[1];
-
-    await axios.post("/api/registrar-documento", {
-      proyecto_id: proyectoId,
-      nombre: file.name,
-      descripcion: "Documento subido desde UI", // podrías añadir input para esto
-      contenido_base64: base64,
-      visibilidad: "privado", // o público según el caso
-    });
-
-    // Actualiza lista de documentos
-    const res = await axios.get(`/api/documentos/${proyectoId}`);
-    setDocumentos(res.data);
-    setFileName("");
-    setUploading(false);
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click(); // abre el explorador de archivos
+    }
   };
 
-  reader.readAsDataURL(file);
-};
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-useEffect(() => {
-  // Aquí podrías consumir una API que traiga los documentos
-  fetch("/api/documentos-empresa") // Ejemplo
-    .then((res) => res.json())
-    .then((data) => setDocumentos(data));
-}, []);
+    setUploading(true);
+    setFileName(file.name);
 
-export default function DashboardEmpresa() {
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+
+      await axios.post("/api/registrar-documento", {
+        proyecto_id: proyectoId,
+        nombre: file.name,
+        descripcion: "Documento subido desde UI", // podrías añadir input para esto
+        contenido_base64: base64,
+        visibilidad: "privado", // o público según el caso
+      });
+
+      // Actualiza lista de documentos
+      const res = await axios.get(`/api/documentos/${proyectoId}`);
+      setDocumentos(res.data);
+      setFileName("");
+      setUploading(false);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  useEffect(() => {
+    // Aquí podrías consumir una API que traiga los documentos
+    fetch("/api/documentos-empresa") // Ejemplo
+      .then((res) => res.json())
+      .then((data) => setDocumentos(data));
+  }, []);
+
   return (
     <ProtectedRoute requiredRole="empresa">
       <div className="min-h-screen bg-gray-50">

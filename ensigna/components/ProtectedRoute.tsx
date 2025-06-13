@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
 interface ProtectedRouteProps {
@@ -11,14 +11,12 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const router = useRouter();
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     if (!token) {
       // Si no hay token, redirige al login
-      router.push("/auth/login");
-      return;
+      redirect("/auth/login");
     }
 
     try {
@@ -36,21 +34,24 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       // Verificar si el token ha expirado
       if (decodedToken.exp < currentTime) {
         localStorage.removeItem("token");
-        router.push("/auth/login");
-        return;
+        redirect("/");
       }
 
       // Verificar si el rol del usuario coincide con el requerido
       if (decodedToken.tipo_usuario !== requiredRole) {
-        router.push("/auth/login");
-        return;
+        if (decodedToken.tipo_usuario == "empresa") {
+          redirect("/dashboard/empresa");
+        }
+        else {
+          redirect("/dashboard/inversor");
+        }
       }
 
     } catch (error) {
       console.error("Error decoding token", error);
-      router.push("/auth/login");
+      redirect("/");
     }
-  }, [token, requiredRole, router]);
+  }, [token, requiredRole]);
 
   return <>{children}</>;
 };

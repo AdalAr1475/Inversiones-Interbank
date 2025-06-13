@@ -5,21 +5,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { jwtDecode } from "jwt-decode"
 import { useEffect } from "react";
+import { redirect } from "next/navigation"
 
 export default function LoginPage() {
+  
   const [showPassword, setShowPassword] = useState(false)
   const [userType, setUserType] = useState("inversor")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const router = useRouter()
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   interface DecodedToken {
@@ -34,14 +34,15 @@ export default function LoginPage() {
       // Si ya está logueado, redirigir al dashboard correspondiente
       const decodedToken = jwtDecode<DecodedToken>(token);
       if (decodedToken.tipo_usuario === "empresa") {
-        router.push("/dashboard/empresa");
+        redirect("/dashboard/empresa")
       } else if (decodedToken.tipo_usuario === "inversor") {
-        router.push("/dashboard/inversor");
+        redirect("/dashboard/inversor")
       }
     }
-  }, [token, router]);
+  }, [token]);
 
   const handleLogin = async () => {
+    setErrorMsg(null)
     try {
       const formData = new URLSearchParams()
       formData.append("username", email)
@@ -55,30 +56,34 @@ export default function LoginPage() {
         body: formData.toString(),
       })
 
+      let data = null
+      try {
+        data = await response.json()
+      } catch {}
+
       if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        throw new Error(data?.detail || "Autenticación Fallida!")
+        setErrorMsg(data?.detail || "Autenticación Fallida!")
+        return
       }
 
-      const data = await response.json()
       const token = data.access_token
       const decodedToken = jwtDecode<DecodedToken>(token)
 
       if (decodedToken.tipo_usuario !== userType) {
-        alert("El tipo de cuenta no coincide con el tipo de usuario seleccionado.")
+        setErrorMsg("El tipo de cuenta no coincide con el tipo de usuario seleccionado.")
         return
       }
 
       localStorage.setItem("token", token)
 
       if (userType === "inversor") {
-        router.push("/dashboard/inversor")
+        redirect("/dashboard/inversor")
       } else if (userType === "empresa") {
-        router.push("/dashboard/empresa")
+        redirect("/dashboard/empresa")
       }
     
     } catch (error) {
-      console.error("Error al iniciar sesión:", error)
+      setErrorMsg("Email o contraseña incorrectos.")
     }
   }
   return (
@@ -222,12 +227,18 @@ export default function LoginPage() {
                   </div>
                 </TabsContent>
               </Tabs>
+              {/* Mensaje de error */}
+              {errorMsg && (
+                <div className="text-red-600 text-sm font-semibold text-center mb-2">
+                  {errorMsg}
+                </div>
+              )}
 
               <Button onClick={handleLogin} className="w-full cursor-pointer bg-green-600 hover:bg-green-700 text-white h-11">
                 Iniciar Sesión
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-
+              
               <div className="text-center text-sm text-gray-600">
                 ¿No tienes una cuenta?{" "}
                 <Link href="/auth/register" className="text-green-600 hover:text-green-700 font-semibold">
