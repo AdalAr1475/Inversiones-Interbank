@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from routers import (
-    auth, stripe_webhook, crear_usuarios,
+    auth, documents, stripe_webhook, crear_usuarios,
     stripe_logic, project, payment, invest,
     chat                 
 )
@@ -27,6 +27,7 @@ app.include_router(crear_usuarios.router, prefix="/users")
 app.include_router(project.router, prefix="/project")
 app.include_router(payment.router, prefix="/payment")
 app.include_router(stripe_logic.router, prefix="/stripe")
+app.include_router(documents.router, prefix="/documents")
 app.include_router(stripe_webhook.router)               
 
 app.include_router(invest.router, prefix="/invest")

@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import (
     TIMESTAMP, Column, Integer, String, Text, Numeric, Date, DateTime,
     ForeignKey, CheckConstraint, Boolean, func
@@ -95,8 +96,10 @@ class DocumentoProyecto(Base):
     nombre = Column(String)
     descripcion = Column(String)
     url = Column(String)
-    visibilidad = Column(String(20), nullable=False, server_default="privado")  # público | privado
-    creado_en = Column(DateTime)
+    contenido_base64 = Column(Text) # ¡NUEVA COLUMNA!
+    tipo_documento = Column(String(50), nullable=False)
+    visibilidad = Column(String(20), nullable=False, server_default="privado") # público | privado
+    creado_en = Column(DateTime, default=datetime.now()) # Mejor usar datetime.now() aquí
     proyecto_id = Column(Integer, ForeignKey("proyectos_inversion.id", ondelete="CASCADE"), nullable=False)
 
     firmas = relationship("FirmaElectronica", back_populates="documento")
@@ -105,7 +108,7 @@ class DocumentoProyecto(Base):
     __table_args__ = (
         CheckConstraint(
             visibilidad.in_(['privado', 'público']),
-            name="ck_estado_proyecto_valid"
+            name="ck_visibilidad_documento_valid" # Cambié el nombre del constraint para mayor claridad
         ),
     )
 
