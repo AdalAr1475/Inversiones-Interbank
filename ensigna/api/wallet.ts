@@ -20,7 +20,7 @@ export async function getWalletBalance(token: string, idUsuario: number): Promis
         });
 }
 
-export async function getRecargas(token: string, idUsuario: number): Promise<any[]> {
+export async function getRecargas(token: string, idUsuario: number): Promise<unknown[]> {
     return await axios.get(`${API_BASE_URL}/recargas/${idUsuario}`, {
         headers: {
             Authorization: `Bearer ${token}`,

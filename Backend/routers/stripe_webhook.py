@@ -11,7 +11,7 @@ from utils.db_wallet_utils import registrar_recarga, procesar_inversion
 dotenv.load_dotenv()
 DOTENV_VALUES = dotenv.dotenv_values()
 
-router = APIRouter()
+router = APIRouter(tags=["Webhook"])
 stripe.api_key = DOTENV_VALUES["STRIPE_SECRET_KEY"]
 WEBHOOK_SECRET = DOTENV_VALUES["WEB_HOOK_SECRET"]
 
@@ -59,10 +59,11 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
 
     elif event_type == "transfer.failed":
         transfer = event["data"]["object"]
-        logger.warning(f"⚠️ Transferencia fallida: {transfer['id']}")    
+        logger.warning(f"⚠️ Transferencia fallida: {transfer['id']}")
+        
     elif event_type == "transfer.created":
         transfer = event["data"]["object"]
-        logger.info(f"💸 Transferencia creada: {transfer['id']}")
+        logger.info(f"💸 Transferencia creada: {transfer['id']}\n")
 
         # Verificar si la transferencia está relacionada con una inversión
         if "metadata" in transfer and transfer["metadata"].get("tipo") == "inversion":
@@ -87,5 +88,10 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
                     raise HTTPException(status_code=500, detail="Error al procesar inversión")
             else:
                 logger.warning("⚠️ Metadata incompleta en el evento transfer.created")
+                
+    elif event_type == "payment.created":
+        payment = event["data"]["object"]
+        logger.info(f"💰 Pago creado: {payment['id']}")
+        # Este evento solo se logea, ya que el procesamiento real lo hacemos con transfer.created
 
     return {"status": "success"}

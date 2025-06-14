@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { 
   Building2, ArrowLeft,
   TrendingUp, Calendar, BarChart, 
-  FileText, Share2, CheckCircle, AlertTriangle, Loader2
+  FileText, Share2, CheckCircle, AlertTriangle, Loader2, MessageSquare
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,6 +17,7 @@ import DialogComponent from "@/components/dialog"
 import { getDetailsProyecto } from "@/api/proyectos"
 import { ProyectoType } from "@/types/proyecto"
 import InvestmentDialog from "@/components/investment-dialog"
+import ChatDialog from "@/components/chat-dialog"
 import { useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -27,6 +28,7 @@ export default function ProyectoDetallePage() {
   const [proyecto, setProyecto] = useState<ProyectoType | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showInvestDialog, setShowInvestDialog] = useState<boolean>(false);
+  const [showQuestionDialog, setShowQuestionDialog] = useState<boolean>(false);
   
   useEffect(() => {
     // Cargar los detalles del proyecto desde la API
@@ -537,6 +539,15 @@ export default function ProyectoDetallePage() {
                   ) : (
                     'Proyecto no disponible'
                   )}
+                </Button>                {/* Botón para chatear con la empresa */}
+                <Button 
+                  onClick={() => setShowQuestionDialog(true)} 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full mt-2 border-green-600 text-green-600 hover:bg-green-50 cursor-pointer transition-all duration-200 font-medium py-3 text-base"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Chatear con {proyecto.empresa}
                 </Button>
 
                 {/* Investment Dialog */}
@@ -548,7 +559,15 @@ export default function ProyectoDetallePage() {
                     onSuccess={handlePostInvestment}
                   />
                 )}
-                
+                  {/* Chat Dialog */}
+                {proyecto && (
+                  <ChatDialog
+                    open={showQuestionDialog}
+                    onOpenChange={setShowQuestionDialog}
+                    project={proyecto}
+                  />
+                )}
+
                 <div className="flex justify-center space-x-3">
                   <Button variant="outline" size="sm" className="text-gray-600">
                     <Share2 className="w-4 h-4 mr-1" />

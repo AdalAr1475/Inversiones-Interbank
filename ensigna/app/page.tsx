@@ -3,11 +3,9 @@ import {
   ArrowRight,
   Building2,
   Users,
-  TrendingUp,
   DollarSign,
   Target,
   CheckCircle,
-  Briefcase,
   PieChart,
 } from "lucide-react"
 import Header from "@/components/header";

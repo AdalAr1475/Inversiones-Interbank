@@ -6,7 +6,6 @@ import {
   DollarSign,
   Calendar,
   TrendingUp,
-  Building2,
   Plus,
   Eye,
   MessageSquare,
@@ -25,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HeaderLat from "@/components/header-lat";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ListaConversaciones from "@/components/lista-conversaciones";
 import { useEffect, useRef, useState } from "react";
 
 //Interfaces
@@ -418,96 +418,8 @@ export default function DashboardEmpresa() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              <TabsContent value="mensajes" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Centro de Mensajes</CardTitle>
-                    <CardDescription>
-                      Comunicación con inversores actuales y potenciales
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-4 border-l-4 border-green-500 bg-green-50 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                              R
-                            </div>
-                            <span className="font-semibold">Roberto Silva</span>
-                          </div>
-                          <span className="text-sm text-gray-600">
-                            Hace 2 horas
-                          </span>
-                        </div>
-                        <p className="text-gray-700">
-                          "Excelente propuesta. Me interesa mucho el enfoque de
-                          IA que están desarrollando. ¿Podrían enviarme más
-                          detalles sobre el roadmap técnico?"
-                        </p>
-                        <Button
-                          size="sm"
-                          className="mt-3 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Responder
-                        </Button>
-                      </div>
-
-                      <div className="p-4 border-l-4 border-blue-500 bg-blue-50 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                              M
-                            </div>
-                            <span className="font-semibold">
-                              María González
-                            </span>
-                          </div>
-                          <span className="text-sm text-gray-600">
-                            Hace 5 horas
-                          </span>
-                        </div>
-                        <p className="text-gray-700">
-                          "¿Cuál es el plan de escalabilidad para los próximos 3
-                          años? Me gustaría entender mejor cómo planean usar el
-                          financiamiento."
-                        </p>
-                        <Button
-                          size="sm"
-                          className="mt-3 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Responder
-                        </Button>
-                      </div>
-
-                      <div className="p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                              A
-                            </div>
-                            <span className="font-semibold">Ana Martínez</span>
-                          </div>
-                          <span className="text-sm text-gray-600">
-                            Hace 1 día
-                          </span>
-                        </div>
-                        <p className="text-gray-700">
-                          "Felicitaciones por el progreso. ¿Tienen planes de
-                          expansión internacional?"
-                        </p>
-                        <Button
-                          size="sm"
-                          className="mt-3 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          Responder
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              </TabsContent>              <TabsContent value="mensajes" className="space-y-6">
+                <ListaConversaciones />
               </TabsContent>
 
               <TabsContent value="documentos" className="space-y-6">
@@ -548,7 +460,8 @@ export default function DashboardEmpresa() {
                       </p>
                     )}
 
-                    {documentos.map((doc) => (
+                    {/* Arreglar esto de aca, dice que no conoce lo de documentos.map*/ }
+                    {/* {documentos.map((doc) => (
                       <div
                         key={doc.id}
                         className="p-4 border rounded-lg hover:bg-gray-50 transition-colors space-y-2"
@@ -584,7 +497,7 @@ export default function DashboardEmpresa() {
                           </Button>
                         )}
                       </div>
-                    ))}
+                    ))} */}
                   </CardContent>
                 </Card>
               </TabsContent>
