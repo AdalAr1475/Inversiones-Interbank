@@ -2,6 +2,16 @@ import axios from 'axios';
 import { ProyectoType, ProyectoInvertidoType } from '../types/proyecto';
 const API_BASE_URL = 'http://127.0.0.1:8000/project';
 
+export interface ProyectoResumen {
+    id: number;
+    categoria: string;
+    titulo: string;
+    descripcion: string;
+    meta: number;
+    recaudado: number;
+    inversores: number;
+}
+
 /*
     Endpoints
 */
@@ -27,6 +37,18 @@ export async function getProyectosInvertidos(usuarioId: number, token: string): 
         .then(res => res.data)
         .catch(error => {
             console.error('Error al obtener los proyectos invertidos:', error);
+            throw error;
+        });
+}
+
+/**
+ * Obtiene la lista de todos los proyectos disponibles para mostrar
+ */
+export async function getAllProyectos(): Promise<ProyectoResumen[]> {
+    return await axios.get(`${API_BASE_URL}/get-show-proyectos`)
+        .then(res => res.data)
+        .catch(error => {
+            console.error('Error al obtener la lista de proyectos:', error);
             throw error;
         });
 }

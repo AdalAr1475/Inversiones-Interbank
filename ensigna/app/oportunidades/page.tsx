@@ -2,116 +2,39 @@
 
 import { useEffect, useState } from "react"
 import { 
-  Building2, Search, Filter, CheckCircle, ArrowUpDown, 
-  TrendingUp, ChevronDown, ArrowLeft, 
-  Heart
+  Search, Filter, CheckCircle, ArrowUpDown, 
+  ArrowLeft
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { getAllProyectos, ProyectoResumen } from "@/api/proyectos"
+import CardInvest from "@/components/card-invest"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-import HeaderLat from "@/components/header-lat"
-
-interface Proyecto {
-  id: number;
-  categoria: string;
-  titulo: string;
-  descripcion: string;
-  meta: number;
-  recaudado: number;
-  inversores: number;
-}
-
-// Componente para renderizar una tarjeta de proyecto
-const ProyectoCard = ({ proyecto } : { proyecto: Proyecto}) => {
-  const getColorClass = (color: string) => {
-    const colorMap: { [key: string]: string } = {
-      Tecnologia: "bg-blue-100 text-blue-800",
-      Sostenibilidad: "bg-green-100 text-green-800",
-      Logistica: "bg-purple-100 text-purple-800",
-      Salud: "bg-red-100 text-red-800",
-      Energia: "bg-yellow-100 text-yellow-800",
-      Agricultura: "bg-orange-100 text-orange-800"
-    }
-    return colorMap[color] || "bg-gray-100 text-gray-800"
-  }
-
-  const formatCurrency = (value: number) => {
-    return value ? value.toLocaleString() : "No disponible";
-  }
-
-  const porcentaje = Math.floor((proyecto.recaudado / proyecto.meta) * 100)
-
-  return (
-    <Card className="border-green-100 hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <Badge className={getColorClass(proyecto.categoria)}>
-            {proyecto.categoria}
-          </Badge>
-          <Badge variant="outline" className="text-green-600 border-green-600">
-            {porcentaje}% financiado
-          </Badge>
-        </div>
-        <CardTitle className="text-green-800">{proyecto.titulo}</CardTitle>
-        <CardDescription>{proyecto.descripcion}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Objetivo:</span>
-            <span className="font-semibold">${formatCurrency(proyecto.meta)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Recaudado:</span>
-            <span className="font-semibold text-green-600">${proyecto.recaudado.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Inversores:</span>
-            <span className="font-semibold">{proyecto.inversores}</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-green-600 h-2 rounded-full" 
-              style={{ width: `${porcentaje}%` }}
-            ></div>
-          </div>
-          <Link href={`/oportunidades/${proyecto.id}`}>
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-              Ver Detalles
-            </Button>
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export default function OportunidadesPage() {  // Estado para filtros
-  const [proyectos, setProyectos] = useState<any[]>([])  // Lista de proyectos
+  const [proyectos, setProyectos] = useState<ProyectoResumen[]>([])  // Lista de proyectos
   const [loading, setLoading] = useState<boolean>(true)  // Estado de carga
 
   // Llamada al endpoint para obtener los proyectos
   useEffect(() => {
     const fetchProyectos = async () => {
+      setLoading(true);
       try {
-        const response = await fetch("http://localhost:8000/project/get-show-proyectos")  // Llamada al endpoint
-        const data = await response.json()  // Convertir los datos a JSON
-        setProyectos(data)  // Guardamos los datos en el estado
-        setLoading(false)  // Establecemos que la carga ha terminado
+        const data = await getAllProyectos();  // Usamos la función de la API
+        setProyectos(data);  // Guardamos los datos en el estado
+        setLoading(false);  // Establecemos que la carga ha terminado
       } catch (error) {
-        console.error("Error al obtener los proyectos:", error)
-        setLoading(false)
+        console.error("Error al obtener los proyectos:", error);
+        setLoading(false);
       }
     }
 
-    fetchProyectos()  // Ejecutamos la función para obtener los proyectos
+    fetchProyectos();  // Ejecutamos la función para obtener los proyectos
   }, [])
 
   const [searchTerm, setSearchTerm] = useState("")
@@ -292,10 +215,20 @@ export default function OportunidadesPage() {  // Estado para filtros
               <>
                 <div className="mb-5 flex justify-between items-center">
                   <p className="text-gray-600">{sortedProyectos.length} oportunidades encontradas</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                </div>                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {sortedProyectos.map(proyecto => (
-                    <ProyectoCard key={proyecto.id} proyecto={proyecto} />
+                    <div key={proyecto.id}>
+                      <Link href={`/oportunidades/${proyecto.id}`}>
+                        <CardInvest 
+                          category={proyecto.categoria}
+                          title={proyecto.titulo}
+                          description={proyecto.descripcion}
+                          goal={proyecto.meta}
+                          raised={proyecto.recaudado}
+                          investors={proyecto.inversores}
+                        />
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </>

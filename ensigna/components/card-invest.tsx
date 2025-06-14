@@ -1,7 +1,7 @@
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { redirect } from "next/navigation";
+import { Progress } from "./ui/progress";
 
 type CardInvestProps = {
   category: string
@@ -47,10 +47,11 @@ return (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Inversores:</span>
                     <span className="font-semibold">{investors.toLocaleString()}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: `${Math.round((raised / goal) * 100)}%` }}></div>
-                  </div>
+                  </div>                  <Progress value={Math.round((raised / goal) * 100)} className="w-full" />
+                  <div className="text-sm text-gray-600">{Math.round((raised / goal) * 100)}% financiado</div>
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Ver Detalles
+                  </Button>
                 </div>
               </CardContent>
             </Card>)}
