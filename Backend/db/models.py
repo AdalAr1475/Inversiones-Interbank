@@ -61,7 +61,6 @@ class Inversor(Base):
 
     usuario = relationship("Usuario", back_populates="inversores")
     inversiones = relationship("Inversion", back_populates="inversor", cascade="all, delete-orphan")
-    firmas = relationship("FirmaElectronica", back_populates="inversor")
 
 
 class ProyectoInversion(Base):
@@ -83,10 +82,46 @@ class ProyectoInversion(Base):
             name="ck_estado_proyecto_valid"
         ),
     )
-
+    
+    documentos = relationship("DocumentoProyecto", back_populates="proyecto", cascade="all, delete-orphan")
     empresa = relationship("Empresa", back_populates="proyectos")
     inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
 
+
+class DocumentoProyecto(Base):
+    __tablename__ = "documentos_proyecto"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String)
+    descripcion = Column(String)
+    url = Column(String)
+    visibilidad = Column(String(20), nullable=False, server_default="privado")  # público | privado
+    creado_en = Column(DateTime)
+    proyecto_id = Column(Integer, ForeignKey("proyectos_inversion.id", ondelete="CASCADE"), nullable=False)
+
+    firmas = relationship("FirmaElectronica", back_populates="documento")
+    proyecto = relationship("ProyectoInversion", back_populates="documentos")
+
+    __table_args__ = (
+        CheckConstraint(
+            visibilidad.in_(['privado', 'público']),
+            name="ck_estado_proyecto_valid"
+        ),
+    )
+
+class FirmaElectronica(Base):
+    __tablename__ = "firmas_electronicas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
+    documento_id = Column(Integer, ForeignKey("documentos_proyecto.id"))
+    firmado_en = Column(DateTime(timezone=True), server_default=func.now())
+    document_hash = Column(Text, nullable=False)  # Hash del documento firmado
+    tx_hash = Column(Text, nullable=True)  # Hash de la transacción en blockchain
+    tipo_documento = Column(String(50), nullable=False)  # 'inversion' | 'proyecto'
+
+    documento = relationship("DocumentoProyecto", back_populates="firmas")
+    usuario = relationship("Usuario", back_populates="firmas")
 
 class Inversion(Base):
     __tablename__ = "inversiones"
@@ -122,19 +157,6 @@ class Mensaje(Base):
 
     remitente = relationship("Usuario", foreign_keys=[remitente_id], back_populates="mensajes_remitentes")
     destinatario = relationship("Usuario", foreign_keys=[destinatario_id], back_populates="mensajes_destinatarios")
-
-
-class FirmaElectronica(Base):
-    __tablename__ = "firmas_electronicas"
-
-    id = Column(Integer, primary_key=True)
-    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), nullable=False)  # CORRECTO
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
-    firmado_en = Column(DateTime(timezone=True), server_default=func.now())
-    hash_firma = Column(Text)
-
-    usuario = relationship("Usuario", back_populates="firmas")
-    inversor = relationship("Inversor", back_populates="firmas")
 
 class CuentaStripe(Base):
     __tablename__ = "cuentas_stripe"
