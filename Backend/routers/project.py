@@ -104,7 +104,7 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
         (proyecto.monto_recaudado or Decimal('0.00')) / 
         (proyecto.monto_requerido or Decimal('1.00')) * 100
     )
-
+    estado = proyecto.estado
     inversores = db.query(func.count(func.distinct(Inversion.inversor_id))) \
                     .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
 
@@ -114,13 +114,13 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
         "categoria": categoria,
         "titulo": proyecto.titulo.capitalize(),
         "descripcion": proyecto.descripcion.capitalize(),
-        "descripcion_extendida": proyecto.descripcion_extendida.capitalize(),
         "monto_requerido": (proyecto.monto_requerido or Decimal('0.00')).quantize(Decimal('0.01')),
         "monto_recaudado": (proyecto.monto_recaudado or Decimal('0.00')).quantize(Decimal('0.01')),
         "porcentaje": porcentaje_reacudado,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
-        "inversores": inversores
+        "inversores": inversores,
+        "estado": estado
     }
     
 @router.get("/inversores/{proyecto_id}")
