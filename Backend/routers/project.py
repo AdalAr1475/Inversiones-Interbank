@@ -151,3 +151,33 @@ def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db))
 
     # Regresar los datos serializados
     return response
+
+
+@router.get("/proyectos-invertidos/{usuario_id}")
+def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db)):
+    inversor = db.query(Inversor).filter_by(usuario_id=usuario_id).first()
+    if not inversor:
+        raise HTTPException(status_code=404, detail="Inversor no encontrado")
+
+    inversiones = db.query(Inversion).filter_by(inversor_id=inversor.id).all()
+    proyectos_invertidos = []
+
+    for inversion in inversiones:
+        proyecto = db.query(ProyectoInversion).filter_by(id=inversion.proyecto_id).first()
+        if proyecto:
+            existing = next((p for p in proyectos_invertidos if p['proyecto_id'] == proyecto.id), None)
+            if existing:
+                existing['monto_invertido'] = str(Decimal(existing['monto_invertido']) + Decimal(str(inversion.monto_invertido)))
+                existing['fecha_inversion'] = max(existing['fecha_inversion'], inversion.fecha_inversion.isoformat())
+            # Agregar solo si el proyecto no está ya en la lista
+            else:
+                proyectos_invertidos.append({
+                    "proyecto_id": proyecto.id,
+                    "titulo": proyecto.titulo,
+                    "descripcion": proyecto.descripcion,
+                    "monto_invertido": str(inversion.monto_invertido),
+                    "fecha_inversion": inversion.fecha_inversion.isoformat(),
+                    "estado": inversion.estado
+                })
+
+    return proyectos_invertidos

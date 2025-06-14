@@ -1,12 +1,15 @@
-import { ArrowUpRight, TrendingUp, DollarSign, PieChart, Building2, Eye, Star } from "lucide-react"
+'use client';
+
+import { ArrowUpRight, TrendingUp, DollarSign, PieChart, Eye, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import HeaderLat from "@/components/header-lat";
-import Link from "next/link"
 import ProtectedRoute from "@/components/ProtectedRoute"
+import MisInversionesSection from "@/components/mis-inversiones-section"
+import Link from "next/link"
 
 export default function DashboardInversor() {
   return (
@@ -80,81 +83,8 @@ export default function DashboardInversor() {
                 <TabsTrigger value="portafolio">Mi Portafolio</TabsTrigger>
                 <TabsTrigger value="oportunidades">Nuevas Oportunidades</TabsTrigger>
                 <TabsTrigger value="historial">Historial</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="portafolio" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Mis Inversiones</CardTitle>
-                    <CardDescription>Estado actual de tus inversiones activas</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Building2 className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">TechStart AI</h3>
-                            <p className="text-sm text-gray-600">Tecnología • Invertido: $15,000</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Progress value={85} className="w-20 h-2" />
-                              <span className="text-xs text-gray-500">85% financiado</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">+22.5%</div>
-                          <div className="text-sm text-gray-600">$18,375</div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <Building2 className="w-6 h-6 text-green-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">EcoSolutions</h3>
-                            <p className="text-sm text-gray-600">Sostenibilidad • Invertido: $25,000</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Progress value={62} className="w-20 h-2" />
-                              <span className="text-xs text-gray-500">62% financiado</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-green-600">+15.8%</div>
-                          <div className="text-sm text-gray-600">$28,950</div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <Building2 className="w-6 h-6 text-purple-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">FinanceFlow</h3>
-                            <p className="text-sm text-gray-600">Fintech • Invertido: $10,000</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Progress value={43} className="w-20 h-2" />
-                              <span className="text-xs text-gray-500">43% financiado</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-red-600">-2.1%</div>
-                          <div className="text-sm text-gray-600">$9,790</div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <Link href="/dashboard/inversor/inversiones" className="text-sm mx-auto text-center hover:text-green-700 duration-150 text-green-600">
-                    Ver Detalles de Inversiones
-                  </Link>
-                </Card>
+              </TabsList>              <TabsContent value="portafolio" className="space-y-6">
+                <MisInversionesSection />
               </TabsContent>
 
               <TabsContent value="oportunidades" className="space-y-6">
@@ -181,9 +111,10 @@ export default function DashboardInversor() {
                           <span className="text-gray-600">Mín. inversión:</span>
                           <span className="font-semibold">$5,000</span>
                         </div>
-                        <Progress value={28} className="w-full" />
-                        <div className="text-sm text-gray-600">28% financiado • 45 días restantes</div>
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                        <Progress value={28} className="w-full" />                        <div className="text-sm text-gray-600">28% financiado • 45 días restantes</div>
+                        <Link href="/oportunidades/1">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
@@ -210,9 +141,10 @@ export default function DashboardInversor() {
                           <span className="text-gray-600">Mín. inversión:</span>
                           <span className="font-semibold">$2,500</span>
                         </div>
-                        <Progress value={67} className="w-full" />
-                        <div className="text-sm text-gray-600">67% financiado • 22 días restantes</div>
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                        <Progress value={67} className="w-full" />                        <div className="text-sm text-gray-600">67% financiado • 22 días restantes</div>
+                        <Link href="/oportunidades/2">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
@@ -239,9 +171,10 @@ export default function DashboardInversor() {
                           <span className="text-gray-600">Mín. inversión:</span>
                           <span className="font-semibold">$1,000</span>
                         </div>
-                        <Progress value={91} className="w-full" />
-                        <div className="text-sm text-gray-600">91% financiado • 8 días restantes</div>
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                        <Progress value={91} className="w-full" />                        <div className="text-sm text-gray-600">91% financiado • 8 días restantes</div>
+                        <Link href="/oportunidades/3">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Ver Detalles</Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>

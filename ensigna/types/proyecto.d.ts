@@ -17,3 +17,12 @@ export interface ProyectoType {
     inversores: number; // Número de inversores que han aportado al proyecto
     estado?: string; // Estado del proyecto (e.g., Activo, Finalizado, etc.)
 }
+
+export type ProyectoInvertidoType = {
+    proyecto_id: number;
+    titulo: string;
+    descripcion: string;
+    monto_invertido: string; // Monto invertido como string
+    fecha_inversion: string; // Fecha de la inversión en formato ISO
+    estado: string; // Estado de la inversión
+};
