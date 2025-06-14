@@ -37,11 +37,12 @@ CREATE TABLE Proyectos_inversion (
   id SERIAL PRIMARY KEY,
   empresa_id INTEGER REFERENCES empresas(id) ON DELETE CASCADE,
   titulo VARCHAR(255),
-  descripcion TEXT,
+  descripcion VARCHAR(100),
+  descripcion_extendida TEXT,
   monto_requerido NUMERIC(12, 2),
   monto_recaudado NUMERIC(12, 2) DEFAULT 0,
-  fecha_inicio DATE,
-  fecha_fin DATE,
+  fecha_inicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_fin DATE NOT NULL,
   estado VARCHAR(20) CHECK (estado IN ('activo', 'completado', 'cancelado')) DEFAULT 'activo'
 );
 

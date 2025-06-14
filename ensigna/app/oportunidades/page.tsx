@@ -15,12 +15,21 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-import { log } from "console"
+
+interface Proyecto {
+  id: number;
+  categoria: string;
+  titulo: string;
+  descripcion: string;
+  meta: number;
+  recaudado: number;
+  inversores: number;
+}
 
 // Componente para renderizar una tarjeta de proyecto
-const ProyectoCard = ({ proyecto }) => {
-  const getColorClass = (color) => {
-    const colorMap = {
+const ProyectoCard = ({ proyecto } : { proyecto: Proyecto}) => {
+  const getColorClass = (color: string) => {
+    const colorMap: { [key: string]: string } = {
       Tecnologia: "bg-blue-100 text-blue-800",
       Sostenibilidad: "bg-green-100 text-green-800",
       Logistica: "bg-purple-100 text-purple-800",
@@ -31,7 +40,7 @@ const ProyectoCard = ({ proyecto }) => {
     return colorMap[color] || "bg-gray-100 text-gray-800"
   }
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: number) => {
     return value ? value.toLocaleString() : "No disponible";
   }
 

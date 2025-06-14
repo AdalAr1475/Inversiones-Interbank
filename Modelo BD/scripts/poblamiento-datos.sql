@@ -77,11 +77,12 @@ VALUES
   (5, 'Invest S.A.', '20987654321', 'Empresa que ofrece servicios de Fintech', 'Energia', 'Arequipa, Peru');
 
 -- Poblamiento de tabla proyectos_inversion
-INSERT INTO proyectos_inversion (empresa_id, titulo, descripcion, monto_requerido, monto_recaudado) VALUES
-(1, 'Plataforma de E-learning', 'Creación de una plataforma digital interactiva para la enseñanza a distancia, facilitando el acceso a contenidos educativos.', 50000.00, 28000.00),
-(1, 'App de Salud Preventiva', 'Desarrollo de una aplicación móvil para el monitoreo de salud, promoviendo hábitos saludables y prevención de enfermedades.', 70000.00, 13000.00),
-(2, 'Parque Solar en Moquegua', 'Instalación de un parque solar para generar energía limpia, impulsando la sostenibilidad en Moquegua.', 60000.00, 19000.00),
-(2, 'Planta de Energía Solar en Moquegua', 'Desarrollo de una planta de energía solar para abastecer de electricidad a comunidades locales, promoviendo el uso de energías renovables.', 80000.00, 30000.00);
+INSERT INTO proyectos_inversion (empresa_id, titulo, descripcion, descripcion_extendida, monto_requerido, monto_recaudado, fecha_fin) 
+VALUES
+  (1, 'Plataforma de E-learning', 'Plataforma digital interactiva para enseñanza a distancia.', 'Creación de una plataforma digital interactiva para la enseñanza a distancia, facilitando el acceso a contenidos educativos, con herramientas de seguimiento de progreso y recursos de aprendizaje en línea accesibles desde cualquier dispositivo.', 50000.00, 28000.00, '2025-12-31'),
+  (1, 'App de Salud Preventiva', 'Aplicación para monitoreo de salud y hábitos saludables.', 'Desarrollo de una aplicación móvil que permite a los usuarios monitorear su salud mediante recordatorios, estadísticas personalizadas y consejos prácticos, enfocándose en la prevención de enfermedades y la promoción de un estilo de vida saludable.', 70000.00, 13000.00, '2025-11-30'),
+  (2, 'Parque Solar en Moquegua', 'Instalación de un parque solar para energía limpia en Moquegua.', 'El proyecto consiste en la instalación de un parque solar de gran escala en Moquegua, con el objetivo de generar energía limpia y sostenible para abastecer a más de 500 hogares, contribuyendo a la transición hacia energías renovables en la región.', 60000.00, 19000.00, '2026-06-30'),
+  (2, 'Planta de Energía Solar en Moquegua', 'Planta solar para abastecer de electricidad a comunidades locales.', 'Desarrollo de una planta de energía solar que generará electricidad para abastecer a comunidades rurales y urbanas en Moquegua. El proyecto fomentará el uso de energías renovables, mejorando la accesibilidad energética y reduciendo la dependencia de fuentes no renovables.', 80000.00, 30000.00, '2026-05-15');
 
 -- Poblamiento de tabla inversiones
 INSERT INTO inversiones (proyecto_id, inversor_id, monto_invertido, estado, contrato_pdf) VALUES

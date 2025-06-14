@@ -31,6 +31,7 @@ export default function RegisterPage() {
   const [ruc, setRuc] = useState("");
   const [sector, setSector] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [descripcionExtendida, setDescripcionExtendida] = useState("");
   const [emailEmpresa, setEmailEmpresa] = useState("");
   const [ubicacion, setUbicacion] = useState("");
   const [passwordEmpresa, setPasswordEmpresa] = useState("");
@@ -83,7 +84,7 @@ export default function RegisterPage() {
         return;
       }
     } else {
-      if (!nombreEmpresa || !ruc || !sector || !descripcion || !emailEmpresa || !ubicacion || !passwordEmpresa || !confirmPasswordEmpresa) {
+      if (!nombreEmpresa || !ruc || !sector || !descripcion || !descripcionExtendida || !emailEmpresa || !ubicacion || !passwordEmpresa || !confirmPasswordEmpresa) {
         setErrorMsg("Por favor, completa todos los campos requeridos");
         return;
       }
@@ -129,6 +130,7 @@ export default function RegisterPage() {
           ruc: ruc,
           sector: sector,
           descripcion: descripcion,
+          descripcion_extendida: descripcionExtendida,
           ubicacion: ubicacion,
           email: emailEmpresa,
           password: passwordEmpresa,
@@ -403,39 +405,40 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="ruc">RUC</Label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="ruc"
-                        value={ruc}
-                        onChange={(e) => setRuc(e.target.value)}
-                        placeholder="20123456789"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <Label htmlFor="ruc">RUC</Label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="ruc"
+                          value={ruc}
+                          onChange={(e) => setRuc(e.target.value)}
+                          placeholder="20123456789"
+                          className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="sector">Sector</Label>
+                      <Select value={sector} onValueChange={setSector}>
+                        <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500">
+                          <SelectValue placeholder="Selecciona el sector" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="tecnologia">Tecnología</SelectItem>
+                          <SelectItem value="sostenibilidad">Sostenibilidad</SelectItem>
+                          <SelectItem value="logistica">Logistica</SelectItem>
+                          <SelectItem value="salud">Salud</SelectItem>
+                          <SelectItem value="fintech">Energia</SelectItem>
+                          <SelectItem value="salud">Salud</SelectItem>
+                          <SelectItem value="agricultura">Agricultura</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="sector">Sector</Label>
-                    <Select value={sector} onValueChange={setSector}>
-                      <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500">
-                        <SelectValue placeholder="Selecciona el sector" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tecnologia">Tecnología</SelectItem>
-                        <SelectItem value="fintech">Energia</SelectItem>
-                        <SelectItem value="salud">Salud</SelectItem>
-                        <SelectItem value="educacion">Educación</SelectItem>
-                        <SelectItem value="ecommerce">E-commerce</SelectItem>
-                        <SelectItem value="sostenibilidad">Sostenibilidad</SelectItem>
-                        <SelectItem value="agricultura">Agricultura</SelectItem>
-                        <SelectItem value="transporte">Transporte</SelectItem>
-                        <SelectItem value="logistica">Logistica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
 
                   <div className="space-y-2">
                     <Label htmlFor="email-empresa">Correo Empresarial</Label>
@@ -468,11 +471,22 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="descripcion">Descripción Breve</Label>
-                    <Textarea
+                    <Input
                       id="descripcion"
                       value={descripcion}
                       onChange={(e) => setDescripcion(e.target.value)}
-                      placeholder="Describe brevemente tu empresa y lo que hace..."
+                      placeholder="Describe brevemente tu empresa"
+                      className="border-green-200 focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="descripcion">Descripción Extensa</Label>
+                    <Textarea
+                      id="descripcion"
+                      value={descripcionExtendida}
+                      onChange={(e) => setDescripcionExtendida(e.target.value)}
+                      placeholder="Descripcion completa de tu empresa y lo que hace..."
                       className="border-green-200 focus:border-green-500 focus:ring-green-500 min-h-[80px]"
                     />
                   </div>

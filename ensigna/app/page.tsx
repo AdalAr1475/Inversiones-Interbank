@@ -71,6 +71,18 @@ export default function EnsignaLanding() {
   
   }, [])
 
+  const getLogoColorClass = (color: string) => {
+    const colorMap: { [key: string]: string } = {
+      Tecnologia: "bg-blue-600",
+      Sostenibilidad: "bg-green-600",
+      Logistica: "bg-purple-600",
+      Salud: "bg-red-600",
+      Energia: "bg-yellow-600",
+      Agricultura: "bg-orange-600"
+    }
+    return colorMap[color] || "bg-gray-600"
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Header/>
@@ -155,8 +167,8 @@ export default function EnsignaLanding() {
                         proyectos.map((proyecto) => (
                           <div key={proyecto.id} className="flex items-center justify-between p-3 cursor-pointer hover:bg-green-100 duration-150 rounded-lg">
                             <div className="flex items-center space-x-3">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center`}>
-                                <Building2 className="w-6 h-6 text-black" />
+                              <div className={`w-12 h-12 ${getLogoColorClass(proyecto.categoria)} rounded-full flex items-center justify-center`}>
+                                <Building2 className="w-6 h-6 text-white" />
                               </div>
                               <div>
                                 <div className="font-medium text-gray-900">{proyecto.titulo}</div>
