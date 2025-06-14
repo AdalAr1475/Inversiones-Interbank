@@ -4,8 +4,8 @@ import { useParams } from "next/navigation"
 import { 
   Building2, ArrowLeft, Calendar,
   FileText, Share2
-  Building2, TrendingUp, ArrowLeft, Calendar, BarChart, 
-  FileText, Share2, CheckCircle, AlertTriangle, Loader2
+  , TrendingUp,  BarChart, 
+ CheckCircle, AlertTriangle, Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,32 +16,12 @@ import HeaderLat from "@/components/header-lat"
 import { useSidebar } from "@/context/SidebarContext";
 import DialogComponent from "@/components/dialog"
 import { getDetailsProyecto } from "@/api/proyectos"
-import { useEffect, useState } from "react"
 import { ProyectoType } from "@/types/proyecto"
 import InvestmentDialog from "@/components/investment-dialog"
-import { useDialog } from "@/context/DialogContext"
 import { useEffect, useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs"
 
-interface Proyecto {
-  empresa: string;
-  id: number;
-  categoria: string;
-  titulo: string;
-  descripcion: string;
-  descripcionExtendida: string;
-  montoRequerido: number;
-  montoRecaudado: number;
-  porcentaje: number;
-  fechaInicio: string;
-  fechaFin: string;
-  inversores: number;
-}
 
-interface Inversor {
-  nombre_inversor: string;
-  apellido_inversor: string;
-  dias_desde_inversion: number;
-}
 
 export default function ProyectoDetallePage() {
   const params = useParams()
@@ -426,7 +406,6 @@ export default function ProyectoDetallePage() {
                       <Building2 className="w-4 h-4 mr-2" />
                       Empresa:
                     </span>
-                    <span className="font-medium">{proyecto.empresa}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">

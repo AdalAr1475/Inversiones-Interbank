@@ -28,6 +28,7 @@ class Usuario(Base):
     inversores = relationship("Inversor", back_populates="usuario", cascade="all, delete")
     mensajes_remitentes = relationship("Mensaje", foreign_keys="[Mensaje.remitente_id]", back_populates="remitente")
     mensajes_destinatarios = relationship("Mensaje", foreign_keys="[Mensaje.destinatario_id]", back_populates="destinatario")
+    firmas = relationship("FirmaElectronica", back_populates="usuario")
 
 
 class Empresa(Base):
@@ -37,7 +38,7 @@ class Empresa(Base):
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
     nombre_empresa = Column(String(255), nullable=False)
     ruc = Column(String(20), unique=True, nullable=False)
-    descripcion = Column(String(100), nullable=True)
+    descripcion = Column(Text)
     sector = Column(String(20), nullable=False)
     ubicacion = Column(String(100), nullable=True)
 
@@ -67,12 +68,11 @@ class ProyectoInversion(Base):
     id = Column(Integer, primary_key=True)
     empresa_id = Column(Integer, ForeignKey("empresas.id", ondelete="CASCADE"), nullable=False)
     titulo = Column(String(255))
-    descripcion = Column(String(100), nullable=True)
-    descripcion_extendida = Column(Text, nullable=True)
+    descripcion = Column(Text)
     monto_requerido = Column(Numeric(12, 2))
     monto_recaudado = Column(Numeric(5, 2))  # porcentaje esperado
     fecha_inicio = Column(DateTime(timezone=True), server_default=func.now()) 
-    fecha_fin = Column(Date, nullable=True)
+    fecha_fin = Column(Date)
     estado = Column(String(20), nullable=False, server_default="abierto")
 
     __table_args__ = (
@@ -82,6 +82,7 @@ class ProyectoInversion(Base):
         ),
     )
     
+    documentos = relationship("DocumentoProyecto", back_populates="proyecto", cascade="all, delete-orphan")
     empresa = relationship("Empresa", back_populates="proyectos")
     inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
 
