@@ -83,3 +83,10 @@ def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: S
     db.refresh(nueva_inversion)
 
     return {"mensaje": "Inversión registrada exitosamente", "inversion_id": nueva_inversion.id}
+
+def crear_wallet(inversor_id: int, db: Session):
+    wallet = Wallet(inversor_id=inversor_id, saldo=0)
+    db.add(wallet)
+    db.commit()
+    db.refresh(wallet)
+    return {"mensaje": "Wallet creada exitosamente", "wallet_id": wallet.id}
