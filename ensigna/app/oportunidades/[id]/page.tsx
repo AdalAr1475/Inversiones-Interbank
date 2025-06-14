@@ -18,8 +18,7 @@ import { getDetailsProyecto } from "@/api/proyectos"
 import { ProyectoType } from "@/types/proyecto"
 import InvestmentDialog from "@/components/investment-dialog"
 import { useEffect, useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs"
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
 export default function ProyectoDetallePage() {
@@ -499,14 +498,14 @@ export default function ProyectoDetallePage() {
                       <Calendar className="w-4 h-4 mr-2" />
                       Fecha inicio:
                     </span>
-                    <span className="font-medium">{formatDate(proyecto.fecha_inicio)}</span>
+                    <span className="font-medium">{proyecto.fecha_inicio}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">
                       <Calendar className="w-4 h-4 mr-2" />
                       Fecha cierre:
                     </span>
-                    <span className="font-medium">{formatDate(proyecto.fecha_fin)}</span>
+                    <span className="font-medium">{proyecto.fecha_fin}</span>
                   </div>                  <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">
                       <AlertTriangle className="w-4 h-4 mr-2" />
