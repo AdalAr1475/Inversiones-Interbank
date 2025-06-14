@@ -59,6 +59,13 @@ def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: S
     if monto > wallet_inversor.saldo:
         raise ValueError("Saldo insuficiente para esta inversión")
 
+    proyecto.monto_recaudado += monto
+    if proyecto.monto_recaudado >= proyecto.monto_requerido:
+        proyecto.estado = "completado"
+    else:
+        proyecto.estado = "activo"
+
+    
     nueva_inversion = Inversion(
         proyecto_id=proyecto_id,
         inversor_id=inversor_id,
@@ -71,6 +78,7 @@ def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: S
 
     db.add(nueva_inversion)
     db.add(wallet_inversor)
+    db.add(proyecto)
     db.commit()
     db.refresh(nueva_inversion)
 
