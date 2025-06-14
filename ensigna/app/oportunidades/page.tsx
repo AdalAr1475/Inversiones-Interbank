@@ -15,6 +15,113 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
+import { jwtDecode } from "jwt-decode"
+import { redirect } from "next/navigation"
+
+interface Proyecto {
+  id: number;
+  categoria: string;
+  titulo: string;
+  descripcion: string;
+  meta: number;
+  recaudado: number;
+  inversores: number;
+}
+
+// Componente para renderizar una tarjeta de proyecto
+const ProyectoCard = ({ proyecto } : { proyecto: Proyecto}) => {
+  const getColorClass = (color: string) => {
+    const colorMap: { [key: string]: string } = {
+      Tecnologia: "bg-blue-100 text-blue-800",
+      Sostenibilidad: "bg-green-100 text-green-800",
+      Logistica: "bg-purple-100 text-purple-800",
+      Salud: "bg-red-100 text-red-800",
+      Energia: "bg-yellow-100 text-yellow-800",
+      Agricultura: "bg-orange-100 text-orange-800"
+    }
+    return colorMap[color] || "bg-gray-100 text-gray-800"
+  }
+
+  const formatCurrency = (value: number) => {
+    return value ? value.toLocaleString() : "No disponible";
+  }
+
+  const porcentaje = Math.floor((proyecto.recaudado / proyecto.meta) * 100)
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+      id: number
+      sub: string
+      tipo_usuario: string
+      exp: number
+  }
+  
+  useEffect(() => {
+    if (token) {
+      // Si ya está logueado, redirigir al dashboard correspondiente
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      const currentTime = Date.now() / 1000;
+      
+      // Verificar si el token ha expirado
+      if (decodedToken.exp < currentTime) {
+        localStorage.removeItem("token");
+        redirect("/auth/login")  // Redirigir a login si el token ha expirado
+      }
+
+      if (decodedToken.tipo_usuario === "empresa") {
+        redirect("/dashboard/empresa")
+      }
+    }
+    else {
+      // Si no hay token, redirigir al login
+      redirect("/auth/login")
+    }
+  });
+
+  return (
+    <Card className="border-green-100 hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <Badge className={getColorClass(proyecto.categoria)}>
+            {proyecto.categoria}
+          </Badge>
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            {porcentaje}% financiado
+          </Badge>
+        </div>
+        <CardTitle className="text-green-800">{proyecto.titulo}</CardTitle>
+        <CardDescription>{proyecto.descripcion}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Objetivo:</span>
+            <span className="font-semibold">${formatCurrency(proyecto.meta)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Recaudado:</span>
+            <span className="font-semibold text-green-600">${proyecto.recaudado.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Inversores:</span>
+            <span className="font-semibold">{proyecto.inversores}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-green-600 h-2 rounded-full" 
+              style={{ width: `${porcentaje}%` }}
+            ></div>
+          </div>
+          <Link href={`/oportunidades/${proyecto.id}`}>
+            <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+              Ver Detalles
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export default function OportunidadesPage() {  // Estado para filtros
   const [proyectos, setProyectos] = useState<ProyectoResumen[]>([])  // Lista de proyectos
