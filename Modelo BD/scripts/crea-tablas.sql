@@ -97,3 +97,26 @@ CREATE TABLE Pagos_stripe (
   estado VARCHAR(20) CHECK (estado IN ('exitoso', 'fallido', 'pendiente')),
   fecha_pago TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+DROP TABLE IF EXISTS wallets;
+CREATE TABLE IF NOT EXISTS wallets
+(
+    id integer NOT NULL DEFAULT nextval('wallets_id_seq'::regclass),
+    inversor_id integer,
+    saldo numeric(12,2),
+    actualizado_en timestamp with time zone DEFAULT now(),
+    CONSTRAINT wallets_pkey PRIMARY KEY (id),
+    CONSTRAINT wallets_inversor_id_key UNIQUE (inversor_id)
+)
+
+DROP TABLE IF EXISTS recargas_wallet;
+CREATE TABLE IF NOT EXISTS recargas_wallet
+(
+    id integer NOT NULL DEFAULT nextval('recargas_wallet_id_seq'::regclass),
+    inversor_id integer NOT NULL,
+    stripe_payment_intent character varying(255) COLLATE pg_catalog."default",
+    monto numeric(12,2) NOT NULL,
+    estado character varying(20) COLLATE pg_catalog."default",
+    fecha_recarga timestamp with time zone DEFAULT now(),
+    CONSTRAINT recargas_wallet_pkey PRIMARY KEY (id)
+)
