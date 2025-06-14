@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation"
 import { 
-  Building2, TrendingUp, ArrowLeft, User, Calendar, BarChart, 
+  Building2, ArrowLeft, Calendar,
   FileText, Share2
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-import DialogComponent from "@/components/dialog"
 import { useDialog } from "@/context/DialogContext"
 import { useEffect, useState } from "react"
 
@@ -252,22 +251,11 @@ export default function ProyectoDetallePage() {
                   </div>
                 </div>
 
-                <Link href="auth/login">
+                <Link href="/auth/login">
                   <Button onClick={() => setOpen(true)} size="lg" className="w-full bg-green-600 cursor-pointer hover:bg-green-700 text-white mb-6">
                     Invertir ahora
                   </Button>
                 </Link>
-                
-                <div className="flex justify-center space-x-3">
-                  <Button variant="outline" size="sm" className="text-gray-600">
-                    <Share2 className="w-4 h-4 mr-1" />
-                    Compartir
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-gray-600">
-                    <FileText className="w-4 h-4 mr-1" />
-                    Descargar info
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           </div>
