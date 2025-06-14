@@ -38,7 +38,7 @@ class Empresa(Base):
     usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
     nombre_empresa = Column(String(255), nullable=False)
     ruc = Column(String(20), unique=True, nullable=False)
-    descripcion = Column(Text)
+    descripcion = Column(String(100), nullable=True)
     sector = Column(String(20), nullable=False)
     ubicacion = Column(String(100), nullable=True)
 
@@ -68,11 +68,12 @@ class ProyectoInversion(Base):
     id = Column(Integer, primary_key=True)
     empresa_id = Column(Integer, ForeignKey("empresas.id", ondelete="CASCADE"), nullable=False)
     titulo = Column(String(255))
-    descripcion = Column(Text)
+    descripcion = Column(String(100), nullable=True)
+    descripcion_extendida = Column(Text, nullable=True)
     monto_requerido = Column(Numeric(12, 2))
     monto_recaudado = Column(Numeric(5, 2))  # porcentaje esperado
     fecha_inicio = Column(DateTime(timezone=True), server_default=func.now()) 
-    fecha_fin = Column(Date)
+    fecha_fin = Column(Date, nullable=True)
     estado = Column(String(20), nullable=False, server_default="abierto")
 
     __table_args__ = (

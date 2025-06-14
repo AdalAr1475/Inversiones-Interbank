@@ -1,9 +1,10 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import DateTime, func
 from db.conexion_db import get_db
-from db.models import ProyectoInversion, Empresa, Inversion
+from db.models import ProyectoInversion, Empresa, Inversion, Inversor
 from config_token.authenticate import check_empresa
 
 router = APIRouter(tags=["Projects"])
@@ -85,4 +86,68 @@ def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)
         proyecto_show.append(proyecto_show_dict)
 
     return proyecto_show
+
+
+@router.get("/{proyecto_id}")
+def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
+    proyecto = db.query(ProyectoInversion).filter(ProyectoInversion.id == proyecto_id).first()
     
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    empresa = db.query(Empresa).filter(Empresa.id == proyecto.empresa_id).first()
+    categoria = empresa.sector.capitalize() if empresa else "Desconocido"
+    
+    fecha_inicio = proyecto.fecha_inicio.strftime("%d/%m/%Y") if proyecto.fecha_inicio else None
+    fecha_fin = proyecto.fecha_fin.strftime("%d/%m/%Y") if proyecto.fecha_fin else None
+    porcentaje_reacudado = (int) (
+        (proyecto.monto_recaudado or Decimal('0.00')) / 
+        (proyecto.monto_requerido or Decimal('1.00')) * 100
+    )
+
+    inversores = db.query(func.count(func.distinct(Inversion.inversor_id))) \
+                    .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
+
+    return {
+        "empresa": empresa.nombre_empresa.capitalize(),
+        "id": proyecto.id,
+        "categoria": categoria,
+        "titulo": proyecto.titulo.capitalize(),
+        "descripcion": proyecto.descripcion.capitalize(),
+        "descripcion_extendida": proyecto.descripcion_extendida.capitalize(),
+        "monto_requerido": (proyecto.monto_requerido or Decimal('0.00')).quantize(Decimal('0.01')),
+        "monto_recaudado": (proyecto.monto_recaudado or Decimal('0.00')).quantize(Decimal('0.01')),
+        "porcentaje": porcentaje_reacudado,
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+        "inversores": inversores
+    }
+    
+@router.get("/inversores/{proyecto_id}")
+def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
+    
+    result = db.query(
+        Inversor.nombre_inversor,
+        Inversor.apellido_inversor,
+        (func.date(func.current_date()) - func.date(Inversion.fecha_inversion)).label('dias_desde_inversion')
+    ).join(Inversor, Inversion.inversor_id == Inversor.id).filter(Inversion.proyecto_id == proyecto_id).all()
+
+    # Verificar si hay resultados
+    if not result:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+
+    # Convertir el resultado de las tuplas a diccionarios
+    result_dict = [
+        {
+            "nombre_inversor": row[0],
+            "apellido_inversor": row[1],
+            "dias_desde_inversion": row[2]
+        }
+        for row in result
+    ]
+    
+    # Serializar la respuesta usando jsonable_encoder
+    response = jsonable_encoder(result_dict)
+
+    # Regresar los datos serializados
+    return response
