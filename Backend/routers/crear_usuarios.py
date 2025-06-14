@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
+from utils.stripe_utils import create_stripe_customer, create_connected_account
+from utils.db_wallet_utils import crear_wallet
 import db.models as models
 from config_token.authenticate import get_hashed_password
 from db.conexion_db import get_db, engine
@@ -70,7 +71,12 @@ async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
         pais = user.pais
     )
 
+    
+
+    create_stripe_customer("CLIENTE {}".format(new_usuario.id), new_usuario.email)
     db.add(new_inversor)
+    db.flush()
+    crear_wallet(new_inversor.id, db) 
     db.commit()
     db.refresh(new_usuario)
     db.refresh(new_inversor)
@@ -127,11 +133,16 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
     db.commit()
     db.refresh(new_usuario)
     db.refresh(new_empresa)
-
+    redirect_url = create_connected_account(
+        email=new_usuario.email,
+        business_type="company",
+        country="PE"
+    )
     return JSONResponse(
         status_code=201, 
         content={
-            "message": "Empresa creada exitosamente"
+            "message": "Empresa creada exitosamente",
+            "redirect_url": redirect_url
         }
     )
 
