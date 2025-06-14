@@ -98,8 +98,8 @@ export default function ProyectoDetallePage() {
   // Encontrar el proyecto correspondiente
   const proyecto = proyectosData.find(p => p.id === proyectoId) || proyectosData[0]
   
-  const getColorClass = (color) => {
-    const colorMap = {
+  const getColorClass = (color: string) => {
+    const colorMap: { [key: string]: string } = {
       blue: "bg-blue-100 text-blue-800",
       green: "bg-green-100 text-green-800",
       purple: "bg-purple-100 text-purple-800",
@@ -110,8 +110,8 @@ export default function ProyectoDetallePage() {
     return colorMap[color] || "bg-gray-100 text-gray-800"
   }
   
-  const getLogoColorClass = (color) => {
-    const colorMap = {
+  const getLogoColorClass = (color: string) => {
+    const colorMap: { [key: string]: string } = {
       blue: "bg-blue-600",
       green: "bg-green-600",
       purple: "bg-purple-600",
