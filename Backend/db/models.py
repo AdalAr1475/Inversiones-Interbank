@@ -69,6 +69,7 @@ class ProyectoInversion(Base):
     empresa_id = Column(Integer, ForeignKey("empresas.id", ondelete="CASCADE"), nullable=False)
     titulo = Column(String(255))
     descripcion = Column(Text)
+    descripcion_extendida = Column(Text)
     monto_requerido = Column(Numeric(12, 2))
     monto_recaudado = Column(Numeric(5, 2))  # porcentaje esperado
     fecha_inicio = Column(DateTime(timezone=True), server_default=func.now()) 

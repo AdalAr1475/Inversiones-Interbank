@@ -116,7 +116,7 @@ export default function EnsignaLanding() {
                   <p className="text-gray-600">
                     Descubre empresas prometedoras y diversifica tu portafolio
                   </p>
-                  <Link href={"/oportunidades"}>
+                  <Link href={"/auth/login"}>
                     <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
                       Explorar Oportunidades
                       <ArrowRight className="ml-2 w-5 h-5" />
@@ -306,7 +306,7 @@ export default function EnsignaLanding() {
           )}
 
           <div className="text-center mt-12">
-            <Link href="/oportunidades">
+            <Link href="/auth/login">
               <Button
                 size="lg"
                 variant="outline"
@@ -408,7 +408,7 @@ export default function EnsignaLanding() {
               Únete a la comunidad de empresas e inversores que están construyendo el futuro
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href={"/oportunidades"}>
+              <Link href={"/auth/login"}>
                 <Button size="lg" className="bg-white text-green-600 border cursor-pointer border-white  hover:bg-transparent hover:text-white">
                   Soy Inversor
                 </Button>

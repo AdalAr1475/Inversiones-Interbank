@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { 
   Building2, Search, Filter, CheckCircle, ArrowUpDown, 
-  TrendingUp, ChevronDown, ArrowLeft 
+  TrendingUp, ChevronDown, ArrowLeft, 
+  Heart
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +16,7 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
+import HeaderLat from "@/components/header-lat"
 
 interface Proyecto {
   id: number;
