@@ -1,6 +1,6 @@
 # utils/db_wallet.py
 from sqlalchemy.orm import Session
-from db.models import Wallet, RecargaWallet, Inversion, ProyectoInversion
+from db.models import Wallet, RecargaWallet, Inversion, Inversor, Usuario,ProyectoInversion
 from datetime import datetime
 from decimal import Decimal
 
@@ -42,19 +42,22 @@ def obtener_recargas(inversor_id: int, db: Session):
     ]
 
 def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: Session):
-    proyecto = db.query(ProyectoInversion).filter_by(id=proyecto_id, estado="abierto").first()
+    proyecto = db.query(ProyectoInversion).filter_by(id=proyecto_id, estado="activo").first()
     if not proyecto:
         raise ValueError("Proyecto de inversión no encontrado o no disponible")
+    
+    usuario = db.query(Usuario).filter_by(id=inversor_id).first()
+    if not usuario:
+        raise ValueError("Usuario no encontrado")
 
-    wallet_inversor = db.query(Wallet).filter_by(inversor_id=inversor_id).first()
+    inversor = db.query(Inversor).filter_by(usuario_id=usuario.id).first()
+
+    wallet_inversor = db.query(Wallet).filter_by(inversor_id=inversor.id).first()
     if not wallet_inversor:
         raise ValueError("Wallet del inversor no encontrada")
 
     if monto > wallet_inversor.saldo:
         raise ValueError("Saldo insuficiente para esta inversión")
-
-    if monto < proyecto.monto_requerido:
-        raise ValueError("El monto de inversión tiene que ser mayor que el monto requerido del proyecto")
 
     nueva_inversion = Inversion(
         proyecto_id=proyecto_id,

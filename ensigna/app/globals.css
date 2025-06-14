@@ -3,6 +3,41 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Animaciones personalizadas para pagos */
+@keyframes growWidth {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-growWidth {
+  animation: growWidth 2s ease-in-out forwards;
+}
+
+.animate-in {
+  animation-duration: 500ms;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+.slide-in-from-bottom {
+  animation-name: slideInFromBottom;
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 @theme {
   --font-primary: "Teachers", sans-serif;
 }

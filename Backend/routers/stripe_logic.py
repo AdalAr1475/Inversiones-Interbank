@@ -30,10 +30,15 @@ class CheckoutSessionRequest(BaseModel):
     user_id: str
     amount_cents: int
 
+
+
 class TransferRequest(BaseModel):
     amount_cents: int
-    connected_account_id: str
+    connected_account_id: str = "acct_1RZ2NuBOgx1Ph13F"
     description: str = ""
+    inversor_id: str = None
+    proyecto_id: str = None
+    tipo: str = "transferencia"  # puede ser "inversion", "transferencia", etc.
 
 # ----------- Endpoints -----------
 
@@ -76,9 +81,23 @@ def stripe_create_checkout_session(data: CheckoutSessionRequest):
 
 @router.post("/transfer-funds")
 def stripe_transfer_funds(data: TransferRequest):
+    metadata = {
+        "tipo": data.tipo
+    }
+    
+    # Añadir información adicional a metadata si está disponible
+    if data.inversor_id:
+        metadata["inversor_id"] = data.inversor_id
+    if data.proyecto_id:
+        metadata["proyecto_id"] = data.proyecto_id
+    
     transfer = transfer_funds_to_connected_account(
         amount_cents=data.amount_cents,
-        connected_account_id=data.connected_account_id,
-        description=data.description
+        connected_account_id=data.connected_account_id if data.connected_account_id != "" else "acct_1RZ2NuBOgx1Ph13F",
+        description=data.description,
+        metadata=metadata
     )
-    return {"transfer_id": transfer.id, "status": transfer.status}
+    return {"transfer_id": transfer.id}
+
+
+

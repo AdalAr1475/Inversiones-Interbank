@@ -86,3 +86,10 @@ def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)
 
     return proyecto_show
     
+
+@router.get("/{proyecto_id}")
+def obtener_proyecto_por_id(proyecto_id: int, db: Session = Depends(get_db)):
+    proyecto = db.query(ProyectoInversion).filter(ProyectoInversion.id == proyecto_id).first()
+    if not proyecto:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    return proyecto

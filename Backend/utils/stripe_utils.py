@@ -94,8 +94,8 @@ def create_checkout_session_for_wallet(user_id: str, amount_cents: int) -> str:
             "quantity": 1,
         }],
         mode="payment",
-        success_url=f"http://localhost:3000/wallet/success?user_id={user_id}",  # puedes usar IDs seguros con JWT o hash
-        cancel_url="http://localhost:3000/wallet/cancel",
+        success_url=f"http://localhost:3000/dashboard?success=true&user_id={user_id}&amount={amount_cents}",  # puedes usar IDs seguros con JWT o hash
+        cancel_url="http://localhost:3000/dashboard?success=false",
         metadata={"user_id": user_id},  # importante para verificar luego
     )
     return session.url
@@ -107,14 +107,32 @@ def create_checkout_session_for_wallet(user_id: str, amount_cents: int) -> str:
 # )
 # print(f"URL de checkout: {checkouyt_url}")
 
-def transfer_funds_to_connected_account(amount_cents: int, connected_account_id: str, description: str = ""):
+def transfer_funds_to_connected_account(amount_cents: int, connected_account_id: str = "acct_1RZ2NuBOgx1Ph13F", description: str = "", metadata: dict = None):
+    """
+    Transfiere fondos a una cuenta conectada de Stripe.
+    
+    Args:
+        amount_cents: Monto en centavos a transferir
+        connected_account_id: ID de la cuenta conectada de Stripe
+        description: Descripción de la transferencia
+        metadata: Metadatos adicionales (inversor_id, proyecto_id, etc.)
+        
+    Returns:
+        Objeto Transfer de Stripe
+    """
     try:
-        transfer = stripe.Transfer.create(
-            amount=amount_cents,
-            currency="usd",
-            destination=connected_account_id,
-            description=description,
-        )
+        transfer_params = {
+            "amount": amount_cents,
+            "currency": "usd",
+            "destination": connected_account_id,
+            "description": description,
+        }
+        
+        # Añadir metadata si está disponible
+        if metadata:
+            transfer_params["metadata"] = metadata
+        
+        transfer = stripe.Transfer.create(**transfer_params)
         return transfer
     except stripe.error.StripeError as e:
         print(f"Error al transferir fondos: {e}")
@@ -129,3 +147,14 @@ def transfer_funds_to_connected_account(amount_cents: int, connected_account_id:
 #    description="Pago por servicios prestados"
 # )
 # print(f"Transferencia realizada: {transfer['id']}") if transfer else print("Error al realizar la transferencia")
+
+
+
+# Ejemplo de uso:
+# checkout_url = create_checkout_session_for_investment(
+#     inversor_id="inv_123456",
+#     proyecto_id="proj_123456",
+#     amount_cents=10000,
+#     proyecto_titulo="Mi Proyecto de Inversión"
+# )
+# print(f"URL de checkout para inversión: {checkout_url}")

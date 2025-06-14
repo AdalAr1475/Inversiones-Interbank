@@ -8,7 +8,6 @@ import db.models as models
 from config_token.authenticate import get_hashed_password
 from db.conexion_db import get_db, engine
 from funciones import validar_dni, validar_ruc
-
 router = APIRouter()
 
 class UsuarioCreateInversor(BaseModel):
@@ -153,3 +152,29 @@ async def get_usuarios(db: db_dependency):
         })
 
     return JSONResponse(status_code=200,content=response)
+
+# Obtener datos de un inversor por ID del Usuario
+@router.get("/get-inversor/{usuario_id}")
+async def get_inversor(usuario_id: int, db: db_dependency):
+
+    usuario = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Inversor no encontrado")
+
+    inversor = db.query(models.Inversor).filter(models.Inversor.usuario_id == usuario_id).first()
+    if not inversor:
+        raise HTTPException(status_code=404, detail="Inversor no encontrado")
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            "id": inversor.id,
+            "nombre_inversor": inversor.nombre_inversor,
+            "apellido_inversor": inversor.apellido_inversor,
+            "dni": inversor.dni,
+            "telefono": inversor.telefono,
+            "experiencia": inversor.experiencia,
+            "pais": inversor.pais,
+            "email": usuario.email
+        }
+    )

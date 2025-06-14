@@ -28,7 +28,6 @@ class Usuario(Base):
     inversores = relationship("Inversor", back_populates="usuario", cascade="all, delete")
     mensajes_remitentes = relationship("Mensaje", foreign_keys="[Mensaje.remitente_id]", back_populates="remitente")
     mensajes_destinatarios = relationship("Mensaje", foreign_keys="[Mensaje.destinatario_id]", back_populates="destinatario")
-    firmas = relationship("FirmaElectronica", back_populates="usuario")
 
 
 class Empresa(Base):
@@ -81,7 +80,6 @@ class ProyectoInversion(Base):
         ),
     )
     
-    documentos = relationship("DocumentoProyecto", back_populates="proyecto", cascade="all, delete-orphan")
     empresa = relationship("Empresa", back_populates="proyectos")
     inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
 

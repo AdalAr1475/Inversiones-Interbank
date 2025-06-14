@@ -2,8 +2,8 @@
 
 import { useParams } from "next/navigation"
 import { 
-  Building2, TrendingUp, ArrowLeft, User, Calendar, BarChart, 
-  FileText, Share2, DollarSign, CheckCircle, AlertTriangle 
+  Building2, TrendingUp, ArrowLeft, Calendar, BarChart, 
+  FileText, Share2, CheckCircle, AlertTriangle, Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,92 +14,41 @@ import { Separator } from "@/components/ui/separator"
 import HeaderLat from "@/components/header-lat"
 import { useSidebar } from "@/context/SidebarContext";
 import DialogComponent from "@/components/dialog"
-import { useDialog } from "@/context/DialogContext"
-// Datos de ejemplo para las oportunidades de inversión (igual que en page.tsx)
-const proyectosData = [
-  {
-    id: 1,
-    titulo: "TechStart AI",
-    descripcion: "Plataforma de IA para automatización empresarial",
-    categoria: "Tecnología",
-    categoriaColor: "blue",
-    objetivo: 500000,
-    recaudado: 425000,
-    porcentaje: 85,
-    inversores: 23,
-    logo: "building2",
-    logoColor: "blue",
-    inicio: "15 Mar 2025",
-    fin: "15 Jul 2025",
-    descripcionExtendida: "TechStart AI está revolucionando la forma en que las empresas automatizan sus procesos con nuestra plataforma de inteligencia artificial. Nuestra tecnología utiliza algoritmos avanzados de aprendizaje automático para optimizar flujos de trabajo, reducir costos operativos y aumentar la productividad. Con clientes en más de 10 países, estamos expandiendo nuestras operaciones para satisfacer la creciente demanda global.",
-    riesgos: "Medio",
-    retornoEstimado: "18% anual",
-    ubicacion: "Lima, Perú",
-    fundadores: "Laura Silva y Carlos Méndez",
-    fechaFundacion: "2022",
-    equipo: 12,
-    sectores: ["Inteligencia Artificial", "SaaS", "Automatización"],
-    minInversion: 5000
-  },
-  {
-    id: 2,
-    titulo: "EcoSolutions",
-    descripcion: "Soluciones de energía renovable para empresas",
-    categoria: "Sostenibilidad",
-    categoriaColor: "green",
-    objetivo: 1000000,
-    recaudado: 620000,
-    porcentaje: 62,
-    inversores: 31,
-    logo: "building2",
-    logoColor: "green",
-    inicio: "20 Feb 2025",
-    fin: "20 Jun 2025",
-    descripcionExtendida: "EcoSolutions desarrolla e implementa soluciones de energía renovable personalizadas para empresas que buscan reducir su huella de carbono y costos energéticos. Nuestros sistemas de paneles solares y turbinas eólicas de pequeña escala se integran perfectamente en las infraestructuras existentes, proporcionando energía limpia y sostenible. Con este financiamiento, ampliaremos nuestra capacidad de producción y entraremos en nuevos mercados latinoamericanos.",
-    riesgos: "Bajo",
-    retornoEstimado: "15% anual",
-    ubicacion: "Santiago, Chile",
-    fundadores: "María González y Pedro Fuentes",
-    fechaFundacion: "2020",
-    equipo: 18,
-    sectores: ["Energía Renovable", "Sostenibilidad", "Cleantech"],
-    minInversion: 10000
-  },
-  {
-    id: 3,
-    titulo: "FinanceFlow",
-    descripcion: "Gestión financiera para pequeñas empresas",
-    categoria: "Fintech",
-    categoriaColor: "purple",
-    objetivo: 750000,
-    recaudado: 322500,
-    porcentaje: 43,
-    inversores: 18,
-    logo: "trendingUp",
-    logoColor: "orange",
-    inicio: "10 Abr 2025",
-    fin: "10 Ago 2025",
-    descripcionExtendida: "FinanceFlow simplifica la gestión financiera para pequeñas empresas con una plataforma intuitiva que integra contabilidad, facturación, nómina y previsiones financieras. Nuestra solución basada en la nube elimina la complejidad y reduce drásticamente el tiempo dedicado a tareas administrativas. Con más de 1,000 clientes activos, buscamos expandir nuestras capacidades y ofrecer nuevos servicios financieros integrados.",
-    riesgos: "Medio-Bajo",
-    retornoEstimado: "16% anual",
-    ubicacion: "Bogotá, Colombia",
-    fundadores: "Juan Martínez",
-    fechaFundacion: "2021",
-    equipo: 15,
-    sectores: ["Fintech", "SaaS", "Gestión Financiera"],
-    minInversion: 7500
-  }
-]
+import { getDetailsProyecto } from "@/api/proyectos"
+import { useEffect, useState } from "react"
+import { ProyectoType } from "@/types/proyecto"
+import InvestmentDialog from "@/components/investment-dialog"
 
 export default function ProyectoDetallePage() {
   const params = useParams()
   const proyectoId = Number(params.id)
+  const [proyecto, setProyecto] = useState<ProyectoType | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showInvestDialog, setShowInvestDialog] = useState<boolean>(false);
   
-  // Encontrar el proyecto correspondiente
-  const proyecto = proyectosData.find(p => p.id === proyectoId) || proyectosData[0]
-  
-  const getColorClass = (color) => {
-    const colorMap = {
+  useEffect(() => {
+    // Cargar los detalles del proyecto desde la API
+    const fetchProyectoDetails = async () => {
+      try {
+        setIsLoading(true);
+        const token = window?.localStorage?.getItem("token");
+        if (token) {
+          const details = await getDetailsProyecto(proyectoId, token);
+          setProyecto(details);
+          console.log(details);
+        }
+      } catch (error) {
+        console.error("Error al obtener los detalles del proyecto:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchProyectoDetails();
+  }, [proyectoId])
+
+  const getColorClass = (color: string = "green") => {
+    const colorMap: Record<string, string> = {
       blue: "bg-blue-100 text-blue-800",
       green: "bg-green-100 text-green-800",
       purple: "bg-purple-100 text-purple-800",
@@ -110,8 +59,8 @@ export default function ProyectoDetallePage() {
     return colorMap[color] || "bg-gray-100 text-gray-800"
   }
   
-  const getLogoColorClass = (color) => {
-    const colorMap = {
+  const getLogoColorClass = (color: string = "green") => {
+    const colorMap: Record<string, string> = {
       blue: "bg-blue-600",
       green: "bg-green-600",
       purple: "bg-purple-600",
@@ -123,52 +72,111 @@ export default function ProyectoDetallePage() {
   }
   
   const getLogoIcon = () => {
-    if (proyecto.logo === "trendingUp") {
-      return <TrendingUp className="w-8 h-8 text-white" />
-    }
-    return <Building2 className="w-8 h-8 text-white" />
+    return <TrendingUp className="w-8 h-8 text-white" />
   }
   
   const {collapsed} = useSidebar();
-  const {setOpen} = useDialog();
-  return (
-    
-    <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
-      <HeaderLat />
-      <DialogComponent />
-      {/* Encabezado del proyecto */}
-      <div className="bg-green-50 py-10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+  
+  // Calculate percentage of funding completed
+  const calculatePercentage = (recaudado: number, requerido: number): number => {
+    if (!requerido) return 0;
+    const percentage = (recaudado / requerido) * 100;
+    return Math.min(Math.round(percentage), 100);
+  }
+  
+  // Format dates nicely
+  const formatDate = (date: Date | null | string): string => {
+    if (!date) return "No disponible";
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return dateObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+    } catch {
+      return "Fecha inválida";
+    }
+  }
+
+  // Función para mostrar notificación después de invertir
+  const handlePostInvestment = (amount: number) => {
+    // Aquí se podría implementar una notificación o algún feedback visual
+    console.log(`Inversión de $${amount} procesada correctamente`);
+    // También se podría actualizar el estado del proyecto después de la inversión
+  }
+
+  if (isLoading) {
+    return (
+      <div className={"min-h-screen bg-white transition-all duration-150 flex items-center justify-center" + (collapsed ? " ml-16" : " ml-56")}>
+        <HeaderLat />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-green-600" />
+          <h2 className="mt-4 text-lg font-medium">Cargando detalles del proyecto...</h2>
+        </div>
+      </div>
+    )
+  }
+  
+  if (!proyecto) {
+    return (
+      <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
+        <HeaderLat />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="mb-6">
             <Link href="/oportunidades" className="text-green-600 hover:text-green-700 inline-flex items-center">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver a oportunidades
             </Link>
           </div>
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold mb-4">Proyecto no encontrado</h2>
+            <p className="mb-6">No se pudo cargar la información de este proyecto.</p>
+            <Button asChild>
+              <Link href="/oportunidades">Ver todas las oportunidades</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Calculate funding percentage
+  const fundingPercentage = calculatePercentage(proyecto.monto_recaudado, proyecto.monto_requerido);
+  
+  return (
+    <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
+      <HeaderLat />
+      <DialogComponent />
+      {/* Encabezado del proyecto */}
+      <div className="bg-green-50 py-6 md:py-10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-4 md:mb-6">
+            <Link href="/oportunidades" className="text-green-600 hover:text-green-700 inline-flex items-center">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a oportunidades
+            </Link>
+          </div>
           
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className={`w-16 h-16 ${getLogoColorClass(proyecto.logoColor)} rounded-2xl flex items-center justify-center shadow-md`}>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+            <div className={`w-14 h-14 md:w-16 md:h-16 ${getLogoColorClass("green")} rounded-2xl flex items-center justify-center shadow-md`}>
               {getLogoIcon()}
             </div>
             
             <div className="flex-1">
               <div className="flex flex-wrap gap-2 mb-2">
-                <Badge className={getColorClass(proyecto.categoriaColor)}>
-                  {proyecto.categoria}
+                <Badge className={getColorClass("green")}>
+                  {proyecto.estado}
                 </Badge>
                 <Badge variant="outline" className="text-green-600 border-green-600">
-                  {proyecto.porcentaje}% financiado
+                  {fundingPercentage}% financiado
                 </Badge>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">{proyecto.titulo}</h1>
-              <p className="text-lg text-gray-600 mt-2">{proyecto.descripcion}</p>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{proyecto.titulo}</h1>
+              <p className="text-base md:text-lg text-gray-600 mt-2">{proyecto.descripcion}</p>
             </div>
           </div>
         </div>
       </div>
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-8">
             <Tabs defaultValue="descripcion" className="w-full">
@@ -185,7 +193,7 @@ export default function ProyectoDetallePage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700 leading-relaxed">
-                      {proyecto.descripcionExtendida}
+                      {proyecto.descripcion}
                     </p>
                   </CardContent>
                 </Card>
@@ -250,37 +258,37 @@ export default function ProyectoDetallePage() {
                         <h3 className="font-medium text-gray-900 mb-4">Métricas clave</h3>
                         <ul className="space-y-3">
                           <li className="flex justify-between">
-                            <span className="text-gray-600">Ingresos anuales:</span>
-                            <span className="font-medium">$1,200,000</span>
+                            <span className="text-gray-600">Monto requerido:</span>
+                            <span className="font-medium">${proyecto.monto_requerido?.toLocaleString() || '0'}</span>
                           </li>
                           <li className="flex justify-between">
-                            <span className="text-gray-600">Margen bruto:</span>
-                            <span className="font-medium">68%</span>
+                            <span className="text-gray-600">Monto recaudado:</span>
+                            <span className="font-medium">${proyecto.monto_recaudado?.toLocaleString() || '0'}</span>
                           </li>
                           <li className="flex justify-between">
-                            <span className="text-gray-600">CAC:</span>
-                            <span className="font-medium">$850</span>
+                            <span className="text-gray-600">ID del proyecto:</span>
+                            <span className="font-medium">{proyecto.id}</span>
                           </li>
                           <li className="flex justify-between">
-                            <span className="text-gray-600">LTV:</span>
-                            <span className="font-medium">$4,200</span>
+                            <span className="text-gray-600">ID de empresa:</span>
+                            <span className="font-medium">{proyecto.empresa_id}</span>
                           </li>
                         </ul>
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900 mb-4">Proyecciones</h3>
+                        <h3 className="font-medium text-gray-900 mb-4">Fechas</h3>
                         <ul className="space-y-3">
                           <li className="flex justify-between">
-                            <span className="text-gray-600">Crecimiento anual:</span>
-                            <span className="font-medium">35%</span>
+                            <span className="text-gray-600">Fecha inicio:</span>
+                            <span className="font-medium">{formatDate(proyecto.fecha_inicio)}</span>
                           </li>
                           <li className="flex justify-between">
-                            <span className="text-gray-600">Break-even:</span>
-                            <span className="font-medium">Q4 2025</span>
+                            <span className="text-gray-600">Fecha fin:</span>
+                            <span className="font-medium">{formatDate(proyecto.fecha_fin)}</span>
                           </li>
                           <li className="flex justify-between">
-                            <span className="text-gray-600">ROI estimado:</span>
-                            <span className="font-medium">2.8x (5 años)</span>
+                            <span className="text-gray-600">Estado:</span>
+                            <span className="font-medium">{proyecto.estado}</span>
                           </li>
                         </ul>
                       </div>
@@ -298,44 +306,20 @@ export default function ProyectoDetallePage() {
                         <h3 className="font-medium text-gray-900 mb-4">Información básica</h3>
                         <ul className="space-y-3">
                           <li className="flex items-start">
-                            <User className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
+                            <Building2 className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
                             <div>
-                              <span className="text-gray-600 block">Fundadores:</span>
-                              <span className="font-medium">{proyecto.fundadores}</span>
+                              <span className="text-gray-600 block">ID de Empresa:</span>
+                              <span className="font-medium">{proyecto.empresa_id}</span>
                             </div>
                           </li>
                           <li className="flex items-start">
                             <Calendar className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
                             <div>
-                              <span className="text-gray-600 block">Año de fundación:</span>
-                              <span className="font-medium">{proyecto.fechaFundacion}</span>
-                            </div>
-                          </li>
-                          <li className="flex items-start">
-                            <Building2 className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
-                            <div>
-                              <span className="text-gray-600 block">Ubicación:</span>
-                              <span className="font-medium">{proyecto.ubicacion}</span>
-                            </div>
-                          </li>
-                          <li className="flex items-start">
-                            <User className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
-                            <div>
-                              <span className="text-gray-600 block">Equipo:</span>
-                              <span className="font-medium">{proyecto.equipo} personas</span>
+                              <span className="text-gray-600 block">Inicio de proyecto:</span>
+                              <span className="font-medium">{formatDate(proyecto.fecha_inicio)}</span>
                             </div>
                           </li>
                         </ul>
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-900 mb-4">Sectores</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {proyecto.sectores.map((sector, index) => (
-                            <Badge key={index} variant="outline" className="bg-green-50 border-green-200">
-                              {sector}
-                            </Badge>
-                          ))}
-                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -359,12 +343,6 @@ export default function ProyectoDetallePage() {
                           <span>Proyecciones financieras.xlsx</span>
                         </Button>
                       </li>
-                      <li>
-                        <Button variant="outline" className="w-full justify-start text-left">
-                          <FileText className="w-5 h-5 mr-2 text-gray-500" />
-                          <span>Presentación corporativa.pdf</span>
-                        </Button>
-                      </li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -376,40 +354,8 @@ export default function ProyectoDetallePage() {
                     <CardTitle>Actualizaciones recientes</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-8">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-medium text-gray-900">Nuevo acuerdo de distribución</h3>
-                          <span className="text-sm text-gray-500">2 Jun 2025</span>
-                        </div>
-                        <p className="text-gray-700">
-                          Nos complace anunciar que hemos firmado un acuerdo de distribución con uno de los mayores proveedores de la industria, lo que nos permitirá reducir costos y mejorar nuestra cadena de suministro.
-                        </p>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-medium text-gray-900">Expansión a nuevos mercados</h3>
-                          <span className="text-sm text-gray-500">15 May 2025</span>
-                        </div>
-                        <p className="text-gray-700">
-                          Estamos iniciando operaciones en dos nuevos países este mes, lo que representa un importante paso en nuestra estrategia de internacionalización. Esperamos duplicar nuestra base de clientes en los próximos 6 meses.
-                        </p>
-                      </div>
-                      
-                      <Separator />
-                      
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-medium text-gray-900">Nueva patente aprobada</h3>
-                          <span className="text-sm text-gray-500">3 May 2025</span>
-                        </div>
-                        <p className="text-gray-700">
-                          Nuestra solicitud de patente para la tecnología principal ha sido aprobada, lo que refuerza nuestra protección de propiedad intelectual y nos otorga una ventaja competitiva significativa en el mercado.
-                        </p>
-                      </div>
+                    <div className="text-center p-6 text-gray-500">
+                      No hay actualizaciones recientes para este proyecto.
                     </div>
                   </CardContent>
                 </Card>
@@ -427,24 +373,24 @@ export default function ProyectoDetallePage() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Objetivo:</span>
-                    <span className="font-semibold">${proyecto.objetivo.toLocaleString()}</span>
+                    <span className="font-semibold">${proyecto.monto_requerido?.toLocaleString() || '0'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Recaudado:</span>
-                    <span className="font-semibold text-green-600">${proyecto.recaudado.toLocaleString()}</span>
+                    <span className="font-semibold text-green-600">${proyecto.monto_recaudado?.toLocaleString() || '0'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Inversores:</span>
-                    <span className="font-semibold">{proyecto.inversores}</span>
+                    <span className="text-gray-600">Estado:</span>
+                    <span className="font-semibold">{proyecto.estado}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                     <div 
                       className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${proyecto.porcentaje}%` }}
+                      style={{ width: `${fundingPercentage}%` }}
                     ></div>
                   </div>
                   <div className="text-sm text-center text-gray-600">
-                    {proyecto.porcentaje}% completado
+                    {fundingPercentage}% completado
                   </div>
                 </div>
                 
@@ -456,41 +402,59 @@ export default function ProyectoDetallePage() {
                       <Calendar className="w-4 h-4 mr-2" />
                       Fecha inicio:
                     </span>
-                    <span className="font-medium">{proyecto.inicio}</span>
+                    <span className="font-medium">{formatDate(proyecto.fecha_inicio)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">
                       <Calendar className="w-4 h-4 mr-2" />
                       Fecha cierre:
                     </span>
-                    <span className="font-medium">{proyecto.fin}</span>
+                    <span className="font-medium">{formatDate(proyecto.fecha_fin)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">
                       <AlertTriangle className="w-4 h-4 mr-2" />
-                      Nivel de riesgo:
+                      Estado:
                     </span>
-                    <span className="font-medium">{proyecto.riesgos}</span>
+                    <span className="font-medium">{proyecto.estado}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 flex items-center">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Retorno estimado:
-                    </span>
-                    <span className="font-medium text-green-600">{proyecto.retornoEstimado}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Inversión mínima:
-                    </span>
-                    <span className="font-medium">${proyecto.minInversion}</span>
-                  </div>
+                  {proyecto.estado === 'activo' && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Inversión mínima:</span>
+                      <span className="font-medium text-green-600">$100.00</span>
+                    </div>
+                  )}
                 </div>
 
-                <Button onClick={() => setOpen(true)} size="lg" className="w-full bg-green-600 cursor-pointer hover:bg-green-700 text-white">
-                  Invertir ahora
+                <Button 
+                  onClick={() => setShowInvestDialog(true)} 
+                  size="lg" 
+                  className="w-full bg-green-600 cursor-pointer hover:bg-green-700 hover:scale-[1.02] transition-all duration-200 text-white font-medium py-3 text-base shadow-md"
+                  disabled={proyecto.estado !== 'activo'}
+                >
+                  {proyecto.estado === 'activo' ? (
+                    <>
+                      <span className="mr-2">Invertir ahora</span>
+                      {fundingPercentage < 100 && (
+                        <span className="text-xs bg-white text-green-700 px-2 py-1 rounded-full">
+                          ¡{100-fundingPercentage}% pendiente!
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    'Proyecto no disponible'
+                  )}
                 </Button>
+
+                {/* Investment Dialog */}
+                {proyecto && (
+                  <InvestmentDialog
+                    open={showInvestDialog}
+                    onOpenChange={setShowInvestDialog}
+                    project={proyecto}
+                    onSuccess={handlePostInvestment}
+                  />
+                )}
                 
                 <div className="flex justify-center space-x-3">
                   <Button variant="outline" size="sm" className="text-gray-600">
@@ -507,42 +471,14 @@ export default function ProyectoDetallePage() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Interesados recientes</CardTitle>
+                <CardTitle>Proyectos similares</CardTitle>
                 <CardDescription>
-                  Últimas personas que invirtieron
+                  Puede interesarte
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                      JL
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">José López</div>
-                      <div className="text-sm text-gray-600">Hace 2 días</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                      CM
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">Carmen Martínez</div>
-                      <div className="text-sm text-gray-600">Hace 3 días</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                      RD
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">Ricardo Díaz</div>
-                      <div className="text-sm text-gray-600">Hace 5 días</div>
-                    </div>
-                  </div>
+                <div className="text-center p-4 text-gray-500">
+                  <p>No hay proyectos similares disponibles en este momento.</p>
                 </div>
               </CardContent>
             </Card>

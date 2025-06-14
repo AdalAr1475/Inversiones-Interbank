@@ -6,7 +6,7 @@ import logging
 from decimal import Decimal
 
 from db.conexion_db import get_db
-from utils.db_wallet_utils import registrar_recarga
+from utils.db_wallet_utils import registrar_recarga, procesar_inversion
 
 dotenv.load_dotenv()
 DOTENV_VALUES = dotenv.dotenv_values()
@@ -59,6 +59,33 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
 
     elif event_type == "transfer.failed":
         transfer = event["data"]["object"]
-        logger.warning(f"⚠️ Transferencia fallida: {transfer['id']}")
+        logger.warning(f"⚠️ Transferencia fallida: {transfer['id']}")    
+    elif event_type == "transfer.created":
+        transfer = event["data"]["object"]
+        logger.info(f"💸 Transferencia creada: {transfer['id']}")
+
+        # Verificar si la transferencia está relacionada con una inversión
+        if "metadata" in transfer and transfer["metadata"].get("tipo") == "inversion":
+            inversor_id = transfer["metadata"].get("inversor_id")
+            proyecto_id = transfer["metadata"].get("proyecto_id")
+            amount = transfer["amount"]  # en centavos
+            
+            if inversor_id and proyecto_id and amount:
+                try:
+                    resultado = procesar_inversion(
+                        inversor_id=int(inversor_id),
+                        proyecto_id=int(proyecto_id),
+                        monto=Decimal(amount) / 100,
+                        db=db
+                    )
+                    logger.info(f"✅ Inversión procesada correctamente: {resultado}")
+                except ValueError as e:
+                    logger.error(f"❌ Error al procesar inversión: {str(e)}")
+                    raise HTTPException(status_code=400, detail=str(e))
+                except Exception as e:
+                    logger.error(f"❌ Error inesperado al procesar inversión: {str(e)}")
+                    raise HTTPException(status_code=500, detail="Error al procesar inversión")
+            else:
+                logger.warning("⚠️ Metadata incompleta en el evento transfer.created")
 
     return {"status": "success"}
