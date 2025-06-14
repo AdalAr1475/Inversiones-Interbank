@@ -64,7 +64,7 @@ export default function DashboardEmpresa() {
     reader.onloadend = async () => {
       const base64 = (reader.result as string).split(",")[1];
 
-      await axios.post("/api/registrar-documento", {
+      await axios.post("/documents/registrar-documento", {
         proyecto_id: proyectoId,
         nombre: file.name,
         descripcion: "Documento subido desde UI", // podrías añadir input para esto
@@ -72,8 +72,11 @@ export default function DashboardEmpresa() {
         visibilidad: "privado", // o público según el caso
       });
 
+      console.log("El proyecto_id es:", proyectoId);
+
       // Actualiza lista de documentos
-      const res = await axios.get(`/api/documentos/${proyectoId}`);
+      const res = await axios.get(`http://localhost:8000/documents/documentos/${proyectoId}`);
+      console.log("se logró enviar con El proyecto_id es:", proyectoId);
       setDocumentos(res.data);
       setFileName("");
       setUploading(false);
@@ -83,10 +86,14 @@ export default function DashboardEmpresa() {
   };
 
   useEffect(() => {
+    if(!proyectoId) return;
     // Aquí podrías consumir una API que traiga los documentos
-    fetch("/api/documentos-empresa") // Ejemplo
+    fetch(`http://localhost:8000/documents/documentos/${proyectoId}`) // Ejemplo
       .then((res) => res.json())
-      .then((data) => setDocumentos(data));
+      .then((data) => {
+      console.log('Documentos recibidos:', data);
+      setDocumentos(data);
+      });
   }, []);
 
   return (

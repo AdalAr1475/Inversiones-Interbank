@@ -60,7 +60,6 @@ class Inversor(Base):
 
     usuario = relationship("Usuario", back_populates="inversores")
     inversiones = relationship("Inversion", back_populates="inversor", cascade="all, delete-orphan")
-    firmas = relationship("FirmaElectronica", back_populates="inversor")
 
 class ProyectoInversion(Base):
     __tablename__ = "proyectos_inversion"
@@ -81,7 +80,8 @@ class ProyectoInversion(Base):
             name="ck_estado_proyecto_valid"
         ),
     )
-
+    
+    documentos = relationship("DocumentoProyecto", back_populates="proyecto", cascade="all, delete-orphan")
     empresa = relationship("Empresa", back_populates="proyectos")
     inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
 
@@ -119,19 +119,6 @@ class Mensaje(Base):
 
     remitente = relationship("Usuario", foreign_keys=[remitente_id], back_populates="mensajes_remitentes")
     destinatario = relationship("Usuario", foreign_keys=[destinatario_id], back_populates="mensajes_destinatarios")
-
-
-class FirmaElectronica(Base):
-    __tablename__ = "firmas_electronicas"
-
-    id = Column(Integer, primary_key=True)
-    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), nullable=False)  # CORRECTO
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"))
-    firmado_en = Column(DateTime(timezone=True), server_default=func.now())
-    hash_firma = Column(Text)
-
-    usuario = relationship("Usuario", back_populates="firmas")
-    inversor = relationship("Inversor", back_populates="firmas")
 
 class CuentaStripe(Base):
     __tablename__ = "cuentas_stripe"

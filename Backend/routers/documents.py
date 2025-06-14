@@ -1,7 +1,7 @@
 import base64
 import hashlib
 import os
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from blockchain.contract_utils import sign_document, is_signed
 from db.conexion_db import get_db
 import utils.documents_utils as doc_utils
@@ -94,5 +94,5 @@ def obtener_documento(documento_id: int):
     
 
 @router.get("/documentos/{proyecto_id}")
-def listar_documentos(proyecto_id: int):
-    return doc_utils.listar_documentos(proyecto_id)
+def listar_documentos(proyecto_id: int, db=Depends(get_db)):
+    return doc_utils.listar_documentos(proyecto_id,db)

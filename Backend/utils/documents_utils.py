@@ -2,6 +2,7 @@ import base64
 import os
 from datetime import datetime
 from db.conexion_db import get_db
+from db.models import DocumentoProyecto, FirmaElectronica
 
 CARPETA_DOCUMENTOS = "archivos"
 
@@ -39,22 +40,25 @@ def registrar_documento(proyecto_id, nombre, descripcion, contenido_base64, visi
 
     return documento_id
 
-def listar_documentos(proyecto_id):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT dp.id, dp.nombre, dp.descripcion, dp.url, dp.visibilidad, dp.creado_en,
-            EXISTS (
-                SELECT 1 FROM Firmas_electronicas fe
-                WHERE fe.documento_id = dp.id
-            ) AS firmado
-        FROM Documentos_proyecto dp
-        WHERE dp.proyecto_id = %s
-        ORDER BY dp.creado_en DESC
-    """, (proyecto_id,))
-    documentos = cursor.fetchall()
-    cursor.close()
-    conn.close()
+def listar_documentos(proyecto_id, db):
+    documentos = (
+        db.query(
+            DocumentoProyecto.id,
+            DocumentoProyecto.nombre,
+            DocumentoProyecto.descripcion,
+            DocumentoProyecto.url,
+            DocumentoProyecto.visibilidad,
+            DocumentoProyecto.creado_en,
+            db.query(FirmaElectronica)
+              .filter(FirmaElectronica.documento_id == DocumentoProyecto.id)
+              .exists()
+              .label("firmado")
+        )
+        .filter(DocumentoProyecto.proyecto_id == proyecto_id)
+        .order_by(DocumentoProyecto.creado_en.desc())
+        .all()
+    )
+
 
     resultado = [
         {
