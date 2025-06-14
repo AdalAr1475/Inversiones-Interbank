@@ -16,7 +16,8 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-import HeaderLat from "@/components/header-lat"
+import { jwtDecode } from "jwt-decode"
+import { redirect } from "next/navigation"
 
 interface Proyecto {
   id: number;
@@ -47,6 +48,37 @@ const ProyectoCard = ({ proyecto } : { proyecto: Proyecto}) => {
   }
 
   const porcentaje = Math.floor((proyecto.recaudado / proyecto.meta) * 100)
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+      id: number
+      sub: string
+      tipo_usuario: string
+      exp: number
+  }
+  
+  useEffect(() => {
+    if (token) {
+      // Si ya está logueado, redirigir al dashboard correspondiente
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      const currentTime = Date.now() / 1000;
+      
+      // Verificar si el token ha expirado
+      if (decodedToken.exp < currentTime) {
+        localStorage.removeItem("token");
+        redirect("/auth/login")  // Redirigir a login si el token ha expirado
+        return
+      }
+
+      if (decodedToken.tipo_usuario === "empresa") {
+        redirect("/dashboard/empresa")
+      }
+    }
+    else {
+      // Si no hay token, redirigir al login
+      redirect("/auth/login")
+    }
+  });
 
   return (
     <Card className="border-green-100 hover:shadow-lg transition-shadow">

@@ -60,6 +60,7 @@ export default function RegisterPage() {
       // Verificar si el token ha expirado
       if (decodedToken.exp < currentTime) {
         localStorage.removeItem("token");
+        redirect("/auth/login")
         return
       }
 
