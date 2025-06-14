@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       // Verificar si el token ha expirado
       if (decodedToken.exp < currentTime) {
         localStorage.removeItem("token");
-        redirect("/");
+        redirect("/auth/login");
       }
 
       // Verificar si el rol del usuario coincide con el requerido
@@ -49,7 +49,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
     } catch (error) {
       console.error("Error decoding token", error);
-      redirect("/");
+      redirect("/auth/login");
     }
   }, [token, requiredRole]);
 

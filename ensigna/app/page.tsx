@@ -17,10 +17,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 // Importamos useEffect para el efecto de scrolling suave
 
 export default function EnsignaLanding() {
+  const [proyectos, setProyectos] = useState<any[]>([])  // Guardar los proyectos obtenidos
+  const [proyectosDestacados, setProyectosDestacados] = useState<any[]>([])  // Guardar los proyectos destacados
+  const [loading, setLoading] = useState<boolean>(true)  // Estado de carga
+
   // Añadir efecto de desplazamiento suave cuando se hace clic en los enlaces de navegación
   useEffect(() => {
     // Función para manejar el desplazamiento suave
@@ -46,10 +50,25 @@ export default function EnsignaLanding() {
     // Agregar evento a todos los enlaces
     document.addEventListener("click", handleSmoothScroll)
 
+    const fetchProyectos = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/project/get-show-proyectos?limit=3")
+        const data = await response.json()
+        setProyectos(data)
+        setProyectosDestacados(data.sort((a: any, b: any) => b.recaudado/b.meta - a.recaudado/a.meta).slice(0, 3))
+        setLoading(false)
+      } catch (error) {
+        console.error("Error al obtener los proyectos:", error)
+        setLoading(false)
+      }
+    }
+    fetchProyectos()
+
     // Limpiar el evento cuando el componente se desmonte
     return () => {
       document.removeEventListener("click", handleSmoothScroll)
     }
+  
   }, [])
 
   return (
@@ -84,18 +103,22 @@ export default function EnsignaLanding() {
                 <TabsContent value="inversor" className="space-y-4">
                   <p className="text-gray-600">
                     Descubre empresas prometedoras y diversifica tu portafolio
-                  </p> 
-                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                    Explorar Oportunidades
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
+                  </p>
+                  <Link href={"/oportunidades"}>
+                    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
+                      Explorar Oportunidades
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
                 </TabsContent>
                 <TabsContent value="empresa" className="space-y-4">
                   <p className="text-gray-600">Presenta tu empresa a inversores calificados</p>
-                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                    Publicar Oportunidad
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
+                  <Link href={"/auth/login"}>
+                    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
+                      Publicar Oportunidad
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
                 </TabsContent>
               </Tabs>
 
@@ -114,6 +137,8 @@ export default function EnsignaLanding() {
                 </div>
               </div>
             </div>
+
+            
             <div className="relative">
               <div className="bg-white rounded-2xl shadow-2xl p-8 border border-green-100">
                 <div className="space-y-6">
@@ -122,41 +147,26 @@ export default function EnsignaLanding() {
                     <Badge className="bg-green-100 text-green-800">Activas</Badge>
                   </div>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-green-100 duration-150 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                          <Building2 className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">TechStart AI</div>
-                          <div className="text-sm text-gray-600">Busca $500K • Tecnología</div>
-                        </div>
-                      </div>
-                      <div className="text-green-600 font-semibold">85% financiado</div>
-                    </div>
-                    <div className="flex items-center hover:bg-green-100 cursor-pointer duration-150 justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                          <Briefcase className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">EcoSolutions</div>
-                          <div className="text-sm text-gray-600">Busca $1M • Sostenibilidad</div>
-                        </div>
-                      </div>
-                      <div className="text-green-600 font-semibold">62% financiado</div>
-                    </div>
-                    <div className="flex items-center hover:bg-green-100 cursor-pointer duration-150 justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center">
-                          <TrendingUp className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">FinanceFlow</div>
-                          <div className="text-sm text-gray-600">Busca $750K • Fintech</div>
-                        </div>
-                      </div>
-                      <div className="text-green-600 font-semibold">43% financiado</div>
+
+                    <div className="space-y-4">
+                      {loading ? (
+                        <div>Cargando proyectos...</div>
+                      ) : (
+                        proyectos.map((proyecto) => (
+                          <div key={proyecto.id} className="flex items-center justify-between p-3 cursor-pointer hover:bg-green-100 duration-150 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center`}>
+                                <Building2 className="w-6 h-6 text-black" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">{proyecto.titulo}</div>
+                                <div className="text-sm text-gray-600">Busca ${proyecto.meta.toLocaleString()} • {proyecto.categoria.capitalize}</div>
+                              </div>
+                            </div>
+                            <div className="text-green-600 font-semibold">{Math.floor((proyecto.recaudado / proyecto.meta) * 100)}% financiado</div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -265,33 +275,23 @@ export default function EnsignaLanding() {
             <p className="text-xl text-gray-600">Empresas verificadas buscando financiamiento</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <CardInvest
-              category="Tecnología"
-              title="TechStart AI"
-              description="Plataforma de IA para automatización empresarial"
-              goal={500000}
-              raised={425000}
-              investors={23}
-            />
-            <CardInvest
-              category="Sostenibilidad"
-              title="EcoSolutions"
-              description="Soluciones de energía renovable para empresas"
-              goal={1000000}
-              raised={620000}
-              investors={31}
-            />
-            <CardInvest
-              category="Fintech"
-              title="FinanceFlow"
-              description="Gestión financiera para pequeñas empresas"
-              goal={750000}
-              raised={322500}
-              investors={18}
-            />
-            
-          </div>
+          {loading ? (
+            <div>Cargando proyectos...</div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {proyectos.map((proyecto) => (
+                <CardInvest
+                  key={proyecto.id}  // Usamos el título como clave para cada CardInvest
+                  category={proyecto.categoria}
+                  title={proyecto.titulo}
+                  description={proyecto.descripcion}
+                  goal={proyecto.meta}
+                  raised={proyecto.recaudado}
+                  investors={proyecto.inversores}
+                />
+              ))}
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link href="/oportunidades">
@@ -396,16 +396,20 @@ export default function EnsignaLanding() {
               Únete a la comunidad de empresas e inversores que están construyendo el futuro
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-green-600 border cursor-pointer border-white  hover:bg-transparent hover:text-white">
-                Soy Inversor
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white cursor-pointer text-white bg-transparent hover:bg-white hover:text-green-600"
-              >
-                Busco Inversión
-              </Button>
+              <Link href={"/oportunidades"}>
+                <Button size="lg" className="bg-white text-green-600 border cursor-pointer border-white  hover:bg-transparent hover:text-white">
+                  Soy Inversor
+                </Button>
+              </Link>
+              <Link href={"/auth/login"}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white cursor-pointer text-white bg-transparent hover:bg-white hover:text-green-600"
+                >
+                  Busco Inversión
+                </Button>
+              </Link>
             </div>
             <p className="text-sm text-green-200">
               Proceso 100% digital • Verificación completa • Soporte especializado

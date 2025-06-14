@@ -59,21 +59,37 @@ VALUES
 -- Poblar Usuarios (tipo empresa)
 INSERT INTO Usuarios (email, password_hash, tipo_usuario, wallet_address)
 VALUES 
-  ('empresa1@example.com', 'hashedpass1', 'empresa', '0xABC123'),
-  ('empresa2@example.com', 'hashedpass2', 'empresa', '0xDEF456');
+  ('matiaz.chevez.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', '0xABC123'),
+  ('adal.aranda.n@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', '0xABC123'),
+  ('diogo.abregu.g@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', '0xABC123'),
+  ('empresa1@emp.com', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'empresa', '0xABC123'),
+  ('empresa2@emp.com', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'empresa', '0xABC123');
 
--- Poblar Empresas
-INSERT INTO Empresas (usuario_id, nombre_empresa, ruc, descripcion, sector, ubicacion, pais)
-VALUES 
-  (1, 'TechSolutions SAC', '20123456789', 'Empresa de tecnología e innovación', 'Tecnología', 'Lima', 'Perú'),
-  (2, 'GreenInvest S.A.', '20987654321', 'Empresa de proyectos sostenibles', 'Energía', 'Arequipa', 'Perú');
+INSERT INTO Inversores (usuario_id, nombre_inversor, apellido_inversor, dni, telefono, experiencia, pais)
+VALUES
+  (1, 'Matiaz', 'Chevez', '70707070', '+51923444121', 'principiante', 'Perú'),
+  (2, 'Adal', 'Aranda', '70707071', '+51923444120', 'principiante', 'Perú'),
+  (3, 'Diogo', 'Abregu', '70707072', '+51923444124', 'principiante', 'Perú');
 
--- Poblar Proyectos_inversion
-INSERT INTO Proyectos_inversion (empresa_id, titulo, descripcion, monto_requerido, retorno_estimado, fecha_inicio, fecha_fin)
+INSERT INTO Empresas (usuario_id, nombre_empresa, ruc, descripcion, sector, ubicacion)
 VALUES 
-  (1, 'Plataforma de E-learning', 'Desarrollo de una plataforma educativa digital.', 50000.00, 12.50, '2025-06-01', '2025-12-31'),
-  (1, 'App de salud preventiva', 'Aplicación para monitoreo de salud preventiva.', 80000.00, 15.00, '2025-07-01', '2026-01-15'),
-  (2, 'Parque solar en Moquegua', 'Instalación de un parque de energía solar.', 150000.00, 18.00, '2025-06-15', '2026-06-15');
+  (4, 'TechSolutions SAC', '20123456789', 'Empresa de tecnología e innovación', 'TecnologIa', 'Lima, Peru'),
+  (5, 'Invest S.A.', '20987654321', 'Empresa que ofrece servicios de Fintech', 'Energia', 'Arequipa, Peru');
+
+-- Poblamiento de tabla proyectos_inversion
+INSERT INTO proyectos_inversion (empresa_id, titulo, descripcion, monto_requerido, monto_recaudado) VALUES
+(1, 'Plataforma de E-learning', 'Creación de una plataforma digital interactiva para la enseñanza a distancia, facilitando el acceso a contenidos educativos.', 50000.00, 28000.00),
+(1, 'App de Salud Preventiva', 'Desarrollo de una aplicación móvil para el monitoreo de salud, promoviendo hábitos saludables y prevención de enfermedades.', 70000.00, 13000.00),
+(2, 'Parque Solar en Moquegua', 'Instalación de un parque solar para generar energía limpia, impulsando la sostenibilidad en Moquegua.', 60000.00, 19000.00),
+(2, 'Planta de Energía Solar en Moquegua', 'Desarrollo de una planta de energía solar para abastecer de electricidad a comunidades locales, promoviendo el uso de energías renovables.', 80000.00, 30000.00);
+
+-- Poblamiento de tabla inversiones
+INSERT INTO inversiones (proyecto_id, inversor_id, monto_invertido, estado, contrato_pdf) VALUES
+(1, 1, 10000.00, 'firmado', 'contrato1.pdf'),
+(1, 2, 18000.00, 'firmado', 'contrato2.pdf'),
+(2, 1, 13000.00, 'firmado', 'contrato3.pdf'),
+(3, 2, 19000.00, 'firmado', 'contrato4.pdf'),
+(4, 1, 30000.00, 'firmado', 'contrato5.pdf');
 
 -- Poblar Documentos_proyecto (5 documentos en total)
 INSERT INTO Documentos_proyecto (proyecto_id, nombre, descripcion, url, visibilidad)

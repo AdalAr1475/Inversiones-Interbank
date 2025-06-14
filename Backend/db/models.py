@@ -15,7 +15,7 @@ class Usuario(Base):
     password_hash = Column(Text, nullable=False)
     tipo_usuario = Column(String(20), nullable=False)
     wallet_address = Column(Text)
-    creado_en = Column(TIMESTAMP, server_default=func.current_timestamp()) 
+    creado_en = Column(DateTime(timezone=True), server_default=func.now()) 
 
     __table_args__ = (
         CheckConstraint(
@@ -41,7 +41,6 @@ class Empresa(Base):
     descripcion = Column(Text)
     sector = Column(String(20), nullable=False)
     ubicacion = Column(String(100), nullable=True)
-    pais = Column(String(100))
 
     usuario = relationship("Usuario", back_populates="empresas")
     proyectos = relationship("ProyectoInversion", back_populates="empresa", cascade="all, delete-orphan")
@@ -62,7 +61,6 @@ class Inversor(Base):
     usuario = relationship("Usuario", back_populates="inversores")
     inversiones = relationship("Inversion", back_populates="inversor", cascade="all, delete-orphan")
 
-
 class ProyectoInversion(Base):
     __tablename__ = "proyectos_inversion"
 
@@ -71,8 +69,8 @@ class ProyectoInversion(Base):
     titulo = Column(String(255))
     descripcion = Column(Text)
     monto_requerido = Column(Numeric(12, 2))
-    retorno_estimado = Column(Numeric(5, 2))  # porcentaje esperado
-    fecha_inicio = Column(Date)
+    monto_recaudado = Column(Numeric(5, 2))  # porcentaje esperado
+    fecha_inicio = Column(DateTime(timezone=True), server_default=func.now()) 
     fecha_fin = Column(Date)
     estado = Column(String(20), nullable=False, server_default="abierto")
 
@@ -86,42 +84,6 @@ class ProyectoInversion(Base):
     documentos = relationship("DocumentoProyecto", back_populates="proyecto", cascade="all, delete-orphan")
     empresa = relationship("Empresa", back_populates="proyectos")
     inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
-
-
-class DocumentoProyecto(Base):
-    __tablename__ = "documentos_proyecto"
-
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String)
-    descripcion = Column(String)
-    url = Column(String)
-    visibilidad = Column(String(20), nullable=False, server_default="privado")  # público | privado
-    creado_en = Column(DateTime)
-    proyecto_id = Column(Integer, ForeignKey("proyectos_inversion.id", ondelete="CASCADE"), nullable=False)
-
-    firmas = relationship("FirmaElectronica", back_populates="documento")
-    proyecto = relationship("ProyectoInversion", back_populates="documentos")
-
-    __table_args__ = (
-        CheckConstraint(
-            visibilidad.in_(['privado', 'público']),
-            name="ck_estado_proyecto_valid"
-        ),
-    )
-
-class FirmaElectronica(Base):
-    __tablename__ = "firmas_electronicas"
-
-    id = Column(Integer, primary_key=True, index=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    documento_id = Column(Integer, ForeignKey("documentos_proyecto.id"))
-    firmado_en = Column(DateTime(timezone=True), server_default=func.now())
-    document_hash = Column(Text, nullable=False)  # Hash del documento firmado
-    tx_hash = Column(Text, nullable=True)  # Hash de la transacción en blockchain
-    tipo_documento = Column(String(50), nullable=False)  # 'inversion' | 'proyecto'
-
-    documento = relationship("DocumentoProyecto", back_populates="firmas")
-    usuario = relationship("Usuario", back_populates="firmas")
 
 class Inversion(Base):
     __tablename__ = "inversiones"
