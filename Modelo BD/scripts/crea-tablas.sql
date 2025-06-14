@@ -39,10 +39,10 @@ CREATE TABLE Proyectos_inversion (
   titulo VARCHAR(255),
   descripcion TEXT,
   monto_requerido NUMERIC(12, 2),
-  retorno_estimado NUMERIC(5, 2), -- % esperado
+  monto_recaudado NUMERIC(12, 2) DEFAULT 0,
   fecha_inicio DATE,
   fecha_fin DATE,
-  estado VARCHAR(20) CHECK (estado IN ('abierto', 'cerrado', 'cancelado')) DEFAULT 'abierto'
+  estado VARCHAR(20) CHECK (estado IN ('activo', 'completado', 'cancelado')) DEFAULT 'activo'
 );
 
 DROP TABLE IF EXISTS Documentos_proyecto CASCADE;

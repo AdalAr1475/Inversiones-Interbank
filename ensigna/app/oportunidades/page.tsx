@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { 
   Building2, Search, Filter, CheckCircle, ArrowUpDown, 
   TrendingUp, ChevronDown, ArrowLeft 
@@ -15,170 +15,37 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-
-// Datos de ejemplo para las oportunidades de inversión
-const proyectosData = [
-  {
-    id: 1,
-    titulo: "TechStart AI",
-    descripcion: "Plataforma de IA para automatización empresarial",
-    categoria: "Tecnología",
-    categoriaColor: "blue",
-    objetivo: 500000,
-    recaudado: 425000,
-    porcentaje: 85,
-    inversores: 23,
-    logo: "building2",
-    logoColor: "blue"
-  },
-  {
-    id: 2,
-    titulo: "EcoSolutions",
-    descripcion: "Soluciones de energía renovable para empresas",
-    categoria: "Sostenibilidad",
-    categoriaColor: "green",
-    objetivo: 1000000,
-    recaudado: 620000,
-    porcentaje: 62,
-    inversores: 31,
-    logo: "building2",
-    logoColor: "green"
-  },
-  {
-    id: 3,
-    titulo: "FinanceFlow",
-    descripcion: "Gestión financiera para pequeñas empresas",
-    categoria: "Fintech",
-    categoriaColor: "purple",
-    objetivo: 750000,
-    recaudado: 322500,
-    porcentaje: 43,
-    inversores: 18,
-    logo: "trendingUp",
-    logoColor: "orange"
-  },
-  {
-    id: 4,
-    titulo: "HealthTech Connect",
-    descripcion: "Plataforma de telemedicina y salud digital",
-    categoria: "Salud",
-    categoriaColor: "red",
-    objetivo: 850000,
-    recaudado: 467500,
-    porcentaje: 55,
-    inversores: 27,
-    logo: "building2",
-    logoColor: "red"
-  },
-  {
-    id: 5,
-    titulo: "EduLearn Pro",
-    descripcion: "Software educativo para escuelas y universidades",
-    categoria: "Educación",
-    categoriaColor: "yellow",
-    objetivo: 300000,
-    recaudado: 270000,
-    porcentaje: 90,
-    inversores: 42,
-    logo: "building2",
-    logoColor: "yellow"
-  },
-  {
-    id: 6,
-    titulo: "AgriTech Solutions",
-    descripcion: "Tecnología para agricultura sostenible",
-    categoria: "Agricultura",
-    categoriaColor: "green",
-    objetivo: 450000,
-    recaudado: 180000,
-    porcentaje: 40,
-    inversores: 15,
-    logo: "building2",
-    logoColor: "green"
-  },
-  {
-    id: 7,
-    titulo: "CyberShield",
-    descripcion: "Sistema de ciberseguridad para pequeñas empresas",
-    categoria: "Tecnología",
-    categoriaColor: "blue",
-    objetivo: 600000,
-    recaudado: 360000,
-    porcentaje: 60,
-    inversores: 20,
-    logo: "building2",
-    logoColor: "blue"
-  },
-  {
-    id: 8,
-    titulo: "Urban Mobility",
-    descripcion: "Soluciones de movilidad urbana sostenible",
-    categoria: "Transporte",
-    categoriaColor: "orange",
-    objetivo: 1200000,
-    recaudado: 540000,
-    porcentaje: 45,
-    inversores: 25,
-    logo: "trendingUp",
-    logoColor: "orange"
-  },
-  {
-    id: 9,
-    titulo: "FoodDelivery Plus",
-    descripcion: "Plataforma logística para entrega de alimentos",
-    categoria: "Logística",
-    categoriaColor: "purple",
-    objetivo: 400000,
-    recaudado: 380000,
-    porcentaje: 95,
-    inversores: 38,
-    logo: "building2",
-    logoColor: "purple"
-  },
-]
+import { log } from "console"
 
 // Componente para renderizar una tarjeta de proyecto
 const ProyectoCard = ({ proyecto }) => {
   const getColorClass = (color) => {
     const colorMap = {
-      blue: "bg-blue-100 text-blue-800",
-      green: "bg-green-100 text-green-800",
-      purple: "bg-purple-100 text-purple-800",
-      red: "bg-red-100 text-red-800",
-      yellow: "bg-yellow-100 text-yellow-800",
-      orange: "bg-orange-100 text-orange-800"
+      Tecnologia: "bg-blue-100 text-blue-800",
+      Sostenibilidad: "bg-green-100 text-green-800",
+      Logistica: "bg-purple-100 text-purple-800",
+      Salud: "bg-red-100 text-red-800",
+      Energia: "bg-yellow-100 text-yellow-800",
+      Agricultura: "bg-orange-100 text-orange-800"
     }
     return colorMap[color] || "bg-gray-100 text-gray-800"
   }
 
-  const getLogoIcon = (logo, color) => {
-    if (logo === "trendingUp") {
-      return <TrendingUp className="w-4 h-4 text-white" />
-    }
-    return <Building2 className="w-4 h-4 text-white" />
+  const formatCurrency = (value) => {
+    return value ? value.toLocaleString() : "No disponible";
   }
 
-  const getLogoColorClass = (color) => {
-    const colorMap = {
-      blue: "bg-blue-600",
-      green: "bg-green-600",
-      purple: "bg-purple-600",
-      red: "bg-red-600",
-      yellow: "bg-yellow-600",
-      orange: "bg-orange-600"
-    }
-    return colorMap[color] || "bg-gray-600"
-  }
+  const porcentaje = Math.floor((proyecto.recaudado / proyecto.meta) * 100)
 
   return (
     <Card className="border-green-100 hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <Badge className={getColorClass(proyecto.categoriaColor)}>
+          <Badge className={getColorClass(proyecto.categoria)}>
             {proyecto.categoria}
           </Badge>
           <Badge variant="outline" className="text-green-600 border-green-600">
-            {proyecto.porcentaje}% financiado
+            {porcentaje}% financiado
           </Badge>
         </div>
         <CardTitle className="text-green-800">{proyecto.titulo}</CardTitle>
@@ -188,7 +55,7 @@ const ProyectoCard = ({ proyecto }) => {
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Objetivo:</span>
-            <span className="font-semibold">${proyecto.objetivo.toLocaleString()}</span>
+            <span className="font-semibold">${formatCurrency(proyecto.meta)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Recaudado:</span>
@@ -201,7 +68,7 @@ const ProyectoCard = ({ proyecto }) => {
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-green-600 h-2 rounded-full" 
-              style={{ width: `${proyecto.porcentaje}%` }}
+              style={{ width: `${porcentaje}%` }}
             ></div>
           </div>
           <Link href={`/oportunidades/${proyecto.id}`}>
@@ -216,6 +83,26 @@ const ProyectoCard = ({ proyecto }) => {
 }
 
 export default function OportunidadesPage() {  // Estado para filtros
+  const [proyectos, setProyectos] = useState<any[]>([])  // Lista de proyectos
+  const [loading, setLoading] = useState<boolean>(true)  // Estado de carga
+
+  // Llamada al endpoint para obtener los proyectos
+  useEffect(() => {
+    const fetchProyectos = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/project/get-show-proyectos")  // Llamada al endpoint
+        const data = await response.json()  // Convertir los datos a JSON
+        setProyectos(data)  // Guardamos los datos en el estado
+        setLoading(false)  // Establecemos que la carga ha terminado
+      } catch (error) {
+        console.error("Error al obtener los proyectos:", error)
+        setLoading(false)
+      }
+    }
+
+    fetchProyectos()  // Ejecutamos la función para obtener los proyectos
+  }, [])
+
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("todas")
   const [selectedSorting, setSelectedSorting] = useState("newest")
@@ -223,35 +110,33 @@ export default function OportunidadesPage() {  // Estado para filtros
   const [onlyActive, setOnlyActive] = useState(true)
   
   // Filtrar proyectos según los criterios
-  const filteredProyectos = proyectosData.filter(proyecto => {
-    // Filtro por término de búsqueda
-    const matchesSearch = proyecto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredProyectos = proyectos.filter(proyecto => {
+    const porcentaje = Math.floor((proyecto.recaudado / proyecto.meta) * 100)
+    const matchesSearch = proyecto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proyecto.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
-      // Filtro por categoría
     const matchesCategory = selectedCategory === "todas" || proyecto.categoria === selectedCategory
-    
-    // Filtro por porcentaje de financiación
-    const matchesFunding = proyecto.porcentaje >= fundingRange[0] && proyecto.porcentaje <= fundingRange[1]
-    
-    // Filtro por proyectos activos (menos del 100% financiados)
-    const matchesActive = !onlyActive || proyecto.porcentaje < 100
-    
+    const matchesFunding = porcentaje >= fundingRange[0] && porcentaje <= fundingRange[1]
+    const matchesActive = !onlyActive || porcentaje < 100
+
     return matchesSearch && matchesCategory && matchesFunding && matchesActive
   })
-  
+
   // Ordenar proyectos
   const sortedProyectos = [...filteredProyectos].sort((a, b) => {
+    const porcentajeA = Math.floor((a.recaudado / a.meta) * 100);  // Calculamos el porcentaje de A
+    const porcentajeB = Math.floor((b.recaudado / b.meta) * 100);  // Calculamos el porcentaje de B
+
     switch(selectedSorting) {
       case "highest-funded":
-        return b.porcentaje - a.porcentaje
+        return porcentajeB - porcentajeA;  // Ordenar de mayor a menor
       case "lowest-funded":
-        return a.porcentaje - b.porcentaje
+        return porcentajeA - porcentajeB;  // Ordenar de menor a mayor
       case "highest-goal":
-        return b.objetivo - a.objetivo
+        return b.meta - a.meta;  // Ordenar según la meta
       case "lowest-goal":
-        return a.objetivo - b.objetivo
+        return a.meta - b.meta;  // Ordenar según la meta
       default: // newest
-        return b.id - a.id
+        return b.id - a.id;  // Ordenar por ID (más reciente)
     }
   })
   
@@ -390,7 +275,9 @@ export default function OportunidadesPage() {  // Estado para filtros
           
           {/* Grid de proyectos */}
           <div className="order-1 lg:order-2 lg:col-span-3">
-            {sortedProyectos.length > 0 ? (
+            {loading ? (
+              <div>Cargando proyectos...</div>
+            ) : sortedProyectos.length > 0 ? (
               <>
                 <div className="mb-5 flex justify-between items-center">
                   <p className="text-gray-600">{sortedProyectos.length} oportunidades encontradas</p>

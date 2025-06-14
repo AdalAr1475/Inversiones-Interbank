@@ -29,7 +29,6 @@ class UsuarioCreateEmpresa(BaseModel):
     ruc: str
     descripcion: str
     sector: str
-    pais: str
     ubicacion: str
 
 class Usuario(BaseModel):
@@ -123,7 +122,6 @@ async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
         descripcion=user.descripcion,
         sector=user.sector,
         ubicacion=user.ubicacion,
-        pais=user.pais
     )
 
     db.add(new_empresa)

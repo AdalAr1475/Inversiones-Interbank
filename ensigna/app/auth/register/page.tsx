@@ -33,7 +33,6 @@ export default function RegisterPage() {
   const [descripcion, setDescripcion] = useState("");
   const [emailEmpresa, setEmailEmpresa] = useState("");
   const [ubicacion, setUbicacion] = useState("");
-  const [paisEmpresa, setPaisEmpresa] = useState("");
   const [passwordEmpresa, setPasswordEmpresa] = useState("");
   const [confirmPasswordEmpresa, setConfirmPasswordEmpresa] = useState("");
 
@@ -79,12 +78,12 @@ export default function RegisterPage() {
 
     // Validación de campos obligatorios
     if (userType === "inversor") {
-      if (!nombreInversor || !apellidoInversor || !emailInversor || !telefono || !passwordInversor || !confirmPasswordInversor) {
+      if (!nombreInversor || !apellidoInversor || !dni || !paisInversor || !experiencia || !emailInversor || !telefono || !passwordInversor || !confirmPasswordInversor) {
         setErrorMsg("Por favor, completa todos los campos requeridos");
         return;
       }
     } else {
-      if (!nombreEmpresa || !ruc || !sector || !emailEmpresa || !ubicacion || !passwordEmpresa || !confirmPasswordEmpresa) {
+      if (!nombreEmpresa || !ruc || !sector || !descripcion || !emailEmpresa || !ubicacion || !passwordEmpresa || !confirmPasswordEmpresa) {
         setErrorMsg("Por favor, completa todos los campos requeridos");
         return;
       }
@@ -131,7 +130,6 @@ export default function RegisterPage() {
           sector: sector,
           descripcion: descripcion,
           ubicacion: ubicacion,
-          pais: paisEmpresa,
           email: emailEmpresa,
           password: passwordEmpresa,
         };
@@ -427,12 +425,14 @@ export default function RegisterPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="tecnologia">Tecnología</SelectItem>
-                        <SelectItem value="fintech">Fintech</SelectItem>
+                        <SelectItem value="fintech">Energia</SelectItem>
                         <SelectItem value="salud">Salud</SelectItem>
                         <SelectItem value="educacion">Educación</SelectItem>
                         <SelectItem value="ecommerce">E-commerce</SelectItem>
                         <SelectItem value="sostenibilidad">Sostenibilidad</SelectItem>
-                        <SelectItem value="otro">Otro</SelectItem>
+                        <SelectItem value="agricultura">Agricultura</SelectItem>
+                        <SelectItem value="transporte">Transporte</SelectItem>
+                        <SelectItem value="logistica">Logistica</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

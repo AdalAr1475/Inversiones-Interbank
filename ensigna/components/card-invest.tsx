@@ -1,6 +1,7 @@
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
+import { redirect } from "next/navigation";
 
 type CardInvestProps = {
   category: string
@@ -13,9 +14,9 @@ type CardInvestProps = {
 
 // Define category to color mapping
 const categoryColors: { [key: string]: string } = {
-  "Tecnología": "blue",
+  "Tecnologia": "blue",
   "Sostenibilidad": "green",
-  "Fintech": "yellow",
+  "Energia": "yellow",
   "Energía": "red",
   // Add more categories as needed
 };
@@ -50,9 +51,6 @@ return (
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-green-600 h-2 rounded-full" style={{ width: `${Math.round((raised / goal) * 100)}%` }}></div>
                   </div>
-                  <Button className="w-full bg-green-600 hover:bg-green-700 cursor-pointer text-white">
-                    Ver Detalles
-                  </Button>
                 </div>
               </CardContent>
             </Card>)}

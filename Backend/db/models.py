@@ -15,7 +15,7 @@ class Usuario(Base):
     password_hash = Column(Text, nullable=False)
     tipo_usuario = Column(String(20), nullable=False)
     wallet_address = Column(Text)
-    creado_en = Column(TIMESTAMP, server_default=func.current_timestamp()) 
+    creado_en = Column(DateTime(timezone=True), server_default=func.now()) 
 
     __table_args__ = (
         CheckConstraint(
@@ -41,7 +41,6 @@ class Empresa(Base):
     descripcion = Column(Text)
     sector = Column(String(20), nullable=False)
     ubicacion = Column(String(100), nullable=True)
-    pais = Column(String(100))
 
     usuario = relationship("Usuario", back_populates="empresas")
     proyectos = relationship("ProyectoInversion", back_populates="empresa", cascade="all, delete-orphan")
@@ -63,7 +62,6 @@ class Inversor(Base):
     inversiones = relationship("Inversion", back_populates="inversor", cascade="all, delete-orphan")
     firmas = relationship("FirmaElectronica", back_populates="inversor")
 
-
 class ProyectoInversion(Base):
     __tablename__ = "proyectos_inversion"
 
@@ -72,8 +70,8 @@ class ProyectoInversion(Base):
     titulo = Column(String(255))
     descripcion = Column(Text)
     monto_requerido = Column(Numeric(12, 2))
-    retorno_estimado = Column(Numeric(5, 2))  # porcentaje esperado
-    fecha_inicio = Column(Date)
+    monto_recaudado = Column(Numeric(5, 2))  # porcentaje esperado
+    fecha_inicio = Column(DateTime(timezone=True), server_default=func.now()) 
     fecha_fin = Column(Date)
     estado = Column(String(20), nullable=False, server_default="abierto")
 
@@ -86,7 +84,6 @@ class ProyectoInversion(Base):
 
     empresa = relationship("Empresa", back_populates="proyectos")
     inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
-
 
 class Inversion(Base):
     __tablename__ = "inversiones"
