@@ -25,73 +25,150 @@ BEGIN
     END LOOP;
 END $$;
 
-/*
--- 1) Usuario administrador puro
-INSERT INTO Usuarios (email, nombre, password_hash, tipo_usuario)
+
+-- Poblamiento de la tabla Usuarios
+INSERT INTO Usuarios (nombre, apellido_paterno, apellido_materno, dni, telefono, email, password_hash, tipo_usuario)
 VALUES 
-  ('admin@test.com', 'Administrador General', 'hashed_pwd_admin', 'admin');
+  ('Matiaz','Chevez','Collahuacho','70235612','910910910','matiaz.chevez.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Adal','Aranda','Nuñez','70348211','923412222','adal.aranda.n@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Diogo','Abregu','Gonzales','74209982','910234123','diogo.abregu.g@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Diego','Bernal','Tamayo','71443322','910333444','diego.bernal.t@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Nicol','Auqui','Castilla','73029934','910934583','nicol.auqui.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Sharon','Guisado','Alejo','72340094','912343511','sharon.guisado.a@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Saul','Anyaipoma','Hurtado','68991023','923111434','saul.anyaipoma.h@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
+  ('Elvis','Arboleda','Terrones','71232210','923100100','elvis.arboleda.t@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor'),
+  ('Sebastian','Cardenas','Lujan','73707123','901344222','sebastian.cardenas.l@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor');
 
--- 2) Usuario con rol de administrador y que además es empresa
--- Primero creamos el usuario como tipo 'admin'
-INSERT INTO Usuarios (email, nombre, password_hash, tipo_usuario, wallet_address)
+-- Poblamiento de la tabla Wallets
+INSERT INTO Wallets (inversor_id, saldo)
 VALUES 
-  ('admin_empresa@test.com', 'Admin Empresa S.A.', 'hashed_pwd_emp', 'admin', '0xAbC1234EfG5678HiJkL');
-
--- Ahora añadimos la fila en Empresas apuntando a ese usuario
--- Suponiendo que el serial de Usuarios para este insert quedó en id = 2
-INSERT INTO Empresas (usuario_id, ruc, descripcion, sector, pais)
-VALUES 
-  (2, '20123456789', 'Empresa de tecnología financiera', 'FinTech', 'Perú');
-
--- 3) Usuario inversor (no administrador)
-INSERT INTO Usuarios (email, nombre, password_hash, tipo_usuario, wallet_address)
-VALUES 
-  ('inversor1@test.com', 'Juan Pérez', 'hashed_pwd_inv', 'inversor', '0xDeF9876GhI5432KlMnO');
-
--- Ahora añadimos la fila en Inversores apuntando a ese usuario
--- Suponiendo que el serial de Usuarios para este insert quedó en id = 3
-INSERT INTO Inversores (usuario_id, dni, pais)
-VALUES
-  (3, '87654321', 'Perú');
-*/
-
--- Poblamiento provisional para documentos:
--- Poblar Usuarios (tipo empresa)
-INSERT INTO Usuarios (email, password_hash, tipo_usuario, wallet_address)
-VALUES 
-  ('matiaz.chevez.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', '0xABC123'),
-  ('adal.aranda.n@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', '0xABC123'),
-  ('diogo.abregu.g@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', '0xABC123'),
-  ('empresa1@emp.com', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'empresa', '0xABC123'),
-  ('empresa2@emp.com', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'empresa', '0xABC123');
-
-INSERT INTO Inversores (usuario_id, nombre_inversor, apellido_inversor, dni, telefono, experiencia, pais)
-VALUES
-  (1, 'Matiaz', 'Chevez', '70707070', '+51923444121', 'principiante', 'Perú'),
-  (2, 'Adal', 'Aranda', '70707071', '+51923444120', 'principiante', 'Perú'),
-  (3, 'Diogo', 'Abregu', '70707072', '+51923444124', 'principiante', 'Perú');
-
-INSERT INTO Empresas (usuario_id, nombre_empresa, ruc, descripcion, sector, ubicacion)
-VALUES 
-  (4, 'TechSolutions SAC', '20123456789', 'Empresa de tecnología e innovación', 'TecnologIa', 'Lima, Peru'),
-  (5, 'Invest S.A.', '20987654321', 'Empresa que ofrece servicios de Fintech', 'Energia', 'Arequipa, Peru');
+  (1, 100000.00), -- Matiaz Chevez
+  (2, 100000.00), -- Adal Aranda
+  (3, 100000.00), -- Diogo Abregu
+  (4, 100000.00), -- Diego Bernal
+  (5, 100000.00), -- Nicol Auqui
+  (6, 100000.00), -- Sharon Guisado
+  (7, 100000.00); -- Saul Anyaipoma
 
 -- Poblamiento de tabla proyectos_inversion
-INSERT INTO proyectos_inversion (empresa_id, titulo, descripcion, descripcion_extendida, monto_requerido, monto_recaudado, fecha_fin) 
+INSERT INTO Proyectos (emprendedor_id, nombre_proyecto, descripcion, descripcion_extendida, sector, ubicacion, monto_pedido, monto_recaudado, retorno_estimado, fecha_fin) 
 VALUES
-  (1, 'Plataforma de E-learning', 'Plataforma digital interactiva para enseñanza a distancia.', 'Creación de una plataforma digital interactiva para la enseñanza a distancia, facilitando el acceso a contenidos educativos, con herramientas de seguimiento de progreso y recursos de aprendizaje en línea accesibles desde cualquier dispositivo.', 50000.00, 28000.00, '2025-12-31'),
-  (1, 'App de Salud Preventiva', 'Aplicación para monitoreo de salud y hábitos saludables.', 'Desarrollo de una aplicación móvil que permite a los usuarios monitorear su salud mediante recordatorios, estadísticas personalizadas y consejos prácticos, enfocándose en la prevención de enfermedades y la promoción de un estilo de vida saludable.', 70000.00, 13000.00, '2025-11-30'),
-  (2, 'Parque Solar en Moquegua', 'Instalación de un parque solar para energía limpia en Moquegua.', 'El proyecto consiste en la instalación de un parque solar de gran escala en Moquegua, con el objetivo de generar energía limpia y sostenible para abastecer a más de 500 hogares, contribuyendo a la transición hacia energías renovables en la región.', 60000.00, 19000.00, '2026-06-30'),
-  (2, 'Planta de Energía Solar en Moquegua', 'Planta solar para abastecer de electricidad a comunidades locales.', 'Desarrollo de una planta de energía solar que generará electricidad para abastecer a comunidades rurales y urbanas en Moquegua. El proyecto fomentará el uso de energías renovables, mejorando la accesibilidad energética y reduciendo la dependencia de fuentes no renovables.', 80000.00, 30000.00, '2026-05-15');
+  (8, 'Energía Solar en Comunidades Rurales de Arequipa', 
+    'Proyecto para la instalación de paneles solares en comunidades rurales de la región sur de Perú', 
+    'Este proyecto tiene como objetivo llevar energía limpia y accesible a zonas rurales de Arequipa que no tienen acceso a la red eléctrica. La implementación de paneles solares permitirá a las comunidades rurales no solo reducir su dependencia de fuentes de energía contaminantes, sino también mejorar la calidad de vida mediante el acceso a electricidad para iluminación, comunicación y desarrollo de pequeñas industrias. A largo plazo, se prevé que el uso de energía solar contribuya a la mejora de la salud, la educación y la economía local, generando una fuente de ingresos sostenible mediante la comercialización de excedentes de energía, cuando sea posible. Este proyecto también contempla la capacitación de las comunidades en el mantenimiento y gestión de los sistemas solares, asegurando la sostenibilidad a largo plazo.',
+    'Energía', 'Arequipa, Perú', 150000, 90000, 0.25, '2026-12-31'),
+    
+  (8, 'Agroprocesadora de Quinua en Cusco para Exportación', 
+    'Planta para el procesamiento de quinua, maca y otros productos andinos para la exportación', 
+    'El proyecto busca crear una planta moderna de procesamiento de productos agrícolas andinos, como quinua, maca, camu camu y otros superalimentos. La iniciativa se centrará en añadir valor a estos productos, que actualmente son exportados en su forma cruda. A través del procesamiento y empaquetado, se generarán productos alimenticios listos para el mercado internacional, tales como harina de quinua, extractos de maca y otros productos derivados. Además de promover la agricultura sostenible, la planta brindará una fuente de ingresos para los pequeños agricultores locales mediante la compra de sus cosechas a precios justos. El impacto positivo en la comunidad incluirá la creación de empleo, mejoras en la infraestructura agrícola y el fortalecimiento de la identidad cultural mediante el impulso a la agricultura tradicional andina.',
+    'Agricultura y Agroindustria', 'Cusco, Perú', 200000, 120000, 0.35, '2027-05-30'),
 
--- Poblamiento de tabla inversiones
-INSERT INTO inversiones (proyecto_id, inversor_id, monto_invertido, estado, contrato_pdf) VALUES
-(1, 1, 10000.00, 'firmado', 'contrato1.pdf'),
-(1, 2, 18000.00, 'firmado', 'contrato2.pdf'),
-(2, 1, 13000.00, 'firmado', 'contrato3.pdf'),
-(3, 2, 19000.00, 'firmado', 'contrato4.pdf'),
-(4, 1, 30000.00, 'firmado', 'contrato5.pdf');
+  (8, 'Plataforma Educativa Online para Zonas Rurales de Ayacucho', 
+    'Desarrollo de una plataforma educativa online dirigida a estudiantes de zonas rurales', 
+    'Este proyecto tiene como objetivo proporcionar acceso a educación de calidad a estudiantes de zonas rurales de Ayacucho, donde los recursos educativos y las infraestructuras tradicionales son limitadas. A través de una plataforma digital, se ofrecerán cursos, talleres y materiales educativos en áreas como matemáticas, ciencias, idiomas y habilidades técnicas. La plataforma será accesible desde dispositivos móviles, permitiendo a los estudiantes de regiones remotas seguir su educación sin tener que desplazarse a las grandes ciudades. Además, el proyecto contempla la creación de una red de tutores locales que apoyen a los estudiantes, garantizando que tengan la orientación necesaria para completar los cursos. Este proyecto también ayudará a reducir la brecha educativa en el país, proporcionando a los estudiantes rurales las mismas oportunidades que a aquellos que viven en áreas urbanas.',
+    'Educación', 'Ayacucho, Perú', 100000, 50000, 0.4, '2026-06-15'),
 
+  (8, 'Agroturismo Sostenible en la Selva Central de Junín', 
+    'Desarrollo de un complejo de agroturismo que promueve el turismo rural y sostenible', 
+    'El proyecto busca ofrecer una experiencia única de turismo en la selva central de Junín, que combine actividades agrícolas con ecoturismo. Los turistas podrán participar en actividades agrícolas como la cosecha de cacao, café y otros cultivos locales, y al mismo tiempo disfrutar de la belleza natural de la selva. A través de este proyecto, se promoverá la conservación del medio ambiente, el respeto por las comunidades locales y la preservación de las tradiciones culturales de la zona. El agroturismo no solo será una forma de incentivar el turismo en áreas rurales, sino también una oportunidad para los agricultores de diversificar sus fuentes de ingreso y mejorar la calidad de vida. Se incluirán alojamientos sostenibles, transporte ecológico y actividades que involucren a los habitantes locales como guías turísticos.',
+    'Turismo', 'Junín, Perú', 130000, 80000, 0.3, '2027-11-10'),
+
+  (8, 'Planta de Reciclaje de Residuos Sólidos en Lima', 
+    'Creación de una planta de reciclaje que gestione residuos sólidos urbanos en Lima', 
+    'Este proyecto tiene como objetivo construir y operar una planta de reciclaje de residuos sólidos en Lima, con el fin de mejorar la gestión de residuos en la ciudad y reducir la contaminación. La planta se encargará de recolectar, clasificar y procesar materiales reciclables como plásticos, metales, papel y vidrio. Además, se desarrollará una red de recolección selectiva que permita a los ciudadanos separar los residuos reciclables en sus hogares, contribuyendo al proceso de reciclaje. El proyecto también incluirá un centro de concientización y educación ambiental, con el objetivo de sensibilizar a la población sobre la importancia del reciclaje y la reducción de residuos. A largo plazo, se espera generar empleo y, a través de la venta de materiales reciclados, contribuir a la economía circular del país.',
+    'Sostenibilidad y Medio Ambiente', 'Lima, Perú', 250000, 180000, 0.5, '2026-04-05'),
+
+  (9, 'Fintech de Inclusión Financiera en la Región de Lima', 
+    'Desarrollo de una plataforma de pagos y microcréditos para personas no bancarizadas en áreas rurales', 
+    'Este proyecto se enfoca en ofrecer servicios financieros básicos como pagos móviles, microcréditos, ahorro y seguros para personas que no tienen acceso a bancos tradicionales, especialmente en áreas rurales. A través de una aplicación móvil fácil de usar, los usuarios podrán realizar pagos, transferencias y gestionar sus ahorros sin la necesidad de una cuenta bancaria. Además, el proyecto permitirá el acceso a microcréditos para emprendedores rurales que necesitan capital para sus negocios. Esto no solo incrementará la inclusión financiera, sino que también estimulará la economía local al ofrecer a los habitantes rurales las herramientas necesarias para participar en la economía formal. La plataforma también incluirá una red de agentes locales que brindarán soporte y educación financiera.',
+    'Finanzas', 'Lima, Perú', 120000, 75000, 0.4, '2027-02-28'),
+
+  (9, 'Energía Eólica en la Costa Norte de Piura', 
+    'Instalación de turbinas eólicas en la costa norte para generar energía limpia', 
+    'Este proyecto tiene como objetivo aprovechar los fuertes vientos que se presentan en la costa norte de Piura para generar energía eólica. La instalación de turbinas eólicas no solo contribuirá a diversificar la matriz energética del país, sino que también reducirá las emisiones de gases de efecto invernadero. La energía producida será vendida a la red nacional y utilizará tecnologías de vanguardia para maximizar la eficiencia. A largo plazo, el proyecto creará empleos directos en la construcción y operación de las turbinas eólicas, además de beneficiar a las comunidades locales con el acceso a energía más barata y limpia. Este proyecto también contempla la capacitación de la fuerza laboral en energías renovables, fomentando el desarrollo de nuevas habilidades técnicas.',
+    'Energía', 'Piura, Perú', 200000, 150000, 0.35, '2027-08-20'),
+
+  (9, 'Soluciones Tecnológicas para la Agricultura en Lima', 
+    'Desarrollo de herramientas tecnológicas para mejorar la productividad agrícola', 
+    'Este proyecto propone la creación de plataformas tecnológicas que faciliten la gestión de cultivos, optimicen el uso de agua y recursos, y aumenten la eficiencia de los agricultores en Lima y otras regiones cercanas. La tecnología incluirá sensores para monitorear el crecimiento de los cultivos, drones para la aplicación de pesticidas y fertilizantes, y plataformas móviles que proporcionen recomendaciones en tiempo real sobre prácticas agrícolas sostenibles. Además, se brindarán servicios de capacitación a los agricultores para que puedan integrar estas tecnologías en sus prácticas diarias. El objetivo es aumentar la productividad agrícola, reducir el uso de recursos naturales y mejorar la calidad de los productos para que los agricultores puedan acceder a mejores mercados tanto locales como internacionales.',
+    'Tecnología y Innovación', 'Lima, Perú', 180000, 130000, 0.45, '2026-12-10'),
+
+  (9, 'Viviendas Sostenibles en Arequipa para Familias de Bajos Recursos', 
+    'Desarrollo de un proyecto inmobiliario que utilice materiales ecológicos y eficiencia energética', 
+    'El proyecto busca construir viviendas utilizando materiales sostenibles como madera certificada, materiales reciclados y técnicas de eficiencia energética para reducir el consumo de energía en las viviendas. Se desarrollarán viviendas accesibles para familias de ingresos medios y bajos en Arequipa, con un diseño que maximice la utilización de recursos naturales como la luz solar y la ventilación natural. Además de la sostenibilidad en la construcción, el proyecto se enfocará en la creación de un entorno verde que promueva la calidad de vida, con espacios comunes para la comunidad y el fomento de un estilo de vida más saludable. Este proyecto contribuirá al desarrollo de un mercado inmobiliario más responsable y a la creación de una comunidad más sostenible.',
+    'Construcción e Infraestructura', 'Arequipa, Perú', 220000, 150000, 0.3, '2027-04-25'),
+
+  (9, 'Telemedicina para Comunidades Aisladas en Loreto', 
+    'Desarrollo de una plataforma digital de telemedicina para atender a poblaciones remotas', 
+    'Este proyecto tiene como objetivo ofrecer consultas médicas a distancia mediante una plataforma digital de telemedicina, destinada a las comunidades más remotas del departamento de Loreto, que no tienen acceso a servicios de salud especializados. A través de esta plataforma, los pacientes podrán recibir diagnósticos, recomendaciones médicas y seguimiento de su salud sin necesidad de desplazarse a centros urbanos. La plataforma incluirá un sistema de videollamadas, mensajería segura y una base de datos de médicos especializados en diversas áreas. Además, se implementará un sistema de monitoreo remoto de pacientes para condiciones crónicas, lo que permitirá realizar un seguimiento constante sin que el paciente tenga que estar físicamente presente. El proyecto también incluirá campañas de concientización sobre el uso de la telemedicina y el acceso a servicios médicos en línea.',
+    'Salud', 'Loreto, Perú', 150000, 95000, 0.4, '2027-03-15');
+
+-- Poblamiento de tabla Inversiones
+INSERT INTO Inversiones (proyecto_id, inversor_id, monto_invertido, fecha_inversion) 
+VALUES
+-- Proyecto 1 (Monto recaudado: 90,000)
+(1, 1, 25000, '2024-01-15 10:00:00'),
+(1, 3, 30000, '2024-01-16 12:00:00'),
+(1, 5, 15000, '2024-01-17 14:00:00'),
+(1, 7, 20000, '2024-01-18 16:00:00'),
+
+-- Proyecto 2 (Monto recaudado: 120,000)
+(2, 1, 40000, '2024-02-01 10:00:00'),
+(2, 2, 30000, '2024-02-02 12:00:00'),
+(2, 6, 20000, '2024-02-03 14:00:00'),
+(2, 3, 20000, '2024-02-04 16:00:00'),
+(2, 1, 10000, '2024-02-05 18:00:00'),
+
+-- Proyecto 3 (Monto recaudado: 50,000)
+(3, 1, 20000, '2024-03-01 10:00:00'),
+(3, 6, 20000, '2024-03-02 12:00:00'),
+(3, 3, 10000, '2024-03-03 14:00:00'),
+
+-- Proyecto 4 (Monto recaudado: 80,000)
+(4, 1, 40000, '2025-04-01 10:00:00'),
+(4, 2, 10000, '2025-04-02 12:00:00'),
+(4, 7, 10000, '2025-04-03 14:00:00'),
+(4, 4, 20000, '2025-04-04 16:00:00'),
+
+-- Proyecto 5 (Monto recaudado: 180,000)
+(5, 1, 45000, '2025-05-01 10:00:00'),
+(5, 4, 35000, '2025-05-02 12:00:00'),
+(5, 5, 30000, '2025-05-03 14:00:00'),
+(5, 4, 30000, '2025-05-04 16:00:00'),
+(5, 5, 40000, '2025-05-05 18:00:00'),
+
+-- Proyecto 6 (Monto recaudado: 75,000)
+(6, 5, 35000, '2025-06-01 10:00:00'),
+(6, 7, 25000, '2025-06-02 12:00:00'),
+(6, 3, 15000, '2025-06-03 14:00:00'),
+
+-- Proyecto 7 (Monto recaudado: 150,000)
+(7, 2, 45000, '2025-07-01 10:00:00'),
+(7, 1, 35000, '2025-07-02 12:00:00'),
+(7, 3, 40000, '2025-07-03 14:00:00'),
+(7, 6, 30000, '2025-07-04 16:00:00'),
+
+-- Proyecto 8 (Monto recaudado: 130,000)
+(8, 1, 45000, '2025-08-01 10:00:00'),
+(8, 2, 25000, '2025-08-02 12:00:00'),
+(8, 3, 20000, '2025-08-03 14:00:00'),
+(8, 4, 20000, '2025-08-04 16:00:00'),
+(8, 5, 20000, '2025-08-05 18:00:00'),
+
+-- Proyecto 9 (Monto recaudado: 150,000)
+(9, 7, 50000, '2025-09-01 10:00:00'),
+(9, 1, 40000, '2025-09-02 12:00:00'),
+(9, 2, 30000, '2025-09-03 14:00:00'),
+(9, 7, 30000, '2025-09-04 16:00:00'),
+
+-- Proyecto 10 (Monto recaudado: 95,000)
+(10, 2, 35000, '2025-10-01 10:00:00'),
+(10, 2, 30000, '2025-10-02 12:00:00'),
+(10, 5, 15000, '2025-10-03 14:00:00'),
+(10, 6, 15000, '2025-10-04 16:00:00');
+
+
+"""
 -- Poblar Documentos_proyecto (5 documentos en total)
 INSERT INTO Documentos_proyecto (proyecto_id, nombre, descripcion, url, contenido_base64, tipo_documento, visibilidad)
 VALUES
@@ -134,3 +211,4 @@ VALUES
      'JVBERi0xLjcNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFuZyhlcy1FUykvU3RydWN0VHJlZzMNCjEgMCBvYmoNCjw8L1R5cGUvUGFn', -- CONTENIDO_BASE64_DEL_PDF real aquí
      'Contrato', 
      'privado');
+"""
