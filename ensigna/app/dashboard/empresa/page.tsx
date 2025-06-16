@@ -55,7 +55,7 @@ export default function DashboardEmpresa() {
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState("");
 
-   // --- Nuevos Hooks para manejar el estado de firma y verificación ---
+  // --- Nuevos Hooks para manejar el estado de firma y verificación ---
   const [signingId, setSigningId] = useState<number | null>(null);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
   // --- Nuevo estado para el tipo de documento ---

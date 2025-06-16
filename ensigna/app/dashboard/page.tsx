@@ -11,7 +11,6 @@ import { getWalletBalance, getRecargas } from "@/api/wallet";
 import { InversorProfile } from "@/types/inversor";
 import { jwtDecode } from "jwt-decode";
 
-
 export default function PerfilPage() {
   // Estilos de animación en línea
   const animationStyles = `
