@@ -26,6 +26,10 @@ class Usuario(Base):
     )
     creado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
     stripe_account_id = Column(String(255), nullable=True)
+    estado = Column(
+        Enum('activo', 'inactivo', name='estado_usuario_enum'),
+        default='activo',
+    )
 
     # Relaciones
     wallets = relationship("Wallet", back_populates="inversor", cascade="all, delete-orphan")

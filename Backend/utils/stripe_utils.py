@@ -51,8 +51,7 @@ def create_connected_account(email: str, business_type: str = 'company', country
         print(f"Error al crear cuenta conectada: {e}")
         raise
 
-account = stripe.Account.retrieve("acct_1Rb3ShB1VrcHHR4Y")
-print(account.capabilities.transfers)
+
 
 # Ejemplo de Uso:
 # account = create_connected_account("diogofabricio191233141@gmail.com", business_type='individual', country='US')
