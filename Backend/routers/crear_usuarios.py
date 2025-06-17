@@ -73,6 +73,12 @@ async def create_inversor(db: db_dependency, user: UsuarioCreate):
     if(new_usuario.tipo_usuario=="inversor"):
         crear_wallet(new_usuario.id, db)
         create_stripe_customer(new_usuario.nombre, new_usuario.email)
+        return JSONResponse(
+            content={
+                "message": "Inversor creado exitosamente"
+            }
+        )
+
     elif(new_usuario.tipo_usuario=="emprendedor"):
         response = create_connected_account(new_usuario.email, "individual", "US")
         new_usuario.stripe_account_id = response["id"]
@@ -85,15 +91,6 @@ async def create_inversor(db: db_dependency, user: UsuarioCreate):
                 "link": create_account_onboarding_link(response["id"], "http://localhost:3000", "http://localhost:3000"),
             }
         )
-    
-    
-    # create_stripe_customer("CLIENTE {}".format(new_usuario.id), new_usuario.email)
-    
-    return JSONResponse( 
-        content={
-            "message": "Inversor creado exitosamente",
-        }
-    )
 
 # Consulta de los usuarios en la base de datos, con logearse con cualquier cuenta (inversor, empresa, admin) funciona
 @router.get("/get-users", tags=["auth"])
