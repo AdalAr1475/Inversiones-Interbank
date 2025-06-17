@@ -14,3 +14,9 @@ def validar_dni(dni: str) -> bool:
     Verifica que el DNI tenga 8 caracteres y sean todos dígitos.
     """
     return len(dni) == 8 and dni.isdigit()
+
+def validar_numero(numero: str) -> bool:
+    # Verificar que el número sea un string de longitud 9 y que contenga solo dígitos
+    if len(numero) == 9 and numero.isdigit():
+        return True
+    return False

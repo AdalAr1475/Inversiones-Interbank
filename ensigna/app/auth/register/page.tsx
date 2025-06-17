@@ -96,29 +96,37 @@ export default function RegisterPage() {
         body: JSON.stringify(body),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        setErrorMsg(errorData.detail || "Error al crear la cuenta");
+        return;
+      }
+
       const data = await response.json();
 
-      if (!response.ok) {
-        setErrorMsg(data.detail || "Error al crear la cuenta");
-      } else {
-        setSuccessMsg(data.message || "Cuenta creada exitosamente");
-        
-        setTimeout(() => {
-          setNombre("");
-          setApellidoPaterno("");
-          setApellidoMaterno("");
-          setDni("");
-          setTelefono("");
-          setEmail("");
-          setPassword("");
-          setConfirmPassword("");
-          setTipoUsuario("");
-          redirect("/auth/login")
-        }, 2000);
-      }
+      setSuccessMsg(data.message || "Cuenta creada exitosamente");
+
+      setTimeout(() => {
+        setNombre("");
+        setApellidoPaterno("");
+        setApellidoMaterno("");
+        setDni("");
+        setTelefono("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setTipoUsuario("");
+        redirect("/auth/login");
+      }, 2000);
+      
     } catch (error) {
-      setErrorMsg("Error de conexión con el servidor!");
+      if (error instanceof Error) {
+        setErrorMsg(error.message);
+      } else {
+        setErrorMsg(String(error));
+      }
     }
+
   };
 
   return (

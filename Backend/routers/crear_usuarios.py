@@ -8,7 +8,7 @@ from utils.db_wallet_utils import crear_wallet
 import db.models as models
 from config_token.authenticate import get_hashed_password
 from db.conexion_db import get_db, engine
-from funciones import validar_dni
+from funciones import validar_dni, validar_numero
 router = APIRouter()
 
 class UsuarioCreate(BaseModel):
@@ -27,14 +27,32 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.post("/create", tags=["auth"])
 async def create_inversor(db: db_dependency, user: UsuarioCreate):
 
-
     usuario = db.query(models.Usuario).filter(models.Usuario.email==user.email.lower()).first()
     if usuario:
-        raise HTTPException(detail="El email ya está registrado")
+        raise HTTPException(
+            status_code=400,
+            detail="El email ya está registrado"
+        )
+    
+    dni = db.query(models.Usuario).filter(models.Usuario.dni==user.dni).first()
+    if dni:
+        raise HTTPException(
+            status_code=400,
+            detail="El dni ya se encuentra registrado"
+        )
     
     if not validar_dni(user.dni):
-        raise HTTPException(detail="Ingrese un dni valido")
+        raise HTTPException(
+            status_code=400,
+            detail="Ingrese un dni valido"
+        )
     
+    if not validar_numero(user.telefono):
+        raise HTTPException(
+            status_code=400,
+            detail="Ingrese un numero valido"
+        )
+
     password_hash = get_hashed_password(user.password)
 
     new_usuario = models.Usuario(
