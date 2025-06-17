@@ -126,7 +126,7 @@ class FirmaElectronica(Base):
     firmado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
     document_hash = Column(Text, nullable=False)  # Hash del documento firmado
     tx_hash = Column(Text, nullable=True)  # Hash de la transacción en blockchain
-    tipo_documento = Column(String(50), nullable=False)  # 'inversion' | 'proyecto'
+    tipo_documento = Column(String(50), nullable=False)  # Contrato
 
     documento = relationship("DocumentoProyecto", back_populates="firmas")
 

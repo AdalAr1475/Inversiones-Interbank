@@ -74,7 +74,7 @@ CREATE TABLE Documentos_proyecto (
     "nombre_documento" VARCHAR(255) NOT NULL,
     "descripcion_documento" TEXT NOT NULL,
     "url" TEXT NOT NULL,
-    "contenido_base64" TEXT NOT NULL DEFAULT 'pendiente',
+    "contenido_base64" TEXT,
     "tipo_documento" VARCHAR(50) NOT NULL,
     "creado_en" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     "visibilidad" VARCHAR(10) CHECK (visibilidad IN ('público', 'privado')) DEFAULT 'privado'

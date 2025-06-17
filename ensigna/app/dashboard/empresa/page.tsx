@@ -117,68 +117,6 @@ export default function DashboardEmpresa() {
     reader.readAsDataURL(file);
   };
 
-  // Función para firmar un documento
-  const handleSignDocument = async (documentId: number) => {
-    setSigningId(documentId); // Inicia el estado de carga para este documento
-
-    // Paso 1: Encontrar el documento específico en tu estado 'documentos'
-    const documentToSign = documentos.find((doc) => doc.id === documentId);
-
-    if (!documentToSign) {
-      alert("Error: Documento no encontrado para firmar.");
-      setSigningId(null);
-      return;
-    }
-
-    // Paso 2: Extraer los datos necesarios del documento y del usuario
-    const contenidoBase64 = documentToSign.contenidoBase64;
-    const tipoDocumento = documentToSign.tipo_documento; // Obtiene tipo_documento del documento
-    const userId = 1; // <--- ¡IMPORTANTE! REEMPLAZA ESTO CON EL ID REAL DEL USUARIO AUTENTICADO
-
-    if (!contenidoBase64) {
-      alert("Error: El contenido del documento en Base64 no está disponible.");
-      setSigningId(null);
-      return;
-    }
-    if (!tipoDocumento) { // Validación adicional para tipo_documento
-        alert("Error: El tipo de documento no está disponible.");
-        setSigningId(null);
-        return;
-    }
-
-    try {
-      // Paso 3: Realizar la solicitud POST enviando TODOS los campos requeridos por el backend
-      const response = await axios.post("http://localhost:8000/documents/firmar-documento", {
-        documento_id: documentToSign.id,
-        contenido_base64: contenidoBase64,
-        usuario_id: userId,
-        tipo_documento: tipoDocumento, // ¡Envía el tipo_documento!
-      });
-
-      // Actualizar el estado del documento en el frontend (marcarlo como firmado)
-      setDocumentos((prevDocs) =>
-        prevDocs.map((doc) =>
-          doc.id === documentId ? { ...doc, firmado: true, tx_hash: response.data.tx_hash } : doc
-        )
-      );
-
-      alert(response.data.mensaje || "Documento firmado con éxito"); // El backend devuelve "mensaje"
-
-    } catch (error: any) {
-      console.error("Error al firmar el documento:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        console.error("Detalles del error del backend (firma):", error.response.data);
-        alert(`Error al firmar el documento: ${error.response.data.detail || "Error desconocido del servidor."}`);
-      } else if (axios.isAxiosError(error) && error.request) {
-        alert("No se pudo conectar con el servidor. Verifique su conexión.");
-      } else {
-        alert("Ocurrió un error inesperado al firmar el documento.");
-      }
-    } finally {
-      setSigningId(null); // Finaliza el estado de carga
-    }
-  };
-
   // Función para verificar la firma de un documento
   const handleVerifyDocument = async (documentId: number) => {
     setVerifyingId(documentId); // Inicia el estado de carga
@@ -644,16 +582,9 @@ export default function DashboardEmpresa() {
                                 {verifyingId === doc.id ? "Verificando..." : "Verificar Firma"}
                               </Button>
                             ) : (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                                onClick={() => handleSignDocument(doc.id)}
-                                disabled={signingId === doc.id}
-                              >
-                                <Lock className="w-4 h-4 mr-2" />
-                                {signingId === doc.id ? "Firmando..." : "Firmar digitalmente"}
-                              </Button>
+                              <Label className="text-red-600">
+                                Documento no firmado
+                              </Label>
                             )}
                           </div>
                         </div>
