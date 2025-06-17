@@ -2,7 +2,7 @@
 .venv/
 venv/
 env
-__pycache__
+__pycache__/*
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -16,6 +16,8 @@ __pycache__
 !.yarn/releases
 !.yarn/versions
 
+*.pyc
+*.pyo
 # testing
 /coverage
 

@@ -51,9 +51,12 @@ def create_connected_account(email: str, business_type: str = 'company', country
         print(f"Error al crear cuenta conectada: {e}")
         raise
 
-# Ejemplo de Uso:
-# account = create_connected_account("diogofabricio17@gmail.com", business_type='individual', country='US')
+account = stripe.Account.retrieve("acct_1Rb3ShB1VrcHHR4Y")
+print(account.capabilities.transfers)
 
+# Ejemplo de Uso:
+# account = create_connected_account("diogofabricio191233141@gmail.com", business_type='individual', country='US')
+# print(f"Cuenta conectada creada: {account['id']}")
 def create_account_onboarding_link(account_id: str, return_url: str, refresh_url: str) -> str:
     """
     Genera un enlace para que el fondo de inversión complete su onboarding con Stripe.
@@ -71,8 +74,8 @@ def create_account_onboarding_link(account_id: str, return_url: str, refresh_url
         print(f"Error al crear enlace de onboarding: {e}")
         raise
 # Ejemplo de uso:
-#onboarding_link = create_account_onboarding_link(
-    account_id="acct_1RZ2NuBOgx1Ph13F",  # Reemplaza con el ID de la cuenta conectada
+# onboarding_link = create_account_onboarding_link(
+    account_id="acct_1Rb3SYBNpE9Qh3BQ",  # Reemplaza con el ID de la cuenta conectada
     return_url="https://tuapp.com/return",
     refresh_url="https://tuapp.com/refresh"
 #)
@@ -107,14 +110,13 @@ def create_checkout_session_for_wallet(user_id: str, amount_cents: int) -> str:
 # )
 # print(f"URL de checkout: {checkouyt_url}")
 
-def transfer_funds_to_connected_account(amount_cents: int, connected_account_id: str = "acct_1RZ2NuBOgx1Ph13F", description: str = "", metadata: dict = None):
+def transfer_funds_to_connected_account(amount_cents: int, connected_account_id: str, metadata: dict = None):
     """
     Transfiere fondos a una cuenta conectada de Stripe.
     
     Args:
         amount_cents: Monto en centavos a transferir
         connected_account_id: ID de la cuenta conectada de Stripe
-        description: Descripción de la transferencia
         metadata: Metadatos adicionales (inversor_id, proyecto_id, etc.)
         
     Returns:
@@ -124,8 +126,7 @@ def transfer_funds_to_connected_account(amount_cents: int, connected_account_id:
         transfer_params = {
             "amount": amount_cents,
             "currency": "usd",
-            "destination": connected_account_id,
-            "description": description,
+            "destination": connected_account_id
         }
         
         # Añadir metadata si está disponible

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from utils.stripe_utils import create_stripe_customer, create_connected_account
+from utils.stripe_utils import create_stripe_customer, create_connected_account, create_account_onboarding_link
 from utils.db_wallet_utils import crear_wallet
 import db.models as models
 from config_token.authenticate import get_hashed_password
@@ -48,17 +48,31 @@ async def create_inversor(db: db_dependency, user: UsuarioCreate):
         tipo_usuario = user.tipo_usuario.lower()
     )
 
-    # create_stripe_customer("CLIENTE {}".format(new_usuario.id), new_usuario.email)
     db.add(new_usuario) 
     db.commit()
     db.refresh(new_usuario)
 
     if(new_usuario.tipo_usuario=="inversor"):
         crear_wallet(new_usuario.id, db)
-
+        create_stripe_customer(new_usuario.nombre, new_usuario.email)
+    elif(new_usuario.tipo_usuario=="emprendedor"):
+        response = create_connected_account(new_usuario.email, "individual", "US")
+        new_usuario.stripe_account_id = response["id"]
+        db.add(new_usuario)
+        db.commit()
+        return JSONResponse( 
+            content={
+                "message": "Emprendedor creado exitosamente",
+                "link": create_account_onboarding_link(response["id"], "http://localhost:3000", "http://localhost:3000"),
+            }
+        )
+    
+    
+    # create_stripe_customer("CLIENTE {}".format(new_usuario.id), new_usuario.email)
+    
     return JSONResponse( 
         content={
-            "message": "Inversor creado exitosamente"
+            "message": "Inversor creado exitosamente",
         }
     )
 

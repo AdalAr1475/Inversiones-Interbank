@@ -62,6 +62,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         logger.warning(f"⚠️ Transferencia fallida: {transfer['id']}")    
     elif event_type == "transfer.created":
         transfer = event["data"]["object"]
+        print(f"Evento de transferencia creada recibido: {transfer['id']}")
         logger.info(f"💸 Transferencia creada: {transfer['id']}")
 
         # Verificar si la transferencia está relacionada con una inversión

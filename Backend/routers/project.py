@@ -16,12 +16,15 @@ from datetime import date
 
 class ProyectoCreate(BaseModel):
     empresa_id: int
-    titulo: str
+    nombre_proyecto: str
     descripcion: str
-    monto_requerido: Decimal
+    descripcion_extendida: str
+    monto_pedido: Decimal
+    sector: str  # sector de la empresa
     retorno_estimado: Decimal  # porcentaje
     fecha_inicio: date
     fecha_fin: date
+    ubicacion: str  # ubicación de la empresa
 
 # ----------- Endpoints -----------
 @router.post("/", dependencies=[Depends(check_emprendedor)])
@@ -33,13 +36,17 @@ def crear_proyecto(data: ProyectoCreate, db: Session = Depends(get_db)):
 
     nuevo_proyecto = Proyecto(
         emprendedor_id=data.empresa_id,
-        titulo=data.titulo,
+        nombre_proyecto=data.nombre_proyecto,
+        descripcion_extendida=data.descripcion_extendida,
         descripcion=data.descripcion,
-        monto_requerido=data.monto_requerido,
+        monto_pedido=data.monto_pedido,
         retorno_estimado=data.retorno_estimado,
         fecha_inicio=data.fecha_inicio,
+        ubicacion=data.ubicacion,
+        sector=data.sector,
         fecha_fin=data.fecha_fin,
-        estado="abierto"  # por defecto
+        estado="activo",  # por defecto
+        monto_recaudado=0
     )
 
     db.add(nuevo_proyecto)

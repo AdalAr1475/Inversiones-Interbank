@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from pydantic import BaseModel
+from requests import Session
+from db.conexion_db import get_db
+from db.models import Proyecto, Usuario
 from utils.stripe_utils import (
     create_stripe_customer,
     create_connected_account,
@@ -30,15 +33,11 @@ class CheckoutSessionRequest(BaseModel):
     user_id: str
     amount_cents: int
 
-
-
 class TransferRequest(BaseModel):
     amount_cents: int
-    connected_account_id: str = "acct_1RZ2NuBOgx1Ph13F"
-    description: str = ""
     inversor_id: str = None
     proyecto_id: str = None
-    tipo: str = "transferencia"  # puede ser "inversion", "transferencia", etc.
+    tipo: str = "inversion"  # puede ser "inversion", "transferencia", etc.
 
 # ----------- Endpoints -----------
 
@@ -80,7 +79,7 @@ def stripe_create_checkout_session(data: CheckoutSessionRequest):
 
 
 @router.post("/transfer-funds")
-def stripe_transfer_funds(data: TransferRequest):
+def stripe_transfer_funds(data: TransferRequest, db: Session = Depends(get_db)):
     metadata = {
         "tipo": data.tipo
     }
@@ -91,10 +90,13 @@ def stripe_transfer_funds(data: TransferRequest):
     if data.proyecto_id:
         metadata["proyecto_id"] = data.proyecto_id
     
+    proyecto = db.query(Proyecto).filter_by(id=data.proyecto_id).first() if data.proyecto_id else None
+    stripe_connect_account_id = db.query(Usuario).filter_by(id=proyecto.emprendedor_id).first().stripe_account_id if proyecto else "acct_1RZ2NuBOgx1Ph13F"
+    print(f"Stripe Connect Account ID: {stripe_connect_account_id}")
+
     transfer = transfer_funds_to_connected_account(
         amount_cents=data.amount_cents,
-        connected_account_id=data.connected_account_id if data.connected_account_id != "" else "acct_1RZ2NuBOgx1Ph13F",
-        description=data.description,
+        connected_account_id=stripe_connect_account_id,
         metadata=metadata
     )
     return {"transfer_id": transfer.id}

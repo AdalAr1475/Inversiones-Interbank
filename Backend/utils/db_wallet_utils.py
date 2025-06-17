@@ -15,7 +15,7 @@ def registrar_recarga(inversor_id: int, monto: Decimal, db: Session):
     recarga = RecargaWallet(
         inversor_id=inversor_id,
         monto=monto,
-        estado="simulado",
+        estado="Simulado",
         fecha_recarga=datetime.utcnow()
     )
     db.add(recarga)
@@ -42,7 +42,7 @@ def obtener_recargas(inversor_id: int, db: Session):
     ]
 
 def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: Session):
-    proyecto = db.query(ProyectoInversion).filter_by(id=proyecto_id, estado="activo").first()
+    proyecto = db.query(Proyecto).filter_by(id=proyecto_id, estado="activo").first()
     if not proyecto:
         raise ValueError("Proyecto de inversión no encontrado o no disponible")
     
@@ -50,9 +50,8 @@ def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: S
     if not usuario:
         raise ValueError("Usuario no encontrado")
 
-    inversor = db.query(Inversor).filter_by(usuario_id=usuario.id).first()
 
-    wallet_inversor = db.query(Wallet).filter_by(inversor_id=inversor.id).first()
+    wallet_inversor = db.query(Wallet).filter_by(inversor_id=usuario.id).first()
     if not wallet_inversor:
         raise ValueError("Wallet del inversor no encontrada")
 
@@ -60,7 +59,7 @@ def procesar_inversion(inversor_id: int, proyecto_id: int, monto: Decimal, db: S
         raise ValueError("Saldo insuficiente para esta inversión")
 
     proyecto.monto_recaudado += monto
-    if proyecto.monto_recaudado >= proyecto.monto_requerido:
+    if proyecto.monto_recaudado >= proyecto.monto_pedido:
         proyecto.estado = "completado"
     else:
         proyecto.estado = "activo"

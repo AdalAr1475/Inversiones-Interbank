@@ -91,12 +91,6 @@ export const useEmpresaGlobalWebSocket = () => {
             return;
         }
 
-        // Filtrar usuarios ficticios (12, 13, 14)
-        if ([12, 13, 14].includes(usuarioId)) {
-            console.log(`Ignorando usuario ficticio ${usuarioId}`);
-            return;
-        }
-
         // Si ya existe una conexión activa, no crear otra
         const wsExistente = conexionesWS.current.get(usuarioId);
         if (wsExistente && wsExistente.readyState === WebSocket.OPEN) {
@@ -201,15 +195,6 @@ export const useEmpresaGlobalWebSocket = () => {
             console.log(`WebSocket empresa desconectado de usuario ${usuarioId}`);
             conexionesWS.current.delete(usuarioId);
 
-            // Solo auto-reconectar si no es un usuario ficticio
-            if (![12, 13, 14].includes(usuarioId)) {
-                const timer = setTimeout(() => {
-                    console.log(`Intentando reconectar con usuario ${usuarioId}...`);
-                    crearConexionConUsuario(usuarioId, nombreReal);
-                }, 5000);
-
-                reconnectTimers.current.set(usuarioId, timer);
-            }
         };
 
         ws.onerror = (error) => {
@@ -230,44 +215,14 @@ export const useEmpresaGlobalWebSocket = () => {
         }
 
         try {
+            // Enviar solo por WebSocket y no agregar localmente para evitar duplicados
             ws.send(JSON.stringify({ mensaje, timestamp: Date.now() }));
-
-            // Agregar el mensaje enviado a la conversación local
-            if (empresaId) {
-                const mensajeEnviado: Mensaje = {
-                    remitente_id: empresaId,
-                    destinatario_id: usuarioId,
-                    mensaje,
-                    enviado_en: new Date().toISOString()
-                };
-
-                setConversaciones(prev => {
-                    const nueva = new Map(prev);
-                    const conversacion = nueva.get(usuarioId);
-                    if (conversacion) {
-                        // Evitar duplicados también al enviar
-                        const yaExiste = conversacion.mensajes.some(msg =>
-                            msg.mensaje === mensaje &&
-                            msg.remitente_id === empresaId &&
-                            Math.abs(new Date(msg.enviado_en).getTime() - new Date().getTime()) < 1000
-                        );
-
-                        if (!yaExiste) {
-                            conversacion.mensajes.push(mensajeEnviado);
-                            conversacion.ultima_actividad = mensajeEnviado.enviado_en;
-                        }
-                        nueva.set(usuarioId, conversacion);
-                    }
-                    return nueva;
-                });
-            }
-
             return true;
         } catch (error) {
             console.error("Error enviando mensaje:", error);
             return false;
         }
-    }, [empresaId, crearConexionConUsuario]);
+    }, [crearConexionConUsuario]);
 
     // Cargar conversaciones existentes de la API
     const cargarConversacionesExistentes = useCallback(async () => {
@@ -281,12 +236,8 @@ export const useEmpresaGlobalWebSocket = () => {
             console.log("Cargando conversaciones existentes...");
             const conversacionesExistentes = await getConversacionesEmpresa(empId, token);
 
-            // Filtrar usuarios ficticios y crear conexiones WebSocket para cada conversación real
-            const conversacionesReales = conversacionesExistentes.filter(conv =>
-                ![12, 13, 14].includes(conv.usuario_id)
-            );
 
-            for (const conv of conversacionesReales) {
+            for (const conv of conversacionesExistentes) {
                 await crearConexionConUsuario(conv.usuario_id, conv.usuario_nombre);
                 await cargarHistorialMensajes(conv.usuario_id, conv.usuario_nombre);
             }
