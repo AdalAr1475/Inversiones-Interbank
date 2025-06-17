@@ -8,141 +8,57 @@ from utils.db_wallet_utils import crear_wallet
 import db.models as models
 from config_token.authenticate import get_hashed_password
 from db.conexion_db import get_db, engine
-from funciones import validar_dni, validar_ruc
+from funciones import validar_dni
 router = APIRouter()
 
-class UsuarioCreateInversor(BaseModel):
-    email: str
-    password: str
-    nombre_inversor: str
-    apellido_inversor: str
+class UsuarioCreate(BaseModel):
+    nombre: str
+    apellido_paterno: str
+    apellido_materno: str
     dni: str
     telefono: str
-    experiencia: str
-    dni: str
-    pais: str
-
-class UsuarioCreateEmpresa(BaseModel):
     email: str
     password: str
-    nombre_empresa: str
-    ruc: str
-    descripcion: str
-    sector: str
-    ubicacion: str
-
-class Usuario(BaseModel):
-    nombre: str
-    email: str
-    password: str
+    tipo_usuario: str
 
 models.Base.metadata.create_all(bind=engine)
 db_dependency = Annotated[Session, Depends(get_db)]
 
 # Crear un nuevo inversor
-@router.post("/create-inversor", tags=["auth"])
-async def create_inversor(db: db_dependency, user: UsuarioCreateInversor):
+@router.post("/create", tags=["auth"])
+async def create_inversor(db: db_dependency, user: UsuarioCreate):
 
-    usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
-    if usuario_existente:
-        raise HTTPException(status_code=400, detail="El email ya está registrado")
+    usuario = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
+    if usuario:
+        raise HTTPException(detail="El email ya está registrado")
     
     if not validar_dni(user.dni):
-        raise HTTPException(status_code=400, detail="Ingrese un dni valido")
+        raise HTTPException(detail="Ingrese un dni valido")
     
     password_hash = get_hashed_password(user.password)
 
     new_usuario = models.Usuario(
-        email = user.email,
-        password_hash = password_hash,
-        tipo_usuario = "inversor"
-    )
-
-    db.add(new_usuario)
-    db.commit()
-
-    new_inversor = models.Inversor(
-        usuario_id = new_usuario.id,
-        nombre_inversor = user.nombre_inversor,
-        apellido_inversor = user.apellido_inversor,
+        nombre = user.nombre,
+        apellido_paterno = user.apellido_paterno,
+        apellido_materno = user.apellido_materno,
         dni = user.dni,
         telefono = user.telefono,
-        experiencia = user.experiencia,
-        pais = user.pais
+        email = user.email,
+        password_hash = password_hash,
+        tipo_usuario = user.tipo_usuario
     )
-
-    
 
     create_stripe_customer("CLIENTE {}".format(new_usuario.id), new_usuario.email)
-    db.add(new_inversor)
-    db.flush()
-    crear_wallet(new_inversor.id, db) 
-    db.commit()
-    db.refresh(new_usuario)
-    db.refresh(new_inversor)
+    db.add(new_usuario)
 
-    return JSONResponse(
-        status_code=201, 
+    crear_wallet(new_usuario.id, db) 
+    db.commit()
+
+    db.refresh(new_usuario)
+
+    return JSONResponse( 
         content={
             "message": "Inversor creado exitosamente"
-        }
-    )
-
-# Crear una nueva empresa, se necesita logearse con una permisos de admin
-@router.post("/create-empresa", tags=["auth"])
-async def create_empresa(db: db_dependency, user: UsuarioCreateEmpresa):
-
-    usuario_existente = db.query(models.Usuario).filter(models.Usuario.email==user.email).first()
-    if usuario_existente:
-        raise HTTPException(status_code=400, detail="El email ya está registrado")
-    
-    empresa_existente = db.query(models.Empresa).filter(models.Empresa.ruc==user.ruc).first()
-    if empresa_existente:
-        raise HTTPException(status_code=400, detail="El ruc ya se encuentra registrado")
-    
-    usuario_existente = db.query(models.Empresa).filter(models.Empresa.nombre_empresa==user.nombre_empresa).first()
-    if usuario_existente:
-        raise HTTPException(status_code=400, detail="El nombre ingresado ya se encuentra registrado")
-    
-    """
-    if not validar_ruc(user.ruc):
-        raise HTTPException(status_code=400, detail="Ingresar un ruc valido")
-    """
-
-    password_hash = get_hashed_password(user.password)
-
-    new_usuario = models.Usuario(
-        email=user.email,
-        password_hash=password_hash,
-        tipo_usuario="empresa"
-    )
-
-    db.add(new_usuario)
-    db.commit()
-
-    new_empresa = models.Empresa(
-        usuario_id=new_usuario.id,
-        nombre_empresa=user.nombre_empresa,
-        ruc=user.ruc,
-        descripcion=user.descripcion,
-        sector=user.sector,
-        ubicacion=user.ubicacion,
-    )
-
-    db.add(new_empresa)
-    db.commit()
-    db.refresh(new_usuario)
-    db.refresh(new_empresa)
-    redirect_url = create_connected_account(
-        email=new_usuario.email,
-        business_type="company",
-        country="PE"
-    )
-    return JSONResponse(
-        status_code=201, 
-        content={
-            "message": "Empresa creada exitosamente",
-            "redirect_url": redirect_url
         }
     )
 

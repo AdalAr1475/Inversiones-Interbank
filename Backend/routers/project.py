@@ -4,7 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import DateTime, func
 from db.conexion_db import get_db
-from db.models import ProyectoInversion, Empresa, Inversion, Inversor
+from db.models import Proyecto, Inversion, Usuario
 from config_token.authenticate import check_empresa
 
 router = APIRouter(tags=["Projects"])

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.conexion_db import get_db
-from db.models import RecargaWallet, Inversion, ProyectoInversion, Wallet
+from db.models import RecargaWallet, Inversion, Proyecto, Wallet
 from datetime import datetime
 from decimal import Decimal
 

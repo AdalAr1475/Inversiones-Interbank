@@ -1,6 +1,6 @@
 # utils/db_wallet.py
 from sqlalchemy.orm import Session
-from db.models import Wallet, RecargaWallet, Inversion, Inversor, Usuario,ProyectoInversion
+from db.models import Wallet, RecargaWallet, Inversion, Usuario, Proyecto
 from datetime import datetime
 from decimal import Decimal
 

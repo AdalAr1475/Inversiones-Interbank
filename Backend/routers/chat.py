@@ -2,7 +2,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.orm import Session
 from db.conexion_db import get_db
-from db.models import Mensaje, Usuario, Inversor
+from db.models import Mensaje, Usuario
 from datetime import datetime
 from typing import List, Dict
 from sqlalchemy import or_, and_, desc

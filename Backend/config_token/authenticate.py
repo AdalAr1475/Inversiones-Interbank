@@ -28,7 +28,11 @@ def verify_password(password_textplano: str, hashed_password: str) -> bool:
 
 # Función para autenticar al usuario
 def authenticate_user(db: Session, email: str, password_textplano: str):
+    
+    users = db.query(models.Usuario)
+    print(users)
     user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    print(user)
     if not user:
         raise HTTPException(
             status_code=401,

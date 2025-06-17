@@ -9,34 +9,34 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class Usuario(Base):
-    __tablename__ = "Usuarios"
+    __tablename__ = "usuarios"
  
     # Columnas
     id = Column(Integer, primary_key=True)
     nombre = Column(String(255), nullable = False)
-    apellido_parterno = Column(String(255), nullable = False)
+    apellido_paterno = Column(String(255), nullable = False)
     apellido_materno = Column(String(255), nullable = False)
     dni = Column(CHAR(8), unique=True, nullable=False)
     telefono = Column(CHAR(9), nullable=True)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
     tipo_usuario = Column(Enum('emprendedor','inversor', name='tipo_usuario_enum'), nullable=False)
-    creado_en = Column(TIMESTAMP, serve_default=func.current_timestamp()) 
+    creado_en = Column(TIMESTAMP, server_default=func.current_timestamp()) 
 
     # Relaciones
     wallets = relationship("Wallet", back_populates="inversor")
-    recargas = relationship("RecargasWallet", back_populates="inversor")
+    recargas = relationship("RecargaWallet", back_populates="inversor")
     proyectos = relationship("Proyecto", back_populates="emprendedor")
     inversiones = relationship("Inversion", back_populates="inversor")
-    mensajes_remitentes = relationship("Mensaje", back_populates="remitente")
-    mensajes_destinatarios = relationship("Mensaje", back_populates="destinatario")
+    mensajes_remitentes = relationship("Mensaje", back_populates="remitente", foreign_keys="[Mensaje.remitente_id]")
+    mensajes_destinatarios = relationship("Mensaje", back_populates="destinatario", foreign_keys="[Mensaje.destinatario_id]")
 
 class Wallet(Base):
-    __tablename__ = "Wallets"
+    __tablename__ = "wallets"
 
     # Columnas
     id = Column(Integer, primary_key=True)
-    inversor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    inversor_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
     saldo = Column(Numeric(12, 2), default=0.00)
     actualizado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
     
@@ -44,11 +44,11 @@ class Wallet(Base):
     inversor = relationship("Usuario", back_populates="wallets")
 
 class RecargaWallet(Base):
-    __tablename__ = "Recargas_wallet"
+    __tablename__ = "recargas_wallet"
 
     # Columnas
     id = Column(Integer, primary_key=True)
-    inversor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    inversor_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
     stripe_payment_intent = Column(String(255))  # ID del PaymentIntent de Stripe, por mientras opcional
     monto = Column(Numeric(12, 2), nullable=False)
     estado = Column(Enum('exitoso', 'fallido', 'pendiente', name='estado_enum'), default="pendiente")  # exitoso | fallido | pendiente
@@ -58,11 +58,11 @@ class RecargaWallet(Base):
     inversor = relationship("Usuario", back_populates="recargas")
 
 class Proyecto(Base):
-    __tablename__ = "Proyectos"
+    __tablename__ = "proyectos"
 
     # Columnas
     id = Column(Integer, primary_key=True)
-    emprendedor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    emprendedor_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
     nombre_proyecto = Column(String(255), nullable=False)
     descripcion = Column(String(255), nullable=False)
     descripcion_extendida = Column(Text, nullable=False)
@@ -82,12 +82,12 @@ class Proyecto(Base):
     inversiones = relationship("Inversion", back_populates="proyecto")
 
 class Inversion(Base):
-    __tablename__ = "Inversiones"
+    __tablename__ = "inversiones"
 
     # Columnas
     id = Column(Integer, primary_key=True)
-    proyecto_id = Column(Integer, ForeignKey("Proyectos.id", ondelete="CASCADE"))
-    inversor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    proyecto_id = Column(Integer, ForeignKey("proyectos.id", ondelete="CASCADE"))
+    inversor_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
     monto_invertido = Column(Numeric(12, 2), nullable=False)
     fecha_inversion = Column(TIMESTAMP, server_default=func.current_timestamp())
     estado = Column(Enum('pendiente', 'firmado', 'rechazado', name='estado_inversion_enum'), default='pendiente')
@@ -101,11 +101,11 @@ class Inversion(Base):
 # fecha_inversion = Column(DateTime(timezone=True), server_default=func.now())
 
 class DocumentoProyecto(Base):
-    __tablename__ = "Documentos_proyecto"
+    __tablename__ = "documentos_proyecto"
 
     # Columnas
     id = Column(Integer, primary_key=True)
-    inversion_id = Column(Integer, ForeignKey("Inversiones.id", ondelete="CASCADE"))
+    inversion_id = Column(Integer, ForeignKey("inversiones.id", ondelete="CASCADE"))
     nombre_documento = Column(String(255), nullable=False)
     descripcion_documento = Column(String(255), nullable=False)
     url = Column(Text, nullable=True)
@@ -122,7 +122,7 @@ class FirmaElectronica(Base):
     __tablename__ = "firmas_electronicas"
 
     id = Column(Integer, primary_key=True)
-    documento_id = Column(Integer, ForeignKey("Documentos_proyecto.id", ondelete='CASCADE'))
+    documento_id = Column(Integer, ForeignKey("documentos_proyecto.id", ondelete='CASCADE'))
     firmado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
     document_hash = Column(Text, nullable=False)  # Hash del documento firmado
     tx_hash = Column(Text, nullable=True)  # Hash de la transacción en blockchain
@@ -131,10 +131,10 @@ class FirmaElectronica(Base):
     documento = relationship("DocumentoProyecto", back_populates="firmas")
 
 class Pago(Base):
-    __tablename__ = "Pagos"
+    __tablename__ = "pagos"
 
     id = Column(Integer, primary_key=True)
-    inversion_id = Column(Integer, ForeignKey("Inversiones.id", ondelete="CASCADE"))
+    inversion_id = Column(Integer, ForeignKey("inversiones.id", ondelete="CASCADE"))
     stripe_payment_id = Column(String(255), nullable=False)
     monto = Column(Numeric(12, 2), nullable=False)
     estado = Column(Enum('exitoso', 'fallido', 'pendiente', name='estado_pago_enum'))
@@ -143,15 +143,15 @@ class Pago(Base):
     inversion = relationship("Inversion", back_populates="pagos")
 
 class Mensaje(Base):
-    __tablename__ = "Mensajes"
+    __tablename__ = "mensajes"
 
     # Columnas
     id = Column(Integer, primary_key=True)
-    remitente_id = Column(Integer, ForeignKey("Usuarios.id", ondelete='CASCADE'))
-    destinatario_id = Column(Integer, ForeignKey("Usuarios.id", ondelete='CASCADE'))
+    remitente_id = Column(Integer, ForeignKey("usuarios.id", ondelete='CASCADE'))
+    destinatario_id = Column(Integer, ForeignKey("usuarios.id", ondelete='CASCADE'))
     mensaje = Column(Text, nullable=False)
     enviado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
 
     # Relaciones
-    remitente = relationship("Usuario", back_populates="mensajes_remitentes")
-    destinatario = relationship("Usuario", back_populates="mensajes_destinatarios")
+    remitente = relationship("Usuario", back_populates="mensajes_remitentes", foreign_keys=[remitente_id])
+    destinatario = relationship("Usuario", back_populates="mensajes_destinatarios", foreign_keys=[destinatario_id])
