@@ -8,9 +8,12 @@ export interface ProyectoResumen {
     titulo: string;
     descripcion: string;
     meta: number;
+    rentabilidad: number
     recaudado: number;
     inversores: number;
 }
+
+
 
 /*
     Endpoints
@@ -45,7 +48,7 @@ export async function getProyectosInvertidos(usuarioId: number, token: string): 
  * Obtiene la lista de todos los proyectos disponibles para mostrar
  */
 export async function getAllProyectos(): Promise<ProyectoResumen[]> {
-    return await axios.get(`${API_BASE_URL}/get-show-proyectos`)
+    return await axios.get(`${API_BASE_URL}/get-proyectos`)
         .then(res => res.data)
         .catch(error => {
             console.error('Error al obtener la lista de proyectos:', error);

@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
         
       interface DecodedToken {
         id: number
-        sub: string
+        email: string
         tipo_usuario: string
         exp: number
       }
@@ -39,8 +39,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
 
       // Verificar si el rol del usuario coincide con el requerido
       if (decodedToken.tipo_usuario !== requiredRole) {
-        if (decodedToken.tipo_usuario == "empresa") {
-          redirect("/dashboard/empresa");
+        if (decodedToken.tipo_usuario == "emprendedor") {
+          redirect("/dashboard/emprendedor");
         }
         else {
           redirect("/dashboard/inversor");

@@ -42,8 +42,8 @@ export default function LoginPage() {
         return
       }
 
-      if (decodedToken.tipo_usuario === "empresa") {
-        redirect("/dashboard/empresa")
+      if (decodedToken.tipo_usuario === "emprendedor") {
+        redirect("/dashboard/emprendedor")
       } else if (decodedToken.tipo_usuario === "inversor") {
         redirect("/dashboard/inversor")
       }
@@ -81,10 +81,10 @@ export default function LoginPage() {
       localStorage.setItem("token", token)
       const decodedToken = jwtDecode<DecodedToken>(token);
 
-      if(decodedToken.tipo_usuario="inversor"){
-        redirect("/dashboard/inversor")
-      } else {
+      if (decodedToken.tipo_usuario === "emprendedor") {
         redirect("/dashboard/emprendedor")
+      } else if (decodedToken.tipo_usuario === "inversor") {
+        redirect("/dashboard/inversor")
       }
     
     } catch (error) {

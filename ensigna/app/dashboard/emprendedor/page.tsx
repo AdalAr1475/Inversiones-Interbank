@@ -158,7 +158,7 @@ export default function DashboardEmpresa() {
   }, []);
 
   return (
-    <ProtectedRoute requiredRole="empresa">
+    <ProtectedRoute requiredRole="emprendedor">
       <div className="min-h-screen bg-gray-50">
         <HeaderLat />
         <div className="ml-56 transition-all duration-300">
@@ -537,59 +537,64 @@ export default function DashboardEmpresa() {
                       </p>
                     )}
 
-                    <div className="space-y-4">
-                      {documentos.map((doc) => (
-                        <div key={doc.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-semibold">{doc.nombre}</h3>
-                              <p className="text-sm text-gray-600">{doc.descripcion}</p>
-                              <p className="text-xs text-gray-500">
-                                Subido el {new Date(doc.creadoEn).toLocaleDateString()}
-                              </p>
-                              {/* Mostrar el tipo de documento también */}
-                              <p className="text-xs text-gray-500">
-                                Tipo: {doc.tipo_documento}
-                              </p>
-                            </div>
-                            <div className="text-right space-y-2">
-                              <Badge
-                                className={`${
-                                  doc.visibilidad === "público"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
-                                }`}
-                              >
-                                {doc.visibilidad ?? "privado"}
-                              </Badge>
-                              {doc.firmado && (
-                                <Badge className="bg-blue-100 text-blue-800">
-                                  <CheckCircle className="w-3 h-3 mr-1"/>
-                                  Firmado
+                    {/*Agrege esto para que reenderizara*/}
+                    {Array.isArray(documentos) && documentos.length > 0 ? (
+                      <div className="space-y-4">
+                        {documentos.map((doc) => (
+                          <div key={doc.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="font-semibold">{doc.nombre}</h3>
+                                <p className="text-sm text-gray-600">{doc.descripcion}</p>
+                                <p className="text-xs text-gray-500">
+                                  Subido el {new Date(doc.creadoEn).toLocaleDateString()}
+                                </p>
+                                {/* Mostrar el tipo de documento también */}
+                                <p className="text-xs text-gray-500">
+                                  Tipo: {doc.tipo_documento}
+                                </p>
+                              </div>
+                              <div className="text-right space-y-2">
+                                <Badge
+                                  className={`${
+                                    doc.visibilidad === "público"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {doc.visibilidad ?? "privado"}
                                 </Badge>
+                                {doc.firmado && (
+                                  <Badge className="bg-blue-100 text-blue-800">
+                                    <CheckCircle className="w-3 h-3 mr-1"/>
+                                    Firmado
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 mt-3">
+                              {doc.firmado ? (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleVerifyDocument(doc.id)}
+                                  disabled={verifyingId === doc.id}
+                                >
+                                  {verifyingId === doc.id ? "Verificando..." : "Verificar Firma"}
+                                </Button>
+                              ) : (
+                                <Label className="text-red-600">
+                                  Documento no firmado
+                                </Label>
                               )}
                             </div>
                           </div>
-                          
-                          <div className="flex items-center space-x-2 mt-3">
-                            {doc.firmado ? (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleVerifyDocument(doc.id)}
-                                disabled={verifyingId === doc.id}
-                              >
-                                {verifyingId === doc.id ? "Verificando..." : "Verificar Firma"}
-                              </Button>
-                            ) : (
-                              <Label className="text-red-600">
-                                Documento no firmado
-                              </Label>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No hay documentos aún.</p>
+                    )}
                   </CardContent>
               </Card>
             </TabsContent>
