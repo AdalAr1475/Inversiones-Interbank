@@ -19,7 +19,8 @@ CREATE TABLE Usuarios (
     "email" VARCHAR(255) UNIQUE NOT NULL,
     "password_hash" TEXT NOT NULL,
     "tipo_usuario" VARCHAR(255) CHECK (tipo_usuario IN ('emprendedor', 'inversor')) NOT NULL,
-    "creado_en" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    "creado_en" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "stripe_account_id" VARCHAR(255) NULL
 );
 
 -- Creación de la tabla wallets

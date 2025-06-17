@@ -88,6 +88,7 @@ export default function LoginPage() {
       }
     
     } catch (error) {
+      console.log(error)
       setErrorMsg("Email o contraseña incorrectos.")
     }
   }
