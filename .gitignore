@@ -1,11 +1,11 @@
-# Ignorar entorno virtual
-.venv/
-venv/
-env
-__pycache__/*
+# Ignorar entorno virtual y archivos específicos
+Backend/env/
+__pycache__/
+*/__pycache__/
+**/__pycache__/
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
+ensigna/
 # dependencies
 /node_modules
 /.pnp
@@ -31,6 +31,10 @@ __pycache__/*
 # misc
 .DS_Store
 *.pem
+.env.local
+.env.development
+.env.test
+.env.production
 
 # debug
 npm-debug.log*
@@ -41,6 +45,8 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 .env
+**/.env
+**/.env.*
 # vercel
 .vercel
 
@@ -49,3 +55,4 @@ yarn-error.log*
 next-env.d.ts
 
 node_modules
+

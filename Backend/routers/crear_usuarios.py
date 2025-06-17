@@ -58,6 +58,7 @@ async def create_inversor(db: db_dependency, user: UsuarioCreate):
     elif(new_usuario.tipo_usuario=="emprendedor"):
         response = create_connected_account(new_usuario.email, "individual", "US")
         new_usuario.stripe_account_id = response["id"]
+        new_usuario.estado = "inactivo"
         db.add(new_usuario)
         db.commit()
         return JSONResponse( 
