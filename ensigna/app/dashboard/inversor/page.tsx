@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import {
   ArrowUpRight,
   TrendingUp,
@@ -14,8 +16,57 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import MisInversionesSection from "@/components/mis-inversiones-section";
 import NuevasOportunidadesSection from "@/components/nuevas-oportunidades-section";
 import MisContratosSeccion from "@/components/mis-contratos-seccion";
+import { getInvestSummary, InvestSummary } from "@/api/invest";
 
 export default function DashboardInversor() {
+  // Estado para el resumen de inversiones
+  const [investSummary, setInvestSummary] = useState<InvestSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  interface DecodedToken {
+    id: string;
+    rol: string;
+    exp: number;
+  }
+
+  useEffect(() => {
+    // Función para cargar los datos del resumen de inversiones
+    const loadInvestmentSummary = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No se encontró el token de autenticación");
+          setLoading(false);
+          return;
+        }
+
+        // Decodificar el token para obtener el ID del usuario
+        const decodedToken = jwtDecode<DecodedToken>(token);
+        const usuarioId = parseInt(decodedToken.id);
+
+        // Obtener el resumen de inversiones
+        const summary = await getInvestSummary(usuarioId, token);
+        setInvestSummary(summary);
+      } catch (error) {
+        console.error("Error al cargar el resumen de inversiones:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadInvestmentSummary();
+  }, []);
+
+  // Formatear el monto del portafolio con separadores de miles
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('es-ES', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+  };
+
   return (
     <ProtectedRoute requiredRole="inversor">
       <div className="min-h-screen bg-gray-50">
@@ -42,13 +93,17 @@ export default function DashboardInversor() {
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    $125,000
-                  </div>
+                  {loading ? (
+                    <div className="h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
+                  ) : (
+                    <div className="text-2xl font-bold text-green-600">
+                      {investSummary ? formatCurrency(investSummary.porfolio_total) : "$0"}
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     <span className="text-green-600 flex items-center">
                       <ArrowUpRight className="w-3 h-3 mr-1" />
-                      +12.5%
+                      +5.2%
                     </span>
                     desde el mes pasado
                   </p>
@@ -63,9 +118,15 @@ export default function DashboardInversor() {
                   <PieChart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">8</div>
+                  {loading ? (
+                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                  ) : (
+                    <div className="text-2xl font-bold">
+                      {investSummary ? investSummary.proyectos_activos : 0}
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">
-                    En 6 sectores diferentes
+                    En diversos sectores
                   </p>
                 </CardContent>
               </Card>
@@ -78,7 +139,7 @@ export default function DashboardInversor() {
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">18.2%</div>
+                  <div className="text-2xl font-bold text-green-600">15.8%</div>
                   <p className="text-xs text-muted-foreground">Anualizado</p>
                 </CardContent>
               </Card>
@@ -91,9 +152,15 @@ export default function DashboardInversor() {
                   <Eye className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">23</div>
+                  {loading ? (
+                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                  ) : (
+                    <div className="text-2xl font-bold">
+                      {investSummary ? investSummary.proyectos_disponibles : 0}
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">
-                    Disponibles esta semana
+                    Disponibles ahora
                   </p>
                 </CardContent>
               </Card>

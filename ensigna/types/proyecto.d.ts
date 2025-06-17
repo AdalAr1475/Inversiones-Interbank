@@ -25,4 +25,5 @@ export type ProyectoInvertidoType = {
     monto_invertido: string; // Monto invertido como string
     fecha_inversion: string; // Fecha de la inversión en formato ISO
     estado: string; // Estado de la inversión
+    retorno_estimado: number; // Retorno estimado como porcentaje
 };

@@ -5,7 +5,6 @@ import {
   Users,
   DollarSign,
   Calendar,
-  Lock,
   TrendingUp,
   Plus,
   Eye,

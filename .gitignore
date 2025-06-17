@@ -5,9 +5,10 @@ __pycache__/
 **/__pycache__/
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-ensigna/
 # dependencies
-/node_modules
+node_modules
+ensigna/node_modules
+**/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -18,15 +19,24 @@ ensigna/
 
 *.pyc
 *.pyo
+
 # testing
 /coverage
+ensigna/coverage
+**/coverage
 
-# next.js
-/.next/
-/out/
+# next.js specific
+ensigna/.next/
+ensigna/out/
+**/.next/
+**/out/
 
 # production
 /build
+ensigna/build
+**/build
+ensigna/.turbo
+**/.turbo
 
 # misc
 .DS_Store
@@ -41,18 +51,53 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
 .env
 **/.env
 **/.env.*
+ensigna/.env
+ensigna/.env.*
+ensigna/.env.local
+ensigna/.env.development
+ensigna/.env.test
+ensigna/.env.production
+
 # vercel
 .vercel
+**/.vercel
+ensigna/.vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+**/tsconfig.tsbuildinfo
+ensigna/next-env.d.ts
+**/next-env.d.ts
 
-node_modules
+# Next.js cache
+ensigna/.swc/
+**/.swc/
+.eslintcache
+**/.eslintcache
+
+# PWA files
+ensigna/public/sw.js
+ensigna/public/workbox-*.js
+ensigna/public/worker-*.js
+ensigna/public/fallback-*.js
+ensigna/public/precache-*.js
+ensigna/public/sw.js.map
+ensigna/public/workbox-*.js.map
+ensigna/public/worker-*.js.map
+ensigna/public/fallback-*.js.map
+
+# Storybook
+ensigna/storybook-static
+**/storybook-static
 

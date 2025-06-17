@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.conexion_db import get_db
-from db.models import Wallet, RecargaWallet
+from db.models import Inversion, Wallet, RecargaWallet, Proyecto
 from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
 from config_token.authenticate import get_current_user
-
+from db.models import Usuario
 router = APIRouter(tags=["Payment"])
 
 # ----------- Pydantic Schemas -----------
@@ -62,3 +62,4 @@ def obtener_recargas(inversor_id: int, db: Session = Depends(get_db)):
             "fecha_recarga": r.fecha_recarga.isoformat()
         } for r in recargas
     ]
+

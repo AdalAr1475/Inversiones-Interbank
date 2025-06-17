@@ -11,6 +11,7 @@ export interface ProyectoResumen {
     rentabilidad: number
     recaudado: number;
     inversores: number;
+    retorno_estimado: number; // Retorno estimado en porcentaje
 }
 
 

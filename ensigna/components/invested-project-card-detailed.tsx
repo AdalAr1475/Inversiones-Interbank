@@ -43,40 +43,94 @@ export default function InvestedProjectCardDetailed({
   const colorIndex = proyecto.proyecto_id % bgColors.length;
   const bgColor = bgColors[colorIndex];
   const iconColor = iconColors[colorIndex];
-  
   // Formatear el monto con separadores de miles
-  const montoFormateado = parseFloat(proyecto.monto_invertido).toLocaleString('es-ES', {
+  // Asegurarnos de que montoInvertido sea un número correctamente parseado
+  const montoInvertido = parseFloat(proyecto.monto_invertido);
+  
+  // Formateo del monto invertido para mostrar
+  const montoFormateado = montoInvertido.toLocaleString('es-ES', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   });
-  // Aquí ya no necesitamos cálculos de rendimiento
-    // Manejar el clic en la tarjeta para navegar al detalle del proyecto
+    // Calcular la proyección de ganancia anual
+  const calcularProyeccion = () => {
+    if (!proyecto.retorno_estimado) return null;
+    
+    // Cálculo de ganancia proyectada basada en el retorno estimado
+    // Aseguramos precisión en el cálculo usando números flotantes
+    const gananciaProyectada = montoInvertido * (proyecto.retorno_estimado / 100);
+    
+    // Formatear la ganancia proyectada, mostrando decimales cuando el valor es pequeño
+    return gananciaProyectada.toLocaleString('es-ES', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: gananciaProyectada < 10 ? 2 : 0,
+      maximumFractionDigits: gananciaProyectada < 10 ? 2 : 0
+    });
+  };
+  
+  const gananciaAnual = calcularProyeccion();
+  
+  // Manejar el clic en la tarjeta para navegar al detalle del proyecto
   const handleClick = () => {
     router.push(`/oportunidades/${proyecto.proyecto_id}`);
   };
-  
   return (
     <div 
-      className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:shadow-md transition-all"
+      className="p-5 border rounded-lg cursor-pointer hover:shadow-lg transition-all hover:border-blue-200 bg-white"
       onClick={handleClick}
     >
-      <div className="flex items-center space-x-4">
-        <div className={`w-12 h-12 ${bgColor} rounded-lg flex items-center justify-center`}>
-          <Building2 className={`w-6 h-6 ${iconColor}`} />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center">
+          <div className={`w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center mr-3 shadow-sm`}>
+            <Building2 className={`w-5 h-5 ${iconColor}`} />
+          </div>
+          <h3 className="font-semibold text-gray-800">{proyecto.titulo}</h3>
         </div>
-        <div>          <h3 className="font-semibold">{proyecto.titulo}</h3>
-          <p className="text-sm text-gray-600">{proyecto.descripcion.slice(0, 40)}...</p>
-          <p className="text-sm text-gray-600 mt-1">
-            Fecha: {new Date(proyecto.fecha_inversion).toLocaleDateString()}
-          </p>
-        </div>
-      </div>      
-      <div className="text-right">
-        <div className="font-semibold text-lg text-green-600">{montoFormateado}</div>
-        <div className="text-sm text-gray-500">{proyecto.estado}</div>
+        
+        {proyecto.retorno_estimado && (
+          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-100 shadow-sm">
+            <span className="mr-1 text-blue-500">↗</span>
+            <span className="font-bold">{proyecto.retorno_estimado}%</span> ROI Est.
+          </div>
+        )}
       </div>
+      
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-sm text-gray-600">
+          <span className="inline-block bg-gray-50 px-2 py-1 rounded text-gray-500 border border-gray-100">
+            {new Date(proyecto.fecha_inversion).toLocaleDateString('es-ES', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            })}
+          </span>
+        </div>
+        <div className="font-bold text-lg text-green-600">{montoFormateado}</div>
+      </div>
+        {/* Gancho de proyección de ganancia */}
+      {gananciaAnual && (
+        <div className="mt-3 p-2 rounded-md bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100">
+          <div className="flex justify-between items-center">
+            <div className="text-sm font-medium text-green-800">
+              Proyección anual
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm mr-1 text-green-600">+</span>
+              <span className="font-bold text-green-700">{gananciaAnual}</span>
+            </div>
+          </div>
+          <div className="text-xs text-green-600 mt-1">
+            Ganancia esperada manteniendo tu inversión
+          </div>
+          <div className="text-xs text-emerald-700/70 mt-1 flex items-center">
+            <span className="mr-1">•</span>
+            {proyecto.retorno_estimado}% sobre {parseFloat(proyecto.monto_invertido).toLocaleString('es-ES', {style: 'currency', currency: 'USD', minimumFractionDigits: 2})}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

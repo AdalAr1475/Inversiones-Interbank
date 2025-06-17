@@ -93,25 +93,25 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
 
     empresa = db.query(Usuario).filter(Usuario.id == proyecto.emprendedor_id).first()
-    categoria = empresa.sector.capitalize() if empresa else "Desconocido"
+    categoria = proyecto.sector.capitalize() if empresa else "Desconocido"
     
     fecha_inicio = proyecto.fecha_inicio.strftime("%d/%m/%Y") if proyecto.fecha_inicio else None
     fecha_fin = proyecto.fecha_fin.strftime("%d/%m/%Y") if proyecto.fecha_fin else None
     porcentaje_reacudado = (int) (
         (proyecto.monto_recaudado or Decimal('0.00')) / 
-        (proyecto.monto_requerido or Decimal('1.00')) * 100
+        (proyecto.monto_pedido or Decimal('1.00')) * 100
     )
     estado = proyecto.estado
     inversores = db.query(func.count(func.distinct(Inversion.inversor_id))) \
                     .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
 
     return {
-        "empresa": empresa.nombre_empresa.capitalize(),
+        "empresa": empresa.nombre.capitalize(),
         "id": proyecto.id,
         "categoria": categoria,
-        "titulo": proyecto.titulo.capitalize(),
+        "titulo": proyecto.nombre_proyecto.capitalize(),
         "descripcion": proyecto.descripcion.capitalize(),
-        "monto_requerido": (proyecto.monto_requerido or Decimal('0.00')).quantize(Decimal('0.01')),
+        "monto_requerido": (proyecto.monto_pedido or Decimal('0.00')).quantize(Decimal('0.01')),
         "monto_recaudado": (proyecto.monto_recaudado or Decimal('0.00')).quantize(Decimal('0.01')),
         "porcentaje": porcentaje_reacudado,
         "fecha_inicio": fecha_inicio,
@@ -170,11 +170,12 @@ def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db))
             else:
                 proyectos_invertidos.append({
                     "proyecto_id": proyecto.id,
-                    "titulo": proyecto.titulo,
+                    "titulo": proyecto.nombre_proyecto,
                     "descripcion": proyecto.descripcion,
                     "monto_invertido": str(inversion.monto_invertido),
                     "fecha_inversion": inversion.fecha_inversion.isoformat(),
-                    "estado": inversion.estado
+                    "estado": inversion.estado,
+                    "retorno_estimado": proyecto.retorno_estimado,
                 })
 
     return proyectos_invertidos
