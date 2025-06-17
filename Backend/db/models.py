@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import (
-    TIMESTAMP, Column, Integer, String, Text, Numeric, Date, DateTime,
-    ForeignKey, CheckConstraint, Boolean, func
+    TIMESTAMP, Column, Integer, String, Text, Numeric, DateTime, func,
+    ForeignKey, CHAR, Enum
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,210 +9,149 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class Usuario(Base):
-    __tablename__ = "usuarios"
+    __tablename__ = "Usuarios"
  
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    # Columnas
+    id = Column(Integer, primary_key=True)
+    nombre = Column(String(255), nullable = False)
+    apellido_parterno = Column(String(255), nullable = False)
+    apellido_materno = Column(String(255), nullable = False)
+    dni = Column(CHAR(8), unique=True, nullable=False)
+    telefono = Column(CHAR(9), nullable=True)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
-    tipo_usuario = Column(String(20), nullable=False)
-    wallet_address = Column(Text)
-    creado_en = Column(DateTime(timezone=True), server_default=func.now()) 
+    tipo_usuario = Column(Enum('emprendedor','inversor', name='tipo_usuario_enum'), nullable=False)
+    creado_en = Column(TIMESTAMP, serve_default=func.current_timestamp()) 
 
-    __table_args__ = (
-        CheckConstraint(
-            tipo_usuario.in_(['empresa', 'inversor']),
-            name="ck_tipo_usuario_valid"
-        ),
-    )
+    # Relaciones
+    wallets = relationship("Wallet", back_populates="inversor")
+    recargas = relationship("RecargasWallet", back_populates="inversor")
+    proyectos = relationship("Proyecto", back_populates="emprendedor")
+    inversiones = relationship("Inversion", back_populates="inversor")
+    mensajes_remitentes = relationship("Mensaje", back_populates="remitente")
+    mensajes_destinatarios = relationship("Mensaje", back_populates="destinatario")
 
-    empresas = relationship("Empresa", back_populates="usuario", cascade="all, delete")
-    inversores = relationship("Inversor", back_populates="usuario", cascade="all, delete")
-    mensajes_remitentes = relationship("Mensaje", foreign_keys="[Mensaje.remitente_id]", back_populates="remitente")
-    mensajes_destinatarios = relationship("Mensaje", foreign_keys="[Mensaje.destinatario_id]", back_populates="destinatario")
-    firmas = relationship("FirmaElectronica", back_populates="usuario")
+class Wallet(Base):
+    __tablename__ = "Wallets"
 
-
-class Empresa(Base):
-    __tablename__ = "empresas"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    nombre_empresa = Column(String(255), nullable=False)
-    ruc = Column(String(20), unique=True, nullable=False)
-    descripcion = Column(Text)
-    sector = Column(String(20), nullable=False)
-    ubicacion = Column(String(100), nullable=True)
-
-    usuario = relationship("Usuario", back_populates="empresas")
-    proyectos = relationship("ProyectoInversion", back_populates="empresa", cascade="all, delete-orphan")
-
-
-class Inversor(Base):
-    __tablename__ = "inversores"
-
+    # Columnas
     id = Column(Integer, primary_key=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    nombre_inversor = Column(String(255), nullable=False)
-    apellido_inversor = Column(String(255), nullable=False)
-    dni = Column(String(8))
-    telefono = Column(String(20))
-    experiencia = Column(String(20))
-    pais = Column(String(100))
-
-    usuario = relationship("Usuario", back_populates="inversores")
-    inversiones = relationship("Inversion", back_populates="inversor", cascade="all, delete-orphan")
-
-
-class ProyectoInversion(Base):
-    __tablename__ = "proyectos_inversion"
-
-    id = Column(Integer, primary_key=True)
-    empresa_id = Column(Integer, ForeignKey("empresas.id", ondelete="CASCADE"), nullable=False)
-    titulo = Column(String(255))
-    descripcion = Column(Text)
-    descripcion_extendida = Column(Text)
-    monto_requerido = Column(Numeric(12, 2))
-    monto_recaudado = Column(Numeric(5, 2))  # porcentaje esperado
-    fecha_inicio = Column(DateTime(timezone=True), server_default=func.now()) 
-    fecha_fin = Column(Date)
-    estado = Column(String(20), nullable=False, server_default="abierto")
-
-    __table_args__ = (
-        CheckConstraint(
-            estado.in_(['abierto', 'cerrado', 'cancelado']),
-            name="ck_estado_proyecto_valid"
-        ),
-    )
+    inversor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    saldo = Column(Numeric(12, 2), default=0.00)
+    actualizado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
     
-    documentos = relationship("DocumentoProyecto", back_populates="proyecto", cascade="all, delete-orphan")
-    empresa = relationship("Empresa", back_populates="proyectos")
-    inversiones = relationship("Inversion", back_populates="proyecto", cascade="all, delete-orphan")
+    # Relaciones
+    inversor = relationship("Usuario", back_populates="wallets")
 
+class RecargaWallet(Base):
+    __tablename__ = "Recargas_wallet"
+
+    # Columnas
+    id = Column(Integer, primary_key=True)
+    inversor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    stripe_payment_intent = Column(String(255))  # ID del PaymentIntent de Stripe, por mientras opcional
+    monto = Column(Numeric(12, 2), nullable=False)
+    estado = Column(Enum('exitoso', 'fallido', 'pendiente', name='estado_enum'), default="pendiente")  # exitoso | fallido | pendiente
+    fecha_recarga = Column(TIMESTAMP, server_default=func.current_timestamp())
+
+    # Relaciones
+    inversor = relationship("Usuario", back_populates="recargas")
+
+class Proyecto(Base):
+    __tablename__ = "Proyectos"
+
+    # Columnas
+    id = Column(Integer, primary_key=True)
+    emprendedor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    nombre_proyecto = Column(String(255), nullable=False)
+    descripcion = Column(String(255), nullable=False)
+    descripcion_extendida = Column(Text, nullable=False)
+    sector = Column(Enum('Energía', 'Agricultura y Agroindustria', 'Tecnología y Innovación', 
+                            'Salud', 'Turismo', 'Finanzas', 'Construcción e Infraestructura', 
+                            'Sostenibilidad y Medio Ambiente', 'Educación', name='sector_enum'), nullable=False)
+    ubicacion = Column(String(255), nullable=False)
+    monto_pedido = Column(Numeric(12, 2))
+    monto_recaudado = Column(Numeric(5, 2))
+    retorno_estimado = Column(Numeric(8,2), nullable=False)
+    fecha_inicio = Column(TIMESTAMP, server_default=func.current_timestamp()) 
+    fecha_fin = Column(TIMESTAMP, nullable=False)
+    estado = Column(Enum('activo', 'completado', 'cancelado', name='estado_proyecto_enum'), default='activo')
+
+    # Relaciones
+    emprendedor = relationship("Usuario", back_populates="proyectos")
+    inversiones = relationship("Inversion", back_populates="proyecto")
+
+class Inversion(Base):
+    __tablename__ = "Inversiones"
+
+    # Columnas
+    id = Column(Integer, primary_key=True)
+    proyecto_id = Column(Integer, ForeignKey("Proyectos.id", ondelete="CASCADE"))
+    inversor_id = Column(Integer, ForeignKey("Usuarios.id", ondelete="CASCADE"))
+    monto_invertido = Column(Numeric(12, 2), nullable=False)
+    fecha_inversion = Column(TIMESTAMP, server_default=func.current_timestamp())
+    estado = Column(Enum('pendiente', 'firmado', 'rechazado', name='estado_inversion_enum'), default='pendiente')
+
+    # Relaciones
+    proyecto = relationship("Proyecto", back_populates="inversiones")
+    inversor = relationship("Usuario", back_populates="inversiones")
+    documentos = relationship("DocumentoProyecto", back_populates="inversion")
+    pagos = relationship("Pago", back_populates="inversion")
+    
+# fecha_inversion = Column(DateTime(timezone=True), server_default=func.now())
 
 class DocumentoProyecto(Base):
-    __tablename__ = "documentos_proyecto"
+    __tablename__ = "Documentos_proyecto"
 
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String)
-    descripcion = Column(String)
-    url = Column(String)
-    contenido_base64 = Column(Text) # ¡NUEVA COLUMNA!
+    # Columnas
+    id = Column(Integer, primary_key=True)
+    inversion_id = Column(Integer, ForeignKey("Inversiones.id", ondelete="CASCADE"))
+    nombre_documento = Column(String(255), nullable=False)
+    descripcion_documento = Column(String(255), nullable=False)
+    url = Column(Text, nullable=True)
+    contenido_base64 = Column(Text)
     tipo_documento = Column(String(50), nullable=False)
-    visibilidad = Column(String(20), nullable=False, server_default="privado") # público | privado
+    visibilidad = Column(Enum('público', 'privado', name='visibilidad_enum'), nullable=False, default="privado") # público | privado
     creado_en = Column(DateTime, default=datetime.now()) # Mejor usar datetime.now() aquí
-    proyecto_id = Column(Integer, ForeignKey("proyectos_inversion.id", ondelete="CASCADE"), nullable=False)
 
+    # Relaciones
     firmas = relationship("FirmaElectronica", back_populates="documento")
-    proyecto = relationship("ProyectoInversion", back_populates="documentos")
-
-    __table_args__ = (
-        CheckConstraint(
-            visibilidad.in_(['privado', 'público']),
-            name="ck_visibilidad_documento_valid" # Cambié el nombre del constraint para mayor claridad
-        ),
-    )
+    inversion = relationship("Inversion", back_populates="documentos")
 
 class FirmaElectronica(Base):
     __tablename__ = "firmas_electronicas"
 
-    id = Column(Integer, primary_key=True, index=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
-    documento_id = Column(Integer, ForeignKey("documentos_proyecto.id"))
-    firmado_en = Column(DateTime(timezone=True), server_default=func.now())
+    id = Column(Integer, primary_key=True)
+    documento_id = Column(Integer, ForeignKey("Documentos_proyecto.id", ondelete='CASCADE'))
+    firmado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
     document_hash = Column(Text, nullable=False)  # Hash del documento firmado
     tx_hash = Column(Text, nullable=True)  # Hash de la transacción en blockchain
     tipo_documento = Column(String(50), nullable=False)  # 'inversion' | 'proyecto'
 
     documento = relationship("DocumentoProyecto", back_populates="firmas")
-    usuario = relationship("Usuario", back_populates="firmas")
 
-
-class Inversion(Base):
-    __tablename__ = "inversiones"
+class Pago(Base):
+    __tablename__ = "Pagos"
 
     id = Column(Integer, primary_key=True)
-    proyecto_id = Column(Integer, ForeignKey("proyectos_inversion.id", ondelete="CASCADE"), nullable=False)
-    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), nullable=False)
-    monto_invertido = Column(Numeric(12, 2), nullable=False)
-    fecha_inversion = Column(DateTime(timezone=True), server_default=func.now())
-    estado = Column(String(20), nullable=False, server_default="pendiente")
-    contrato_pdf = Column(Text)  # URL o nombre del archivo
-
-    __table_args__ = (
-        CheckConstraint(
-            estado.in_(['pendiente', 'firmado', 'rechazado']),
-            name="ck_estado_inversion_valid"
-        ),
-    )
-
-    proyecto = relationship("ProyectoInversion", back_populates="inversiones")
-    inversor = relationship("Inversor", back_populates="inversiones")
-    pagos = relationship("PagoStripe", back_populates="inversion", cascade="all, delete-orphan")
-
-
-class Mensaje(Base):
-    __tablename__ = "mensajes"
-
-    id = Column(Integer, primary_key=True)
-    remitente_id = Column(Integer, ForeignKey("usuarios.id"))
-    destinatario_id = Column(Integer, ForeignKey("usuarios.id"))
-    mensaje = Column(Text, nullable=False)
-    enviado_en = Column(DateTime(timezone=True), server_default=func.now())
-
-    remitente = relationship("Usuario", foreign_keys=[remitente_id], back_populates="mensajes_remitentes")
-    destinatario = relationship("Usuario", foreign_keys=[destinatario_id], back_populates="mensajes_destinatarios")
-
-class CuentaStripe(Base):
-    __tablename__ = "cuentas_stripe"
-
-    id = Column(Integer, primary_key=True)
-    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), unique=True)
-    stripe_account_id = Column(String(255), nullable=True)  # ej. acct_1xxxxxxx, Nullable solo por mientras
-    tipo = Column(String(20), nullable=False)  # 'standard' | 'express' | 'custom'
-    activa = Column(Boolean, default=True)
-
-    usuario = relationship("Usuario")
-
-class Wallet(Base):
-    __tablename__ = "wallets"
-
-    id = Column(Integer, primary_key=True)
-    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), unique=True)
-    saldo = Column(Numeric(12, 2), default=0.00)
-    actualizado_en = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    inversor = relationship("Inversor")
-
-class RecargaWallet(Base):
-    __tablename__ = "recargas_wallet"
-
-    id = Column(Integer, primary_key=True)
-    inversor_id = Column(Integer, ForeignKey("inversores.id", ondelete="CASCADE"), nullable=False)
-    stripe_payment_intent = Column(String(255), nullable=True)  # ID del PaymentIntent de Stripe, por mientras opcional
+    inversion_id = Column(Integer, ForeignKey("Inversiones.id", ondelete="CASCADE"))
+    stripe_payment_id = Column(String(255), nullable=False)
     monto = Column(Numeric(12, 2), nullable=False)
-    estado = Column(String(20), default="pendiente")  # exitoso | fallido | pendiente
-    fecha_recarga = Column(DateTime(timezone=True), server_default=func.now())
-
-    inversor = relationship("Inversor")
-
-
-class PagoStripe(Base):
-    __tablename__ = "pagos_stripe"
-
-    id = Column(Integer, primary_key=True)
-    inversion_id = Column(Integer, ForeignKey("inversiones.id", ondelete="CASCADE"), nullable=False)
-    stripe_payment_id = Column(String(255))
-    monto = Column(Numeric(12, 2))
-    estado = Column(String(20))
-    fecha_pago = Column(DateTime(timezone=True), server_default=func.now())
-    # Dentro de PagoStripe:
-    via_wallet = Column(Boolean, default=False)  # True si fue descontado del saldo wallet
-
-    __table_args__ = (
-        CheckConstraint(
-            estado.in_(['exitoso', 'fallido', 'pendiente']),
-            name="ck_estado_pago_valid"
-        ),
-    )
+    estado = Column(Enum('exitoso', 'fallido', 'pendiente', name='estado_pago_enum'))
+    fecha_pago = Column(TIMESTAMP, server_default=func.current_timestamp())
 
     inversion = relationship("Inversion", back_populates="pagos")
+
+class Mensaje(Base):
+    __tablename__ = "Mensajes"
+
+    # Columnas
+    id = Column(Integer, primary_key=True)
+    remitente_id = Column(Integer, ForeignKey("Usuarios.id", ondelete='CASCADE'))
+    destinatario_id = Column(Integer, ForeignKey("Usuarios.id", ondelete='CASCADE'))
+    mensaje = Column(Text, nullable=False)
+    enviado_en = Column(TIMESTAMP, server_default=func.current_timestamp())
+
+    # Relaciones
+    remitente = relationship("Usuario", back_populates="mensajes_remitentes")
+    destinatario = relationship("Usuario", back_populates="mensajes_destinatarios")
