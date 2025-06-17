@@ -16,28 +16,16 @@ import { jwtDecode } from "jwt-decode"
 export default function RegisterPage() {
 
   // Estados para los campos de inversor
-  const [nombreInversor, setNombreInversor] = useState("");
-  const [apellidoInversor, setApellidoInversor] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [apellidoPaterno, setApellidoPaterno] = useState("");
+  const [apellidoMaterno, setApellidoMaterno] = useState("");
   const [dni, setDni] = useState("");
-  const [paisInversor, setPaisInversor] = useState("");
-  const [emailInversor, setEmailInversor] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [experiencia, setExperiencia] = useState("");
-  const [passwordInversor, setPasswordInversor] = useState("");
-  const [confirmPasswordInversor, setConfirmPasswordInversor] = useState("");
+  const [email, setEmail] = useState("");
+  const [tipoUsuario, setTipoUsuario] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Estados para los campos de empresa
-  const [nombreEmpresa, setNombreEmpresa] = useState("");
-  const [ruc, setRuc] = useState("");
-  const [sector, setSector] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [descripcionExtendida, setDescripcionExtendida] = useState("");
-  const [emailEmpresa, setEmailEmpresa] = useState("");
-  const [ubicacion, setUbicacion] = useState("");
-  const [passwordEmpresa, setPasswordEmpresa] = useState("");
-  const [confirmPasswordEmpresa, setConfirmPasswordEmpresa] = useState("");
-
-  const [userType, setUserType] = useState("inversor");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false)
@@ -46,14 +34,13 @@ export default function RegisterPage() {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   interface DecodedToken {
       id: number
-      sub: string
+      email: string
       tipo_usuario: string
       exp: number
   }
   
   useEffect(() => {
     if (token) {
-      // Si ya está logueado, redirigir al dashboard correspondiente
       const decodedToken = jwtDecode<DecodedToken>(token);
       const currentTime = Date.now() / 1000;
       
@@ -79,63 +66,28 @@ export default function RegisterPage() {
     setSuccessMsg(null);
 
     // Validación de campos obligatorios
-    if (userType === "inversor") {
-      if (!nombreInversor || !apellidoInversor || !dni || !paisInversor || !experiencia || !emailInversor || !telefono || !passwordInversor || !confirmPasswordInversor) {
-        setErrorMsg("Por favor, completa todos los campos requeridos");
-        return;
-      }
-    } else {
-      if (!nombreEmpresa || !ruc || !sector || !descripcion || !descripcionExtendida || !emailEmpresa || !ubicacion || !passwordEmpresa || !confirmPasswordEmpresa) {
-        setErrorMsg("Por favor, completa todos los campos requeridos");
-        return;
-      }
-    }
-
-    // Validación de contraseñas
-    if (userType === "inversor" && passwordInversor !== confirmPasswordInversor) {
-      setErrorMsg("Las contraseñas no coinciden");
+    if (!nombre || !apellidoPaterno || !apellidoMaterno || !dni || !telefono || !email || !password || !tipoUsuario || !confirmPassword) {
+      setErrorMsg("Por favor, completa todos los campos requeridos");
       return;
-    } else if (userType === "empresa" && passwordEmpresa !== confirmPasswordEmpresa) {
-      setErrorMsg("Las contraseñas no coinciden");
+    }
+    
+    // Validación de contraseñas
+    if (password !== confirmPassword) {
+      setErrorMsg("Las constraseñas no coinciden");
       return;
     }
 
     try {
-      let url = "";
-      let body = {};
-
-      if (userType === "inversor") {
-        if (passwordInversor !== confirmPasswordInversor) {
-          setErrorMsg("Las contraseñas no coinciden");
-          return;
-        }
-        url = "http://localhost:8000/users/create-inversor";
-        body = {
-          nombre_inversor: nombreInversor,
-          apellido_inversor: apellidoInversor,
-          dni: dni,
-          pais: paisInversor,
-          email: emailInversor,
-          telefono: telefono,
-          experiencia: experiencia,
-          password: passwordInversor,
-        };
-      } else {
-        if (passwordEmpresa !== confirmPasswordEmpresa) {
-          setErrorMsg("Las contraseñas no coinciden");
-          return;
-        }
-        url = "http://localhost:8000/users/create-empresa";
-        body = {
-          nombre_empresa: nombreEmpresa,
-          ruc: ruc,
-          sector: sector,
-          descripcion: descripcion,
-          descripcion_extendida: descripcionExtendida,
-          ubicacion: ubicacion,
-          email: emailEmpresa,
-          password: passwordEmpresa,
-        };
+      let url = "http://localhost:8000/users/create";
+      let body = {
+        nombre: nombre,
+        apellido_paterno: apellidoPaterno,
+        apellido_materno: apellidoMaterno,
+        dni: dni,
+        telefono: telefono,
+        email: email,
+        password: password,
+        tipo_usuario: tipoUsuario
       }
 
       const response = await fetch(url, {
@@ -150,23 +102,22 @@ export default function RegisterPage() {
         setErrorMsg(data.detail || "Error al crear la cuenta");
       } else {
         setSuccessMsg(data.message || "Cuenta creada exitosamente");
-        // Limpiar campos o redirigir después de unos segundos
+        
         setTimeout(() => {
-          // Limpiar campos
-          setNombreInversor("");
-          setApellidoInversor("");
-          setEmailInversor("");
+          setNombre("");
+          setApellidoPaterno("");
+          setApellidoMaterno("");
+          setDni("");
           setTelefono("");
-          setPasswordInversor("");
-          setConfirmPasswordInversor("");
-          setUserType("inversor");
-
-          // Redirigir a login
-          window.location.href = "/auth/login"; // Cambia esta línea si usas un router
-        }, 2000); // Esperar 2 segundos antes de redirigir
+          setEmail("");
+          setPassword("");
+          setConfirmPassword("");
+          setTipoUsuario("");
+          redirect("/auth/login")
+        }, 2000);
       }
     } catch (error) {
-      setErrorMsg("Error de conexión con el servidor");
+      setErrorMsg("Error de conexión con el servidor!");
     }
   };
 
@@ -188,7 +139,7 @@ export default function RegisterPage() {
                 <span className="text-green-600"> inversiones</span> más grande
               </h1>
               <p className="text-xl text-gray-600">
-                Crea tu cuenta y comienza a invertir en empresas prometedoras o encuentra el financiamiento que
+                Crea tu cuenta y comienza a invertir en empredimientos prometedores o encuentra el financiamiento que
                 necesitas.
               </p>
             </div>
@@ -236,307 +187,155 @@ export default function RegisterPage() {
                 <span className="text-2xl font-bold text-green-800">Ensigna</span>
               </div>
               <CardTitle className="text-2xl font-bold text-gray-900">Crear Cuenta</CardTitle>
-              <CardDescription>Únete a la plataforma de inversiones</CardDescription>
+              <CardDescription>Únete a la comunidad Ensigna</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
 
-              <Tabs value={userType} onValueChange={setUserType} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="inversor">Inversor</TabsTrigger>
-                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
-                </TabsList>
+              <div className="space-y-2">
+                <Label htmlFor="nombre">Nombre</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="nombre"
+                    value = {nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Juan"
+                    className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                  />
+                </div>
+              </div>
 
-                <TabsContent value="inversor" className="space-y-4 mt-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nombre">Nombre</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="nombre"
-                          value = {nombreInversor}
-                          onChange={(e) => setNombreInversor(e.target.value)}
-                          placeholder="Juan"
-                          className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="apellido">Apellido</Label>
-                      <Input
-                        id="apellido"
-                        value={apellidoInversor}
-                        onChange={(e) => setApellidoInversor(e.target.value)}
-                        placeholder="Pérez"
-                        className="border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="dni">DNI</Label>
-                      <div className="relative">
-                        <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="dni"
-                          value={dni}
-                          onChange={(e) => setDni(e.target.value)}
-                          placeholder="12345678"
-                          className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="pais">País</Label>
-                      <div className="relative">
-                        <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="pais"
-                          value={paisInversor}
-                          onChange={(e) => setPaisInversor(e.target.value)}
-                          placeholder="Perú"
-                          className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email-inversor">Correo Electrónico</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email-inversor"
-                        type="email"
-                        value={emailInversor}
-                        onChange={(e) => setEmailInversor(e.target.value)}
-                        placeholder="juan@email.com"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="telefono">Teléfono</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="telefono"
-                        value={telefono}
-                        onChange={(e) => setTelefono(e.target.value)}
-                        placeholder="+1 234 567 8900"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="experiencia">Experiencia en Inversiones</Label>
-                    <Select value={experiencia} onValueChange={setExperiencia}>
-                      <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500">
-                        <SelectValue placeholder="Selecciona tu nivel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="principiante">Principiante</SelectItem>
-                        <SelectItem value="intermedio">Intermedio</SelectItem>
-                        <SelectItem value="avanzado">Avanzado</SelectItem>
-                        <SelectItem value="profesional">Profesional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password-inversor">Contraseña</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="password-inversor"
-                        type={showPassword ? "text" : "password"}
-                        value={passwordInversor}
-                        onChange={(e) => setPasswordInversor(e.target.value)}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="confirm-password"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={confirmPasswordInversor}
-                        onChange={(e) => setConfirmPasswordInversor(e.target.value)}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="empresa" className="space-y-4 mt-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="empresa-nombre">Nombre de la Empresa</Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="empresa-nombre"
-                        value={nombreEmpresa}
-                        onChange={(e) => setNombreEmpresa(e.target.value)}
-                        placeholder="Mi Empresa S.A."
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-8">
-                    <div className="space-y-2">
-                      <Label htmlFor="ruc">RUC</Label>
-                      <div className="relative">
-                        <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="ruc"
-                          value={ruc}
-                          onChange={(e) => setRuc(e.target.value)}
-                          placeholder="20123456789"
-                          className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="sector">Sector</Label>
-                      <Select value={sector} onValueChange={setSector}>
-                        <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500">
-                          <SelectValue placeholder="Selecciona el sector" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="tecnologia">Tecnología</SelectItem>
-                          <SelectItem value="sostenibilidad">Sostenibilidad</SelectItem>
-                          <SelectItem value="logistica">Logistica</SelectItem>
-                          <SelectItem value="salud">Salud</SelectItem>
-                          <SelectItem value="fintech">Energia</SelectItem>
-                          <SelectItem value="salud">Salud</SelectItem>
-                          <SelectItem value="agricultura">Agricultura</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email-empresa">Correo Empresarial</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email-empresa"
-                        value={emailEmpresa}
-                        onChange={(e) => setEmailEmpresa(e.target.value)}
-                        type="email"
-                        placeholder="contacto@empresa.com"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="ubicacion">Ubicación</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="ubicacion"
-                        value={ubicacion}
-                        onChange={(e) => setUbicacion(e.target.value)}
-                        placeholder="Ciudad, País"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="descripcion">Descripción Breve</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="apellido-paterno">Apellido Paterno</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400"></User>
                     <Input
-                      id="descripcion"
-                      value={descripcion}
-                      onChange={(e) => setDescripcion(e.target.value)}
-                      placeholder="Describe brevemente tu empresa"
-                      className="border-green-200 focus:border-green-500 focus:ring-green-500"
+                      id="apellido-paterno"
+                      value={apellidoPaterno}
+                      onChange={(e) => setApellidoPaterno(e.target.value)}
+                      placeholder="Perez"
+                      className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="descripcion">Descripción Extensa</Label>
-                    <Textarea
-                      id="descripcion"
-                      value={descripcionExtendida}
-                      onChange={(e) => setDescripcionExtendida(e.target.value)}
-                      placeholder="Descripcion completa de tu empresa y lo que hace..."
-                      className="border-green-200 focus:border-green-500 focus:ring-green-500 min-h-[80px]"
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="apellido-materno">Apellido Materno</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400"></User>
+                    <Input
+                      id="apellido-materno"
+                      value={apellidoMaterno}
+                      onChange={(e) => setApellidoMaterno(e.target.value)}
+                      placeholder="Alvarez"
+                      className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
                     />
                   </div>
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password-empresa">Contraseña</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="password-empresa"
-                        value={passwordEmpresa}
-                        onChange={(e) => setPasswordEmpresa(e.target.value)}
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dni">DNI</Label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="dni"
+                      value={dni}
+                      onChange={(e) => setDni(e.target.value)}
+                      placeholder="70707070"
+                      className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                    />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="telefono">Teléfono</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="telefono"
+                      value={telefono}
+                      onChange={(e) => setTelefono(e.target.value)}
+                      placeholder="910 910 910"
+                      className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password-empresa">Confirmar Contraseña</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="confirm-password-empresa"
-                        value={confirmPasswordEmpresa}
-                        onChange={(e) => setConfirmPasswordEmpresa(e.target.value)}
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <div className="space-y-2">
+                <Label htmlFor="tipo-usuario">Tipo de usuario</Label>
+                <div className="relative">
+                  <Select value={tipoUsuario} onValueChange={setTipoUsuario}>
+                    <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500 w-full">
+                      <SelectValue placeholder="Seleccionar el tipo de usuario" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="emprendedor">Emprendedor</SelectItem>
+                      <SelectItem value="inversor">Inversor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo Electrónico</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="juan@email.com"
+                    className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
 
               {errorMsg && (
                 <div className="text-red-600 text-sm font-semibold text-center mb-2">

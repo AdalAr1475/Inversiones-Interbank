@@ -15,24 +15,33 @@ import { redirect } from "next/navigation"
 export default function LoginPage() {
   
   const [showPassword, setShowPassword] = useState(false)
-  const [userType, setUserType] = useState("inversor")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  'const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;'
 
+  const token = window?.localStorage?.getItem("token");
+  
   interface DecodedToken {
     id: number
-    sub: string
+    email: string
     tipo_usuario: string
     exp: number
   }
 
   useEffect(() => {
     if (token) {
-      // Si ya está logueado, redirigir al dashboard correspondiente
       const decodedToken = jwtDecode<DecodedToken>(token);
+      const currentTime = Date.now() / 1000;
+      
+      // Verificar si el token ha expirado
+      if (decodedToken.exp < currentTime) {
+        localStorage.removeItem("token");
+        redirect("/auth/login")
+        return
+      }
+
       if (decodedToken.tipo_usuario === "empresa") {
         redirect("/dashboard/empresa")
       } else if (decodedToken.tipo_usuario === "inversor") {
@@ -59,7 +68,9 @@ export default function LoginPage() {
       let data = null
       try {
         data = await response.json()
-      } catch {}
+      } catch (error){
+        setErrorMsg("Error!")
+      }
 
       if (!response.ok) {
         setErrorMsg(data?.detail || "Autenticación Fallida!")
@@ -67,25 +78,20 @@ export default function LoginPage() {
       }
 
       const token = data.access_token
-      const decodedToken = jwtDecode<DecodedToken>(token)
-
-      if (decodedToken.tipo_usuario !== userType) {
-        setErrorMsg("El tipo de cuenta no coincide con el tipo de usuario seleccionado.")
-        return
-      }
-
       localStorage.setItem("token", token)
+      const decodedToken = jwtDecode<DecodedToken>(token);
 
-      if (userType === "inversor") {
+      if(decodedToken.tipo_usuario="inversor"){
         redirect("/dashboard/inversor")
-      } else if (userType === "empresa") {
-        redirect("/dashboard/empresa")
+      } else {
+        redirect("/dashboard/emprendedor")
       }
     
     } catch (error) {
       setErrorMsg("Email o contraseña incorrectos.")
     }
   }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
@@ -104,7 +110,7 @@ export default function LoginPage() {
                 <span className="text-green-600"> inversiones</span>
               </h1>
               <p className="text-xl text-gray-600">
-                Conecta con oportunidades de inversión o encuentra el financiamiento que tu empresa necesita.
+                Conecta con oportunidades de inversión o encuentra el financiamiento que tu empredendimiento necesita.
               </p>
             </div>
           </div>
@@ -115,7 +121,7 @@ export default function LoginPage() {
                 <Building2 className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <div className="font-semibold text-gray-900">500+ Empresas</div>
+                <div className="font-semibold text-gray-900">500+ Emprendimientos</div>
                 <div className="text-sm text-gray-600">Buscando financiamiento</div>
               </div>
             </div>
@@ -145,88 +151,41 @@ export default function LoginPage() {
               <CardDescription>Accede a tu cuenta para continuar</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <Tabs value={userType} onValueChange={setUserType} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="inversor">Inversor</TabsTrigger>
-                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="inversor" className="space-y-4 mt-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-inversor">Correo Electrónico</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email-inversor"
-                        type="email"
-                        placeholder="tu@email.com"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-inversor">Contraseña</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="password-inversor"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="empresa" className="space-y-4 mt-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="email-empresa">Correo Empresarial</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="email-empresa"
-                        type="email"
-                        placeholder="contacto@empresa.com"
-                        className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password-empresa">Contraseña</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="password-empresa"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+              <div className="space-y-2">
+                <Label htmlFor="email-inversor">Correo Electrónico</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email-inversor"
+                    type="email"
+                    placeholder="tu@email.com"
+                    className="pl-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password-inversor">Contraseña</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password-inversor"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    className="pl-10 pr-10 border-green-200 focus:border-green-500 focus:ring-green-500"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
               {/* Mensaje de error */}
               {errorMsg && (
                 <div className="text-red-600 text-sm font-semibold text-center mb-2">

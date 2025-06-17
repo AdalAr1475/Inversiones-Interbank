@@ -2,10 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, func, desc
 from db.conexion_db import get_db
 from db.models import Proyecto, Inversion, Usuario
-from config_token.authenticate import check_empresa
+from config_token.authenticate import check_emprendedor
 
 router = APIRouter(tags=["Projects"])
 
@@ -24,7 +24,7 @@ class ProyectoCreate(BaseModel):
     fecha_fin: date
 
 # ----------- Endpoints -----------
-@router.post("/", dependencies=[Depends(check_empresa)])
+@router.post("/", dependencies=[Depends(check_emprendedor)])
 def crear_proyecto(data: ProyectoCreate, db: Session = Depends(get_db)):
     # Verificar que la empresa exista
     empresa = db.query(Empresa).filter_by(id=data.empresa_id).first()
@@ -48,44 +48,35 @@ def crear_proyecto(data: ProyectoCreate, db: Session = Depends(get_db)):
 
     return {"mensaje": "Proyecto de inversión creado", "proyecto_id": nuevo_proyecto.id}
 
-@router.get("/get-show-proyectos")
+@router.get("/get-proyectos")
 def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)):
-    proyecto_show = []  # Lista para almacenar todos los proyectos procesados
+    
+    list_proyecto = []
     
     if limit:
-        proyectos = db.query(ProyectoInversion).limit(limit).all()
+        proyectos = db.query(Proyecto).order_by(desc(Proyecto.retorno_estimado)).limit(limit).all()
     else:
-        proyectos = db.query(ProyectoInversion).all()
+        proyectos = db.query(Proyecto).order_by(desc(Proyecto.retorno_estimado)).all()
 
     for proyecto in proyectos:
-
-        id = proyecto.id
-
-        empresa = db.query(Empresa).filter(Empresa.id == proyecto.empresa_id).first()
-        categoria = empresa.sector.capitalize() if empresa else "Desconocido"
-        
-        titulo = proyecto.titulo.capitalize()
-        descripcion = proyecto.descripcion.capitalize()
-
-        meta = (proyecto.monto_requerido or Decimal('0.00')).quantize(Decimal('0.01'))
-        recaudado = (proyecto.monto_recaudado or Decimal('0.00')).quantize(Decimal('0.01'))
 
         inversores = db.query(func.count(func.distinct(Inversion.inversor_id))) \
                         .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
         
-        proyecto_show_dict = {
-            "id": id,
-            "categoria": categoria,
-            "titulo": titulo,
-            "descripcion": descripcion,
-            "meta": meta,
-            "recaudado": recaudado,
+        proyecto_dict = {
+            "id": proyecto.id,
+            "categoria": proyecto.sector,
+            "titulo": proyecto.nombre_proyecto.capitalize(),
+            "descripcion": proyecto.descripcion.capitalize(),
+            "meta": proyecto.monto_pedido,
+            "recaudado": proyecto.monto_recaudado,
+            "rentabilidad": proyecto.retorno_estimado,
             "inversores": inversores
         }
 
-        proyecto_show.append(proyecto_show_dict)
+        list_proyecto.append(proyecto_dict)
 
-    return proyecto_show
+    return list_proyecto
 
 
 @router.get("/{proyecto_id}")

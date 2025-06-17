@@ -28,21 +28,15 @@ def verify_password(password_textplano: str, hashed_password: str) -> bool:
 
 # Función para autenticar al usuario
 def authenticate_user(db: Session, email: str, password_textplano: str):
-    
-    users = db.query(models.Usuario)
-    print(users)
     user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
-    print(user)
     if not user:
         raise HTTPException(
-            status_code=401,
             detail="El email no existe",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
     if not verify_password(password_textplano, user.password_hash):
         raise HTTPException(
-            status_code=401,
             detail="Contraseña incorrecta",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -65,13 +59,11 @@ def decode_token(token: str):
         return datos
     except ExpiredSignatureError:
         raise HTTPException(
-            status_code=401,
             detail="Token expirado",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except JWTError:
         raise HTTPException(
-            status_code=401,
             detail="Token inválido",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -82,7 +74,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         email = payload.get("email")
         if email is None:
             raise HTTPException(
-                status_code=401,
                 detail="Token inválido",
                 headers={"WWW-Authenticate": "Bearer"},
             )
@@ -90,7 +81,6 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
         if user is None:
             raise HTTPException(
-                status_code=401,
                 detail="Usuario no encontrado",
                 headers={"WWW-Authenticate": "Bearer"},
             )
@@ -98,13 +88,11 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         return user
     except ExpiredSignatureError:
         raise HTTPException(
-            status_code=401,
             detail="Token expirado",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except JWTError:
         raise HTTPException(
-            status_code=401,
             detail="Token inválido",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -112,12 +100,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 # Funcion para autenticar a la cuenta inversor
 def check_inversor(user: models.Usuario = Depends(get_current_user)):
     if user.tipo_usuario != "inversor":
-        raise HTTPException(status_code=403, detail="No tienes permisos suficientes")
+        raise HTTPException(detail="No tienes permisos suficientes")
     return user
 
 # Funcion para autenticar a la cuenta empresa
-def check_empresa(user: models.Usuario = Depends(get_current_user)):
-    if user.tipo_usuario != "empresa":
-        raise HTTPException(status_code=403, detail="No tienes permisos suficientes")
+def check_emprendedor(user: models.Usuario = Depends(get_current_user)):
+    if user.tipo_usuario != "emprendedor":
+        raise HTTPException(detail="No tienes permisos suficientes")
     return user
     

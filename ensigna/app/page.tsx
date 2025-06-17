@@ -19,12 +19,12 @@ import { useEffect, useState } from "react"
 // Importamos useEffect para el efecto de scrolling suave
 
 export default function EnsignaLanding() {
-  const [proyectos, setProyectos] = useState<any[]>([])  // Guardar los proyectos obtenidos
-  const [proyectosDestacados, setProyectosDestacados] = useState<any[]>([])  // Guardar los proyectos destacados
-  const [loading, setLoading] = useState<boolean>(true)  // Estado de carga
+  const [proyectos, setProyectos] = useState<any[]>([])
+  const [proyectosDestacados, setProyectosDestacados] = useState<any[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
-  // Añadir efecto de desplazamiento suave cuando se hace clic en los enlaces de navegación
   useEffect(() => {
+    
     // Función para manejar el desplazamiento suave
     const handleSmoothScroll = (e: MouseEvent) => {
       const target = e.target as HTMLAnchorElement
@@ -50,7 +50,7 @@ export default function EnsignaLanding() {
 
     const fetchProyectos = async () => {
       try {
-        const response = await fetch("http://localhost:8000/project/get-show-proyectos?limit=3")
+        const response = await fetch("http://localhost:8000/project/get-proyectos?limit=3")
         const data = await response.json()
         setProyectos(data)
         setProyectosDestacados(data.sort((a: any, b: any) => b.recaudado/b.meta - a.recaudado/a.meta).slice(0, 3))
@@ -69,16 +69,19 @@ export default function EnsignaLanding() {
   
   }, [])
 
-  const getLogoColorClass = (color: string) => {
+ const getLogoColorClass = (sector: string) => {
     const colorMap: { [key: string]: string } = {
-      Tecnologia: "bg-blue-600",
-      Sostenibilidad: "bg-green-600",
-      Logistica: "bg-purple-600",
-      Salud: "bg-red-600",
-      Energia: "bg-yellow-600",
-      Agricultura: "bg-orange-600"
+      'Energía': 'bg-yellow-600',            // Amarillo para energía
+      'Agricultura y Agroindustria': 'bg-green-600', // Verde para agricultura
+      'Tecnología y Innovación': 'bg-blue-600',  // Azul para tecnología
+      'Salud': 'bg-red-600',                 // Rojo para salud
+      'Turismo': 'bg-teal-600',              // Teal para turismo
+      'Finanzas': 'bg-indigo-600',           // Índigo para finanzas
+      'Construcción e Infraestructura': 'bg-orange-600', // Naranja para construcción
+      'Sostenibilidad y Medio Ambiente': 'bg-lime-600', // Verde lima para sostenibilidad
+      'Educación': 'bg-purple-600',          // Morado para educación
     }
-    return colorMap[color] || "bg-gray-600"
+    return colorMap[sector] || 'bg-gray-600'; // Color por defecto en gris
   }
 
   return (
@@ -92,14 +95,14 @@ export default function EnsignaLanding() {
             <div className="space-y-8">
               <div className="space-y-4">
                 <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                  🤝 Conectamos Empresas e Inversores
+                  🤝 Conectamos Emprendedores e Inversores
                 </Badge>
                 <h1 className="text-4xl font-primary lg:text-6xl font-bold text-gray-900 leading-tight">
                   La plataforma que
                   <span className="text-green-600"> conecta</span> oportunidades
                 </h1>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Ensigna facilita la inversión entre empresas y conecta startups con inversores
+                  Ensigna facilita la inversión entre emprendedores y inversores
                   individuales. Encuentra financiamiento o descubre las mejores oportunidades de
                   inversión.
                 </p>
@@ -112,7 +115,7 @@ export default function EnsignaLanding() {
                 </TabsList>
                 <TabsContent value="inversor" className="space-y-4">
                   <p className="text-gray-600">
-                    Descubre empresas prometedoras y diversifica tu portafolio
+                    Descubre emprendimientos prometedores y diversifica tu portafolio
                   </p>
                   <Link href={"/auth/login"}>
                     <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
@@ -122,7 +125,7 @@ export default function EnsignaLanding() {
                   </Link>
                 </TabsContent>
                 <TabsContent value="empresa" className="space-y-4">
-                  <p className="text-gray-600">Presenta tu empresa a inversores calificados</p>
+                  <p className="text-gray-600">Presenta tu emprendimiento a inversores calificados</p>
                   <Link href={"/auth/login"}>
                     <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
                       Publicar Oportunidad
@@ -135,7 +138,7 @@ export default function EnsignaLanding() {
               <div className="flex items-center space-x-8 pt-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">500+</div>
-                  <div className="text-sm text-gray-600">Empresas</div>
+                  <div className="text-sm text-gray-600">Emprendedores</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">2K+</div>
@@ -162,7 +165,7 @@ export default function EnsignaLanding() {
                       {loading ? (
                         <div>Cargando proyectos...</div>
                       ) : (
-                        proyectos.map((proyecto) => (
+                        proyectosDestacados.map((proyecto) => (
                           <div key={proyecto.id} className="flex items-center justify-between p-3 cursor-pointer hover:bg-green-100 duration-150 rounded-lg">
                             <div className="flex items-center space-x-3">
                               <div className={`w-12 h-12 ${getLogoColorClass(proyecto.categoria)} rounded-full flex items-center justify-center`}>
@@ -170,7 +173,8 @@ export default function EnsignaLanding() {
                               </div>
                               <div>
                                 <div className="font-medium text-gray-900">{proyecto.titulo}</div>
-                                <div className="text-sm text-gray-600">Busca ${proyecto.meta.toLocaleString()} • {proyecto.categoria.capitalize}</div>
+                                <div className="text-sm text-gray-600">Busca ${proyecto.meta.toLocaleString()} • {proyecto.categoria}</div>
+                                <div className="text-sm text-green-600 font-medium">Retorno estimado: {proyecto.rentabilidad}</div>
                               </div>
                             </div>
                             <div className="text-green-600 font-semibold">{Math.floor((proyecto.recaudado / proyecto.meta) * 100)}% financiado</div>
@@ -192,13 +196,13 @@ export default function EnsignaLanding() {
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">Cómo Funciona Ensigna</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Conectamos empresas que buscan financiamiento con inversores que buscan oportunidades
+              Conectamos emprendedores que buscan financiamiento con inversores que buscan oportunidades
             </p>
           </div>
 
           <Tabs defaultValue="empresas" className="w-full">
             <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-12">
-              <TabsTrigger value="empresas">Para Empresas</TabsTrigger>
+              <TabsTrigger value="empresas">Para Emprendedores</TabsTrigger>
               <TabsTrigger value="inversores">Para Inversores</TabsTrigger>
             </TabsList>
 
@@ -209,8 +213,8 @@ export default function EnsignaLanding() {
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Building2 className="w-8 h-8 text-green-600" />
                     </div>
-                    <CardTitle className="text-green-800">1. Registra tu Empresa</CardTitle>
-                    <CardDescription>Crea tu perfil y presenta tu propuesta de negocio</CardDescription>
+                    <CardTitle className="text-green-800">1. Registra tu Emprendimiento</CardTitle>
+                    <CardDescription>Crea tu perfil y presenta tu idea de negocio</CardDescription>
                   </CardHeader>
                 </Card>
 
@@ -282,7 +286,7 @@ export default function EnsignaLanding() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">Oportunidades de Inversión</h2>
-            <p className="text-xl text-gray-600">Empresas verificadas buscando financiamiento</p>
+            <p className="text-xl text-gray-600">Emprededores verificados buscando financiamiento</p>
           </div>
 
           {loading ? (
@@ -297,6 +301,7 @@ export default function EnsignaLanding() {
                   description={proyecto.descripcion}
                   goal={proyecto.meta}
                   raised={proyecto.recaudado}
+                  rentabilidad={proyecto.rentabilidad}
                   investors={proyecto.inversores}
                 />
               ))}
@@ -323,7 +328,7 @@ export default function EnsignaLanding() {
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div className="space-y-2">
               <div className="text-4xl font-bold text-green-600">500+</div>
-              <div className="text-gray-600">Empresas Registradas</div>
+              <div className="text-gray-600">Emprendedores Registrados</div>
             </div>
             <div className="space-y-2">
               <div className="text-4xl font-bold text-green-600">2,000+</div>
@@ -351,7 +356,7 @@ export default function EnsignaLanding() {
             <Card className="border-green-100">
               <CardContent className="pt-6">
                 <div className="flex items-center mb-4">
-                  <Badge className="bg-blue-100 text-blue-800">Empresa</Badge>
+                  <Badge className="bg-blue-100 text-blue-800">Emprendedor</Badge>
                 </div>
                 <p className="text-gray-600 mb-4">
                   &ldquo;Gracias a Ensigna conseguimos el financiamiento que necesitábamos para expandir nuestro
@@ -376,8 +381,8 @@ export default function EnsignaLanding() {
                   <Badge className="bg-green-100 text-green-800">Inversor</Badge>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  &ldquo;Como inversor, Ensigna me ha permitido diversificar mi portafolio invirtiendo en startups
-                  prometedoras. La plataforma es segura y me da toda la información que necesito para tomar
+                  &ldquo;Como inversor, Ensigna me ha permitido diversificar mi portafolio invirtiendo en startups y emprendimientos
+                  prometedores. La plataforma es segura y me da toda la información que necesito para tomar
                   decisiones informadas.&rdquo;
                 </p>
                 <div className="flex items-center">
@@ -403,7 +408,7 @@ export default function EnsignaLanding() {
               ¿Listo para conectar con oportunidades?
             </h2>
             <p className="text-xl text-green-100">
-              Únete a la comunidad de empresas e inversores que están construyendo el futuro
+              Únete a la comunidad de emprededores e inversores que están construyendo el futuro
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href={"/auth/login"}>
@@ -440,11 +445,11 @@ export default function EnsignaLanding() {
                 <span className="text-2xl font-bold">Ensigna</span>
               </div>
               <p className="text-gray-400">
-                Conectamos empresas que buscan financiamiento con inversores que buscan oportunidades.
+                Conectamos emprendedores que buscan financiamiento con inversores que buscan oportunidades.
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Para Empresas</h3>
+              <h3 className="font-semibold mb-4">Para Emprendedores</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <a
@@ -459,7 +464,7 @@ export default function EnsignaLanding() {
                     href="#"
                     className="hover:text-green-400 transition-colors"
                   >
-                    Dashboard Empresa
+                    Dashboard Empredendedor
                   </a>
                 </li>
                 <li>
