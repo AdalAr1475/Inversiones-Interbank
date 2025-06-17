@@ -30,7 +30,12 @@ import ListaConversaciones from "@/components/lista-conversaciones";
 import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
 
 //Interfaces
@@ -46,10 +51,16 @@ interface DocumentoProyecto {
   tipo_documento: string;
 }
 
+interface Proyecto {
+  id: number;
+  nombre: string;
+  // Agrega otras propiedades del proyecto que necesites, como descripción, etc.
+}
+
 export default function DashboardEmpresa() {
-  
   //Hooks
-  const [proyectoId, setProyectoId] = useState<number>(1); // Simulando un ID de proyecto
+  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
+  const [proyectoId, setProyectoId] = useState<number | null>(null);
   const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -60,8 +71,9 @@ export default function DashboardEmpresa() {
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
   // --- Nuevo estado para el tipo de documento ---
   const [newDocumentType, setNewDocumentType] = useState<string>("Contrato"); // Valor por defecto
-  const [newDocumentDescription, setNewDocumentDescription] = useState<string>("Documento subido desde UI"); // Para la descripción
-
+  const [newDocumentDescription, setNewDocumentDescription] = useState<string>(
+    "Documento subido desde UI"
+  ); // Para la descripción
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
@@ -82,29 +94,43 @@ export default function DashboardEmpresa() {
       const base64Content = (reader.result as string).split(",")[1];
 
       try {
-        await axios.post("http://localhost:8000/documents/registrar-documento", {
-          proyecto_id: proyectoId,
-          nombre: file.name,
-          descripcion: newDocumentDescription, // Usa el estado para la descripción
-          contenido_base64: base64Content,
-          tipo_documento: newDocumentType,    // ¡Envía el tipo de documento!
-          visibilidad: "privado", // o público según el caso
-        });
+        await axios.post(
+          "http://localhost:8000/documents/registrar-documento",
+          {
+            proyecto_id: proyectoId,
+            nombre: file.name,
+            descripcion: newDocumentDescription, // Usa el estado para la descripción
+            contenido_base64: base64Content,
+            tipo_documento: newDocumentType, // ¡Envía el tipo de documento!
+            visibilidad: "privado", // o público según el caso
+          }
+        );
 
-        console.log("Documento registrado con éxito para el proyecto ID:", proyectoId);
+        console.log(
+          "Documento registrado con éxito para el proyecto ID:",
+          proyectoId
+        );
 
         // Actualiza lista de documentos después de la subida
-        const res = await axios.get(`http://localhost:8000/documents/documentos/${proyectoId}`);
+        const res = await axios.get(
+          `http://localhost:8000/documents/documentos/${proyectoId}`
+        );
         console.log("Documentos recibidos y actualizados:", res.data);
         setDocumentos(res.data);
-        
       } catch (error: any) {
         console.error("Error al registrar documento:", error);
         if (axios.isAxiosError(error) && error.response) {
-            console.error("Detalles del error del backend (subida):", error.response.data);
-            alert(`Error al registrar documento: ${error.response.data.detail || "Error desconocido del servidor."}`);
+          console.error(
+            "Detalles del error del backend (subida):",
+            error.response.data
+          );
+          alert(
+            `Error al registrar documento: ${
+              error.response.data.detail || "Error desconocido del servidor."
+            }`
+          );
         } else {
-            alert("Ocurrió un error inesperado al registrar el documento.");
+          alert("Ocurrió un error inesperado al registrar el documento.");
         }
       } finally {
         setFileName("");
@@ -117,45 +143,85 @@ export default function DashboardEmpresa() {
     reader.readAsDataURL(file);
   };
 
+  // Manejador para el cambio de proyecto seleccionado
+  const handleProyectoChange = (value: string) => {
+    setProyectoId(parseInt(value)); // Convertir el valor de string a number
+  };
+
   // Función para verificar la firma de un documento
   const handleVerifyDocument = async (documentId: number) => {
     setVerifyingId(documentId); // Inicia el estado de carga
     try {
-        // Para verificar, también necesitarías el contenido_base64 y el tipo_documento
-        // Se asume que el endpoint de verify-document los manejará internamente
-        // o que tu endpoint de verificación es más simple.
-        // Si verify-document también espera contenido_base64 y tipo_documento,
-        // deberías modificar esta función de manera similar a handleSignDocument.
-        const response = await axios.post("http://localhost:8000/documents/verify-document", {
-            document_id: documentId,
-            // Aquí podrías necesitar enviar contenido_base64 y tipo_documento si el backend lo requiere para verificar
-        });
-
-        // Asumimos que el backend responde con una estructura como: { "success": boolean, "message": "..." }
-        if (response.data.success) {
-            alert(`Verificación exitosa: ${response.data.message}`);
-        } else {
-            alert(`Verificación fallida: ${response.data.message}`);
+      // Para verificar, también necesitarías el contenido_base64 y el tipo_documento
+      // Se asume que el endpoint de verify-document los manejará internamente
+      // o que tu endpoint de verificación es más simple.
+      // Si verify-document también espera contenido_base64 y tipo_documento,
+      // deberías modificar esta función de manera similar a handleSignDocument.
+      const response = await axios.post(
+        "http://localhost:8000/documents/verify-document",
+        {
+          document_id: documentId,
+          // Aquí podrías necesitar enviar contenido_base64 y tipo_documento si el backend lo requiere para verificar
         }
+      );
 
+      // Asumimos que el backend responde con una estructura como: { "success": boolean, "message": "..." }
+      if (response.data.success) {
+        alert(`Verificación exitosa: ${response.data.message}`);
+      } else {
+        alert(`Verificación fallida: ${response.data.message}`);
+      }
     } catch (error) {
-        console.error("Error al verificar la firma:", error);
-        alert("Error en la verificación. El documento podría haber sido alterado o la firma no es válida.");
+      console.error("Error al verificar la firma:", error);
+      alert(
+        "Error en la verificación. El documento podría haber sido alterado o la firma no es válida."
+      );
     } finally {
-        setVerifyingId(null); // Finaliza el estado de carga
+      setVerifyingId(null); // Finaliza el estado de carga
     }
   };
 
+  // --- EFECTO PARA CARGAR PROYECTOS AL INICIO ---
   useEffect(() => {
-    if(!proyectoId) return;
-    // Aquí podrías consumir una API que traiga los documentos
-    fetch(`http://localhost:8000/documents/documentos/${proyectoId}`) // Ejemplo
+    fetch(`http://localhost:8000/proyectos/${}`) // Asegúrate de que esta URL sea la correcta para obtener tus proyectos
       .then((res) => res.json())
-      .then((data) => {
-      console.log('Documentos recibidos:', data);
-      setDocumentos(data);
+      .then((data: Proyecto[]) => {
+        setProyectos(data);
+        // Opcional: Seleccionar automáticamente el primer proyecto si existe
+        if (data.length > 0) {
+          setProyectoId(data[0].id);
+        }
+      })
+      .catch((error) => {
+        console.error("Error al cargar proyectos:", error);
       });
-  }, []);
+  }, []); // Se ejecuta solo una vez al montar el componente
+
+  // --- EFECTO PARA CARGAR DOCUMENTOS CUANDO EL proyectoId CAMBIA ---
+  useEffect(() => {
+    if (proyectoId === null) {
+      // No cargar documentos si no hay un proyecto seleccionado
+      setDocumentos([]); // Limpiar documentos si no hay proyecto
+      return;
+    }
+
+    console.log(`Cargando documentos para el proyecto ID: ${proyectoId}`);
+    fetch(`http://localhost:8000/documents/documentos/${proyectoId}`) // Tu endpoint para filtrar por ID de proyecto
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data: DocumentoProyecto[]) => {
+        console.log("Documentos recibidos:", data);
+        setDocumentos(data);
+      })
+      .catch((error) => {
+        console.error("Error al cargar documentos:", error);
+        setDocumentos([]); // En caso de error, limpiar los documentos
+      });
+  }, [proyectoId]); // Se ejecuta cada vez que 'proyectoId' cambia
 
   return (
     <ProtectedRoute requiredRole="emprendedor">
@@ -250,7 +316,6 @@ export default function DashboardEmpresa() {
                 <TabsTrigger value="mensajes">Mensajes</TabsTrigger>
                 <TabsTrigger value="documentos">Documentos</TabsTrigger>
               </TabsList>
-
               <TabsContent value="campana" className="space-y-6">
                 <div className="grid lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2 space-y-6">
@@ -397,7 +462,6 @@ export default function DashboardEmpresa() {
                   </div>
                 </div>
               </TabsContent>
-
               <TabsContent value="inversores" className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -479,42 +543,82 @@ export default function DashboardEmpresa() {
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>              <TabsContent value="mensajes" className="space-y-6">
+              </TabsContent>{" "}
+              <TabsContent value="mensajes" className="space-y-6">
                 <ListaConversaciones />
               </TabsContent>
-
               <TabsContent value="documentos" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Documentos de la Campaña</CardTitle>
-                  <CardDescription>
-                    Gestiona todos los documentos relacionados con tu financiamiento.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Documentos de la Campaña</CardTitle>
+                    <CardDescription>
+                      Gestiona todos los documentos relacionados con tu
+                      financiamiento.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* SELECTOR DE PROYECTO */}
+                    <div className="mb-6">
+                      <Label htmlFor="selectProject">
+                        Seleccionar Proyecto
+                      </Label>
+                      <Select
+                        value={proyectoId ? String(proyectoId) : ""}
+                        onValueChange={handleProyectoChange}
+                      >
+                        <SelectTrigger className="w-[240px]">
+                          <SelectValue placeholder="Selecciona un proyecto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {proyectos.length === 0 ? (
+                            <SelectItem value="no-projects" disabled>
+                              No hay proyectos disponibles
+                            </SelectItem>
+                          ) : (
+                            proyectos.map((p) => (
+                              <SelectItem key={p.id} value={String(p.id)}>
+                                {p.nombre}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     {/* Subida de documento nuevo - AÑADIR INPUTS PARA DESCRIPCION Y TIPO */}
                     <div className="mb-6 space-y-4">
                       <div>
-                        <Label htmlFor="documentDescription">Descripción del Documento</Label>
+                        <Label htmlFor="documentDescription">
+                          Descripción del Documento
+                        </Label>
                         <Input
                           id="documentDescription"
                           placeholder="Ej. Contrato de Inversión"
                           value={newDocumentDescription}
-                          onChange={(e) => setNewDocumentDescription(e.target.value)}
+                          onChange={(e) =>
+                            setNewDocumentDescription(e.target.value)
+                          }
                         />
                       </div>
                       <div>
                         <Label htmlFor="documentType">Tipo de Documento</Label>
-                        <Select value={newDocumentType} onValueChange={setNewDocumentType}>
+                        <Select
+                          value={newDocumentType}
+                          onValueChange={setNewDocumentType}
+                        >
                           <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Selecciona un tipo" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Contrato">Contrato</SelectItem>
                             <SelectItem value="Acuerdo">Acuerdo</SelectItem>
-                            <SelectItem value="Financiero">Financiero</SelectItem>
+                            <SelectItem value="Financiero">
+                              Financiero
+                            </SelectItem>
                             <SelectItem value="Legal">Legal</SelectItem>
-                            <SelectItem value="Plan de Negocio">Plan de Negocio</SelectItem>
+                            <SelectItem value="Plan de Negocio">
+                              Plan de Negocio
+                            </SelectItem>
                             <SelectItem value="Otro">Otro</SelectItem>
                           </SelectContent>
                         </Select>
@@ -522,7 +626,12 @@ export default function DashboardEmpresa() {
                       <Button onClick={handleUploadClick} disabled={uploading}>
                         {uploading ? "Subiendo..." : "Subir nuevo documento"}
                       </Button>
-                      <input type="file" ref={fileInputRef} onChange={handleUpload} hidden />
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleUpload}
+                        hidden
+                      />
                       {fileName && !uploading && (
                         <p className="mt-2 text-sm text-gray-600">
                           Archivo seleccionado: {fileName}
@@ -541,13 +650,19 @@ export default function DashboardEmpresa() {
                     {Array.isArray(documentos) && documentos.length > 0 ? (
                       <div className="space-y-4">
                         {documentos.map((doc) => (
-                          <div key={doc.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <div
+                            key={doc.id}
+                            className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                          >
                             <div className="flex items-center justify-between">
                               <div>
                                 <h3 className="font-semibold">{doc.nombre}</h3>
-                                <p className="text-sm text-gray-600">{doc.descripcion}</p>
+                                <p className="text-sm text-gray-600">
+                                  {doc.descripcion}
+                                </p>
                                 <p className="text-xs text-gray-500">
-                                  Subido el {new Date(doc.creadoEn).toLocaleDateString()}
+                                  Subido el{" "}
+                                  {new Date(doc.creadoEn).toLocaleDateString()}
                                 </p>
                                 {/* Mostrar el tipo de documento también */}
                                 <p className="text-xs text-gray-500">
@@ -566,22 +681,24 @@ export default function DashboardEmpresa() {
                                 </Badge>
                                 {doc.firmado && (
                                   <Badge className="bg-blue-100 text-blue-800">
-                                    <CheckCircle className="w-3 h-3 mr-1"/>
+                                    <CheckCircle className="w-3 h-3 mr-1" />
                                     Firmado
                                   </Badge>
                                 )}
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center space-x-2 mt-3">
                               {doc.firmado ? (
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => handleVerifyDocument(doc.id)}
                                   disabled={verifyingId === doc.id}
                                 >
-                                  {verifyingId === doc.id ? "Verificando..." : "Verificar Firma"}
+                                  {verifyingId === doc.id
+                                    ? "Verificando..."
+                                    : "Verificar Firma"}
                                 </Button>
                               ) : (
                                 <Label className="text-red-600">
@@ -593,11 +710,13 @@ export default function DashboardEmpresa() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">No hay documentos aún.</p>
+                      <p className="text-sm text-gray-500">
+                        No hay documentos aún.
+                      </p>
                     )}
                   </CardContent>
-              </Card>
-            </TabsContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </div>
         </div>
