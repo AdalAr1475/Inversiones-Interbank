@@ -183,7 +183,7 @@ export default function DashboardEmpresa() {
 
   // --- EFECTO PARA CARGAR PROYECTOS AL INICIO ---
   useEffect(() => {
-    fetch(`http://localhost:8000/proyectos/${}`) // Asegúrate de que esta URL sea la correcta para obtener tus proyectos
+    fetch(`http://localhost:8000/project/${2}`) // Asegúrate de que esta URL sea la correcta para obtener tus proyectos
       .then((res) => res.json())
       .then((data: Proyecto[]) => {
         setProyectos(data);
