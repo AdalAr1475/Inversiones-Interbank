@@ -1,4 +1,3 @@
-import base64
 import hashlib
 import os
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -11,45 +10,18 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/documentos",
+    tags=["Documentos"]
+)
 
 def hash_document(file_bytes):
     return '0x' + hashlib.sha256(file_bytes).hexdigest()
 
-# Modelo para la petición
-class FirmarDocumentoRequest(BaseModel):
-    documento_id: int
-    usuario_id: int
-    contenido_base64: str
 
 @router.post("/firmar-documento")
-def firmar_documento(data: FirmarDocumentoRequest, db=Depends(get_db)):
-    try:
-        # Decodificar y generar hash
-        contenido_bytes = base64.b64decode(data.contenido_base64)
-        document_hash = hashlib.sha256(contenido_bytes).hexdigest()
-
-        # Simula firma en blockchain
-        tx_hash = sign_document(document_hash)
-
-        # Guarda en base de datos con SQLAlchemy
-        firma = FirmaElectronica(
-            usuario_id=data.usuario_id,
-            documento_id=data.documento_id,
-            document_hash=document_hash,
-            tx_hash=tx_hash,
-        )
-
-        db.add(firma)
-        db.commit()
-        db.refresh(firma)
-
-        return {"mensaje": "Documento firmado con éxito", "tx_hash": tx_hash}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
+def firmar_documento(documento_id: int, db=Depends(get_db)):
+    return doc_utils.firmar_documento(documento_id, db)
 
 @router.post("/verify-document/", tags=["Blockchain"])
 async def verify(file: UploadFile = File(...)):

@@ -27,12 +27,12 @@ class ProyectoCreate(BaseModel):
 @router.post("/", dependencies=[Depends(check_emprendedor)])
 def crear_proyecto(data: ProyectoCreate, db: Session = Depends(get_db)):
     # Verificar que la empresa exista
-    empresa = db.query(Empresa).filter_by(id=data.empresa_id).first()
+    empresa = db.query(Usuario).filter_by(id=data.empresa_id).first()
     if not empresa:
         raise HTTPException(status_code=404, detail="Empresa no encontrada")
 
-    nuevo_proyecto = ProyectoInversion(
-        empresa_id=data.empresa_id,
+    nuevo_proyecto = Proyecto(
+        emprendedor_id=data.empresa_id,
         titulo=data.titulo,
         descripcion=data.descripcion,
         monto_requerido=data.monto_requerido,
@@ -59,7 +59,6 @@ def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)
         proyectos = db.query(Proyecto).order_by(desc(Proyecto.retorno_estimado)).all()
 
     for proyecto in proyectos:
-
         inversores = db.query(func.count(func.distinct(Inversion.inversor_id))) \
                         .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
         
@@ -81,12 +80,12 @@ def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)
 
 @router.get("/{proyecto_id}")
 def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
-    proyecto = db.query(ProyectoInversion).filter(ProyectoInversion.id == proyecto_id).first()
+    proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
     
     if not proyecto:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
 
-    empresa = db.query(Empresa).filter(Empresa.id == proyecto.empresa_id).first()
+    empresa = db.query(Usuario).filter(Usuario.id == proyecto.emprendedor_id).first()
     categoria = empresa.sector.capitalize() if empresa else "Desconocido"
     
     fecha_inicio = proyecto.fecha_inicio.strftime("%d/%m/%Y") if proyecto.fecha_inicio else None
@@ -118,10 +117,10 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
 def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
     
     result = db.query(
-        Inversor.nombre_inversor,
-        Inversor.apellido_inversor,
+        Usuario.nombre_inversor,
+        Usuario.apellido_inversor,
         (func.date(func.current_date()) - func.date(Inversion.fecha_inversion)).label('dias_desde_inversion')
-    ).join(Inversor, Inversion.inversor_id == Inversor.id).filter(Inversion.proyecto_id == proyecto_id).all()
+    ).join(Usuario, Inversion.inversor_id == Usuario.id).filter(Inversion.proyecto_id == proyecto_id).all()
 
     # Verificar si hay resultados
     if not result:
@@ -146,7 +145,7 @@ def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db))
 
 @router.get("/proyectos-invertidos/{usuario_id}")
 def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db)):
-    inversor = db.query(Inversor).filter_by(usuario_id=usuario_id).first()
+    inversor = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not inversor:
         raise HTTPException(status_code=404, detail="Inversor no encontrado")
 
@@ -154,7 +153,7 @@ def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db))
     proyectos_invertidos = []
 
     for inversion in inversiones:
-        proyecto = db.query(ProyectoInversion).filter_by(id=inversion.proyecto_id).first()
+        proyecto = db.query(Proyecto).filter_by(id=inversion.proyecto_id).first()
         if proyecto:
             existing = next((p for p in proyectos_invertidos if p['proyecto_id'] == proyecto.id), None)
             if existing:

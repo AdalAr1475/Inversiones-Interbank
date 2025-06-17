@@ -94,6 +94,7 @@ export default function PerfilPage() {
   const idUsuario = jwtDecode<DecodedToken>(localStorage.getItem("token") || "").id;  // Estados adicionales para los datos del wallet y actividad
   // Definimos una interfaz para las actividades recientes
   interface RecargaActivity {
+    fecha_recarga: string | number | Date;
     id: number;
     monto: string;
     fecha: string;
@@ -124,7 +125,7 @@ export default function PerfilPage() {
         // Obtener historial de recargas
         try {
           const recargas = await getRecargas(token, parseInt(idUsuario));
-          setRecentActivity(recargas);
+          setRecentActivity(recargas as RecargaActivity[]);
         } catch (activityError) {
           console.error("Error al cargar las recargas:", activityError);
         }
@@ -146,7 +147,7 @@ export default function PerfilPage() {
         setLoading(true);
         setMensaje("Preparando el checkout...");
         // Obtenemos la URL del checkout de Stripe
-        const checkoutUrl = await createCheckoutSession(`${idUsuario}`, monto*100);
+        const checkoutUrl = await createCheckoutSession(parseInt(idUsuario), monto*100);
         
         setMensaje("Redirigiendo a la pasarela de pago...");
         

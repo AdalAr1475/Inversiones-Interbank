@@ -1,10 +1,14 @@
 import base64
+import hashlib
 import os
 from datetime import datetime
 
-from requests import Session
+from fastapi import HTTPException
+from requests import Session, session
+from blockchain.contract_utils import sign_document
+from db import models
 from db.conexion_db import get_db
-from db.models import DocumentoProyecto, FirmaElectronica
+from db.models import DocumentoProyecto, FirmaElectronica, Inversion
 
 CARPETA_DOCUMENTOS = "archivos"
 
@@ -21,22 +25,34 @@ def guardar_archivo(contenido_base64, nombre_archivo):
 
     return ruta_archivo  # puedes adaptar esto a una URL pública si estás sirviendo archivos con FastAPI/NGINX/etc.
 
-def registrar_documento(proyecto_id: int, nombre: str, descripcion: str, contenido_base64: str, tipo_documento: str, visibilidad: str = "privado", db=None):
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    nombre_archivo = f"{timestamp}_{nombre}"
-
-    # Si aún necesitas guardar el archivo físicamente y tener una URL:
-    ruta_archivo_url = guardar_archivo(contenido_base64, nombre_archivo)
+def registrar_documento(
+    inversion_id: int, # CORREGIDO: Se usa inversion_id para coincidir con el modelo.
+    nombre: str,
+    descripcion: str,
+    contenido_base64: str,
+    tipo_documento: str,
+    db: Session, # CORREGIDO: Tipado correcto para la sesión.
+    visibilidad: str = "privado"
+) -> int:
+    """
+    Registra un documento asociado a una inversión específica.
+    """
+    # Esta parte de la lógica para nombrar el archivo puede mantenerse si es necesaria.
+    # timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    # nombre_unico = f"{timestamp}_{nombre}"
+    # ruta_archivo_url = guardar_archivo(contenido_base64, nombre_unico)
 
     nuevo_doc = DocumentoProyecto(
-        proyecto_id=proyecto_id,
-        nombre=nombre,
-        descripcion=descripcion,
-        url=ruta_archivo_url,       # Se sigue guardando la URL (si aplica)
-        contenido_base64=contenido_base64, # ¡NUEVO! Almacenar el contenido en base64
+        inversion_id=inversion_id, # Usando el parámetro correcto.
+        nombre_documento=nombre, # Coincidiendo con el nombre de la columna en el modelo.
+        descripcion_documento=descripcion, # Coincidiendo con el nombre de la columna.
+        # url=ruta_archivo_url, # Descomentar si todavía guardas archivos físicos.
+        contenido_base64=contenido_base64,
         tipo_documento=tipo_documento,
-        visibilidad=visibilidad
+        visibilidad=visibilidad,
+        creado_en=datetime.now() # Es mejor asignar el objeto datetime directamente.
     )
+    
     db.add(nuevo_doc)
     db.commit()
     db.refresh(nuevo_doc)
@@ -44,40 +60,101 @@ def registrar_documento(proyecto_id: int, nombre: str, descripcion: str, conteni
     return nuevo_doc.id
 
 
-def listar_documentos(proyecto_id: int, db: Session):
-    documentos = (
-        db.query(
-            DocumentoProyecto.id,
-            DocumentoProyecto.nombre,
-            DocumentoProyecto.descripcion,
-            DocumentoProyecto.url,
-            DocumentoProyecto.contenido_base64, # ¡NUEVO! Seleccionar el contenido en base64
-            DocumentoProyecto.tipo_documento,
-            DocumentoProyecto.visibilidad,
-            DocumentoProyecto.creado_en,
-            # Subconsulta para verificar si el documento ha sido firmado
-            db.query(FirmaElectronica)
-              .filter(FirmaElectronica.documento_id == DocumentoProyecto.id)
-              .exists()
-              .label("firmado")
-        )
-        .filter(DocumentoProyecto.proyecto_id == proyecto_id)
-        .order_by(DocumentoProyecto.creado_en.desc())
-        .all()
-    )
+def listar_documentos(proyecto_id: int, db: Session) -> list[dict]:
+    """
+    Lista todos los documentos de un proyecto específico, indicando si están firmados.
+    Utiliza un estilo de consulta ORM moderno y legible.
+    """
 
-    resultado = [
-        {
-            "id": row[0],
-            "nombre": row[1],
-            "descripcion": row[2],
-            "url": row[3],
-            "contenidoBase64": row[4], # ¡NUEVO! Añadir al resultado, con el nombre que espera el frontend
-            "tipo_documento": row[5],
-            "visibilidad": row[6],
-            "creadoEn": row[7].isoformat() if row[7] else None, # Corregido a 'creadoEn' para coincidir con frontend
-            "firmado": row[8]
-        }
-        for row in documentos
-    ]
-    return resultado
+    # 1. Construir la consulta usando JOINs para filtrar y obtener datos relacionados.
+    query = (
+        db.query(
+            DocumentoProyecto,
+            # Se usa la existencia de una firma como indicador booleano.
+            FirmaElectronica.id.isnot(None).label("firmado") 
+        )
+        # Hacemos un JOIN desde DocumentoProyecto a Inversion para poder filtrar por proyecto_id.
+        .join(Inversion, DocumentoProyecto.inversion_id == Inversion.id)
+        # Hacemos un OUTER JOIN a FirmaElectronica. Si no hay firma, los campos de FirmaElectronica serán NULL.
+        .outerjoin(FirmaElectronica, DocumentoProyecto.id == FirmaElectronica.documento_id)
+        # Filtramos por el proyecto_id que nos interesa.
+        .filter(Inversion.proyecto_id == proyecto_id)
+        .order_by(DocumentoProyecto.creado_en.desc())
+    )
+    
+    # Ejecutamos la consulta. Cada 'resultado' será una tupla (Objeto DocumentoProyecto, booleano 'firmado')
+    resultados_consulta = query.all()
+
+    # 2. Construir la lista de diccionarios de forma segura y legible.
+    documentos_lista = []
+    for doc, firmado in resultados_consulta:
+        documentos_lista.append({
+            "id": doc.id,
+            "nombre": doc.nombre_documento,
+            "descripcion": doc.descripcion_documento,
+            "url": doc.url,
+            # No se recomienda devolver el base64 en una lista. Es muy pesado.
+            # "contenidoBase64": doc.contenido_base64, 
+            "tipo_documento": doc.tipo_documento,
+            "visibilidad": doc.visibilidad,
+            # El frontend espera 'creadoEn' en formato ISO.
+            "creadoEn": doc.creado_en.isoformat() if doc.creado_en else None,
+            "firmado": firmado
+        })
+
+    return documentos_lista
+
+    
+def get_documento_contenido(db: Session, documento_id: int) -> str | None:
+    """
+    Obtiene eficientemente solo el contenido en base64 de un documento por su ID.
+
+    Retorna:
+        str: El contenido en base64 si el documento existe.
+        None: Si el documento no se encuentra.
+    """
+    # .query(models.DocumentoProyecto.contenido_base64): Selecciona únicamente la columna que necesitamos.
+    # .filter(...): Busca por el ID del documento.
+    # .scalar_one_or_none(): Ejecuta la consulta y devuelve el valor de la única columna de la primera fila,
+    #                       o None si no se encuentra ningún resultado. Es la forma más eficiente para este caso.
+    contenido = db.query(
+        models.DocumentoProyecto.contenido_base64
+    ).filter(
+        models.DocumentoProyecto.id == documento_id
+    ).scalar_one_or_none()
+    
+    return contenido
+
+def firmar_documento(documento_id: int, db: Session):
+    try:
+        # Traer el contenido de base64
+        contenido_base64 = get_documento_contenido(documento_id, db)
+        # Decodificar y generar hash
+        contenido_bytes = base64.b64decode(contenido_base64)
+        document_hash = hashlib.sha256(contenido_bytes).hexdigest()
+
+        # Simula firma en blockchain
+        tx_hash = sign_document(document_hash)
+
+        #Obtener el id de usuario
+        inversor_id = session.query(Inversion.inversor_id)\
+            .join(DocumentoProyecto, DocumentoProyecto.inversion_id == Inversion.id)\
+            .filter(DocumentoProyecto.id == documento_id)\
+            .scalar()
+
+        # Guarda en base de datos con SQLAlchemy
+        firma = FirmaElectronica(
+            documento_id=documento_id,
+            document_hash=document_hash,
+            tx_hash=tx_hash,
+            tipo_documento="contrato"  # Asumiendo que es un contrato, puedes cambiarlo si es necesario.
+        )
+
+        db.add(firma)
+        db.commit()
+        db.refresh(firma)
+
+        return {"mensaje": "Documento firmado con éxito", "tx_hash": tx_hash}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
