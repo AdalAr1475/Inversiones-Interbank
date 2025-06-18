@@ -39,6 +39,7 @@ import {
 import { SelectTrigger } from "@radix-ui/react-select";
 import { jwtDecode } from "jwt-decode";
 import { useSidebar } from "@/context/SidebarContext";
+import { redirect } from "next/navigation";
 
 interface DocumentoProyecto {
   id: number;
@@ -139,6 +140,29 @@ export default function DashboardEmpresa() {
   }, [token]);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search); // Usamos window.location.search para obtener los parámetros de la URL
+    const success = urlParams.get("success");
+    const userId = urlParams.get("user_id");
+
+    if (success === "true" && userId) {
+      // Llamar al backend para marcar la cuenta como activa
+      const activateAccount = async () => {
+        try {
+          await axios.get(`http://127.0.0.1:8000/users/activate-account?user_id=${userId}&success=true`);
+          alert("¡Tu cuenta ha sido activada exitosamente!");
+          
+          // Redirigir a la página de Dashboard de Emprendedor
+          window.location.href = "/dashboard/emprendedor"; // Redirección manual en el cliente
+        } catch (error) {
+          console.error("Error al activar la cuenta:", error);
+          alert("Hubo un error al activar tu cuenta. Por favor, inténtalo de nuevo o contacta a soporte.");
+        }
+      };
+      activateAccount();
+    }
+  }, []); 
+
+  useEffect(() => {
     if (emprendedorId) {
       fetch(`http://localhost:8000/project/emprendedor/${emprendedorId}`)
         .then((res) => {
@@ -183,6 +207,7 @@ export default function DashboardEmpresa() {
       setProyectos([]);
     }
   };
+
 
 
   const proyectos_nombre = proyectos.map(proyecto => proyecto.nombre_proyecto);
@@ -261,7 +286,7 @@ export default function DashboardEmpresa() {
       ...prev,
       [name]: value,
     }));
-  }; 
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

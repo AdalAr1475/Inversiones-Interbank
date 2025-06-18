@@ -1,5 +1,5 @@
 from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -85,10 +85,21 @@ async def create(db: db_dependency, user: UsuarioCreate):
         new_usuario.estado = "inactivo"
         db.add(new_usuario)
         db.commit()
+        db.refresh(new_usuario)
+
+        return_url = f"http://localhost:3000/dashboard/emprendedor?success=true&user_id={new_usuario.id}"
+        refresh_url = f"http://localhost:3000/dashboard/emprendedor?refresh=true&user_id={new_usuario.id}" # O una URL específica para refrescar
+        
+        onboarding_link = create_account_onboarding_link(
+            response["id"], 
+            return_url, 
+            refresh_url
+        )
+
         return JSONResponse( 
             content={
                 "message": "Emprendedor creado exitosamente",
-                "link": create_account_onboarding_link(response["id"], "http://localhost:3000", "http://localhost:3000"),
+                "link": onboarding_link,
             }
         )
 
@@ -114,3 +125,26 @@ async def get_usuarios(db: db_dependency, tipo_usuario: Optional[str] = None):
         })
 
     return JSONResponse(status_code=200,content=response)
+
+@router.get("/activate-account")
+async def activate_user_account(
+    user_id: str = Query(..., description="ID del usuario a activar"),
+    success: bool = Query(..., description="Indica si la activación fue exitosa"),
+    db: Session = Depends(get_db)
+):
+    if not success:
+        raise HTTPException(status_code=400, detail="La activación de la cuenta no fue exitosa.")
+
+    user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado.")
+
+    if user.estado == "activo":
+        return {"message": "La cuenta ya está activa."}
+
+    user.estado = "activo"
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {"message": "Cuenta activada exitosamente."}
