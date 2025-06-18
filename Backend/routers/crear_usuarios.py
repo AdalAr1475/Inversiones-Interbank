@@ -25,7 +25,7 @@ models.Base.metadata.create_all(bind=engine)
 db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/create", tags=["auth"])
-async def create_inversor(db: db_dependency, user: UsuarioCreate):
+async def create(db: db_dependency, user: UsuarioCreate):
 
     usuario = db.query(models.Usuario).filter(models.Usuario.email==user.email.lower()).first()
     if usuario:

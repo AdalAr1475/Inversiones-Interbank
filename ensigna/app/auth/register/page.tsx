@@ -106,6 +106,12 @@ export default function RegisterPage() {
 
       setSuccessMsg(data.message || "Cuenta creada exitosamente");
 
+      if (tipoUsuario === "emprendedor" && data.link) {
+        if (typeof window !== "undefined") {
+          window.location.replace(data.link); // Redirige al link de onboarding
+        }
+      } 
+
       setTimeout(() => {
         setNombre("");
         setApellidoPaterno("");
