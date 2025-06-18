@@ -87,16 +87,21 @@ def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)
 
 @router.get("/{proyecto_id}")
 def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
+    
     proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
     
     if not proyecto:
-        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+        raise HTTPException(
+            status_code=404, 
+            detail="Proyecto no encontrado"
+        )
 
-    empresa = db.query(Usuario).filter(Usuario.id == proyecto.emprendedor_id).first()
-    categoria = proyecto.sector.capitalize() if empresa else "Desconocido"
+    emprendedor = db.query(Usuario).filter(Usuario.id == proyecto.emprendedor_id).first()
+    categoria = proyecto.sector.capitalize() if emprendedor else "Desconocido"
     
     fecha_inicio = proyecto.fecha_inicio.strftime("%d/%m/%Y") if proyecto.fecha_inicio else None
     fecha_fin = proyecto.fecha_fin.strftime("%d/%m/%Y") if proyecto.fecha_fin else None
+
     porcentaje_reacudado = (int) (
         (proyecto.monto_recaudado or Decimal('0.00')) / 
         (proyecto.monto_pedido or Decimal('1.00')) * 100
@@ -106,18 +111,20 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
                     .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
 
     return {
-        "empresa": empresa.nombre.capitalize(),
+        "emprendedor": emprendedor.nombre.capitalize() + " " + emprendedor.apellido_paterno.capitalize(),
+        "emprendedor_id": proyecto.emprendedor_id,
         "id": proyecto.id,
         "categoria": categoria,
         "titulo": proyecto.nombre_proyecto.capitalize(),
         "descripcion": proyecto.descripcion.capitalize(),
+        "descripcion_extendida": proyecto.descripcion_extendida.capitalize(),
         "monto_requerido": (proyecto.monto_pedido or Decimal('0.00')).quantize(Decimal('0.01')),
         "monto_recaudado": (proyecto.monto_recaudado or Decimal('0.00')).quantize(Decimal('0.01')),
         "porcentaje": porcentaje_reacudado,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
         "inversores": inversores,
-        "estado": estado
+        "estado": estado.capitalize()
     }
     
 @router.get("/inversores/{proyecto_id}")

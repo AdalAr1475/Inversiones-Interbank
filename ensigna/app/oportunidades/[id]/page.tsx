@@ -4,7 +4,8 @@ import { useParams } from "next/navigation"
 import { 
   Building2, ArrowLeft,
   TrendingUp, Calendar, BarChart, 
-  FileText, Share2, CheckCircle, AlertTriangle, Loader2, MessageSquare
+  FileText, Share2, CheckCircle, AlertTriangle, Loader2, MessageSquare,
+  User
 } from "lucide-react"
 import { Button } from "@/components/ui/button" 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,7 +21,8 @@ import InvestmentDialog from "@/components/investment-dialog"
 import ChatDialog from "@/components/chat-dialog"
 import { useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
+import { jwtDecode } from "jwt-decode"
+import { redirect } from "next/navigation"
 
 export default function ProyectoDetallePage() {
   const params = useParams()
@@ -29,13 +31,33 @@ export default function ProyectoDetallePage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showInvestDialog, setShowInvestDialog] = useState<boolean>(false);
   const [showQuestionDialog, setShowQuestionDialog] = useState<boolean>(false);
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+      id: number
+      sub: string
+      tipo_usuario: string
+      exp: number
+  }
   
   useEffect(() => {
-    // Cargar los detalles del proyecto desde la API
+
+    if (token) {
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      const currentTime = Date.now() / 1000;
+      
+      if (decodedToken.exp < currentTime) {
+        localStorage.removeItem("token");
+        redirect("/auth/login")
+      }
+    }
+    else {
+      redirect("/auth/login")
+    }
+    
     const fetchProyectoDetails = async () => {
       try {
         setIsLoading(true);
-        const token = window?.localStorage?.getItem("token");
         if (token) {
           const details = await getDetailsProyecto(proyectoId, token);
           setProyecto(details);
@@ -51,28 +73,43 @@ export default function ProyectoDetallePage() {
     fetchProyectoDetails();
   }, [proyectoId])
 
-  const getColorClass = (color: string = "green") => {
+  const getColorEstado = (categoria: string) => {
     const colorMap: Record<string, string> = {
-      blue: "bg-blue-100 text-blue-800",
-      green: "bg-green-100 text-green-800",
-      purple: "bg-purple-100 text-purple-800",
-      red: "bg-red-100 text-red-800",
-      yellow: "bg-yellow-100 text-yellow-800",
-      orange: "bg-orange-100 text-orange-800"
+      'Activo': "bg-green-100 text-green-800",
+      'Cancelado': "bg-red-100 text-red-800",
+      'Completado': "bg-yellow-100 text-yellow-800",
     }
-    return colorMap[color] || "bg-gray-100 text-gray-800"
+    return colorMap[categoria] || "bg-gray-100 text-gray-800"
   }
-  
-  const getLogoColorClass = (color: string = "green") => {
-    const colorMap: Record<string, string> = {
-      blue: "bg-blue-600",
-      green: "bg-green-600",
-      purple: "bg-purple-600",
-      red: "bg-red-600",
-      yellow: "bg-yellow-600",
-      orange: "bg-orange-600"
+
+  const getLogoColorClass = (sector: string) => {
+    const colorMap: { [key: string]: string } = {
+      'Energía': 'bg-yellow-600',            // Amarillo para energía
+      'Agricultura y agroindustria': 'bg-orange-600', // Verde para agricultura
+      'Tecnología y innovación': 'bg-blue-600',  // Azul para tecnología
+      'Salud': 'bg-red-600',                 // Rojo para salud
+      'Turismo': 'bg-teal-600',              // Teal para turismo
+      'Finanzas': 'bg-indigo-600',           // Índigo para finanzas
+      'Construcción e infraestructura': 'bg-orange-600', // Naranja para construcción
+      'Sostenibilidad y medio ambiente': 'bg-green-600', // Verde lima para sostenibilidad
+      'Educación': 'bg-purple-600',          // Morado para educación
     }
-    return colorMap[color] || "bg-gray-600"
+    return colorMap[sector] || 'bg-gray-600'; // Color por defecto en gris
+  }
+
+  const getColorCategoria = (categoria: string) => {
+    const colorMap: { [key: string]: string} = {
+      'Energía': 'bg-yellow-100 text-yellow-800',
+      'Agricultura y agroindustria': 'bg-orange-100 text-orange-800',
+      'Tecnología y innovación': 'bg-blue-100 text-blue-800',
+      'Salud': 'bg-red-100 text-red-800',
+      'Turismo': 'bg-teal-100 text-teal-800',
+      'Finanzas': 'bg-indigo-100 text-indigo-800',
+      'Construcción e infraestructura': 'bg-orange-100 text-orange-800',
+      'Sostenibilidad y medio ambiente': 'bg-green-100 text-green-800',
+      'Educación': 'bg-purple-100 text-purple-800',
+    }
+    return colorMap[categoria]
   }
   
   const getLogoIcon = () => {
@@ -143,6 +180,7 @@ export default function ProyectoDetallePage() {
 
   // Calculate funding percentage
   const fundingPercentage = calculatePercentage(proyecto.monto_recaudado, proyecto.monto_requerido);
+
     return (
     <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
       <HeaderLat />
@@ -158,27 +196,27 @@ export default function ProyectoDetallePage() {
           </div>
           
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
-            <div className={`w-14 h-14 md:w-16 md:h-16 ${getLogoColorClass("green")} rounded-2xl flex items-center justify-center shadow-md`}>
+            <div className={`w-14 h-14 md:w-16 md:h-16 ${getLogoColorClass(proyecto.categoria)} rounded-2xl flex items-center justify-center shadow-md`}>
               {getLogoIcon()}
             </div>
             
             <div className="flex-1">
               <div className="flex flex-wrap gap-2 mb-2">
-                <Badge className={getColorClass("green")}>
+                <Badge className={getColorEstado(proyecto.estado)}>
                   {proyecto.estado || "Activo"}
                 </Badge>
                 <Badge variant="outline" className="text-green-600 border-green-600">
-                  {fundingPercentage}% financiado
+                  {proyecto.porcentaje}% financiado
                 </Badge>
-                <Badge variant="outline" className="text-blue-600 border-blue-600">
+                <Badge variant ="outline" className={getColorCategoria(proyecto.categoria)}>
                   {proyecto.categoria || "Tecnología"}
-                </Badge>
+                  </Badge>
               </div>
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">{proyecto.titulo}</h1>
               <p className="text-base md:text-lg text-gray-600 mt-2">{proyecto.descripcion}</p>
               <div className="mt-3 flex items-center text-sm text-gray-500">
                 <Building2 className="w-4 h-4 mr-1" /> 
-                <span>Presentado por: <span className="font-medium">{proyecto.empresa}</span></span>
+                <span>Presentado por: <span className="font-medium">{proyecto.emprendedor}</span></span>
               </div>
             </div>
           </div>
@@ -202,8 +240,8 @@ export default function ProyectoDetallePage() {
                     <CardTitle>Sobre el proyecto</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 leading-relaxed">
-                      {proyecto.descripcion}
+                    <p className="text-gray-700 leading-relaxed text-justify">
+                      {proyecto.descripcion_extendida}
                     </p>
                   </CardContent>
                 </Card>
@@ -213,15 +251,7 @@ export default function ProyectoDetallePage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3 text-gray-700">
-                      {proyecto.ventajas && proyecto.ventajas.length > 0 ? (
-                        proyecto.ventajas.map((ventaja, index) => (
-                          <li key={index} className="flex items-start">
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5" />
-                            <span>{ventaja}</span>
-                          </li>
-                        ))
-                      ) : (
-                        <>
+                      <>
                           <li className="flex items-start">
                             <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5" />
                             <span>Mercado en crecimiento con potencial de expansión global.</span>
@@ -239,7 +269,6 @@ export default function ProyectoDetallePage() {
                             <span>Tecnología innovadora con ventajas competitivas claras.</span>
                           </li>
                         </>
-                      )}
                     </ul>
                   </CardContent>
                 </Card>
@@ -250,15 +279,7 @@ export default function ProyectoDetallePage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3 text-gray-700">
-                      {proyecto.riesgos && proyecto.riesgos.length > 0 ? (
-                        proyecto.riesgos.map((riesgo, index) => (
-                          <li key={index} className="flex items-start">
-                            <AlertTriangle className="w-5 h-5 text-amber-500 mr-3 mt-0.5" />
-                            <span>{riesgo}</span>
-                          </li>
-                        ))
-                      ) : (
-                        <>
+                      <>
                           <li className="flex items-start">
                             <AlertTriangle className="w-5 h-5 text-amber-500 mr-3 mt-0.5" />
                             <span>Posible entrada de grandes competidores en el mercado.</span>
@@ -272,7 +293,6 @@ export default function ProyectoDetallePage() {
                             <span>Dependencia de proveedores clave para algunos componentes.</span>
                           </li>
                         </>
-                      )}
                     </ul>
                   </CardContent>
                 </Card>
@@ -310,11 +330,11 @@ export default function ProyectoDetallePage() {
                         <ul className="space-y-3">
                           <li className="flex justify-between">
                             <span className="text-gray-600">Fecha inicio:</span>
-                            <span className="font-medium">{formatDate(proyecto.fecha_inicio)}</span>
+                            <span className="font-medium">{proyecto.fecha_inicio}</span>
                           </li>
                           <li className="flex justify-between">
                             <span className="text-gray-600">Fecha fin:</span>
-                            <span className="font-medium">{formatDate(proyecto.fecha_fin)}</span>
+                            <span className="font-medium">{proyecto.fecha_fin}</span>
                           </li>
                           <li className="flex justify-between">
                             <span className="text-gray-600">Estado:</span>
@@ -334,8 +354,8 @@ export default function ProyectoDetallePage() {
                             <span className="font-medium">{proyecto.id}</span>
                           </li>
                           <li className="flex justify-between">
-                            <span className="text-gray-600">ID de empresa:</span>
-                            <span className="font-medium">{proyecto.empresa_id || "N/A"}</span>
+                            <span className="text-gray-600">ID de emprendedor:</span>
+                            <span className="font-medium">{proyecto.emprendedor_id || "N/A"}</span>
                           </li>
                         </ul>
                       </div>
@@ -345,7 +365,7 @@ export default function ProyectoDetallePage() {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Sobre la empresa</CardTitle>
+                    <CardTitle>Sobre el emprendedor</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -355,15 +375,15 @@ export default function ProyectoDetallePage() {
                           <li className="flex items-start">
                             <Building2 className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
                             <div>
-                              <span className="text-gray-600 block">ID de Empresa:</span>
-                              <span className="font-medium">{proyecto.empresa_id}</span>
+                              <span className="text-gray-600 block">ID del Emprendedor:</span>
+                              <span className="font-medium">{proyecto.emprendedor_id}</span>
                             </div>
                           </li>
                           <li className="flex items-start">
                             <Calendar className="w-5 h-5 text-gray-400 mr-3 mt-0.5" />
                             <div>
                               <span className="text-gray-600 block">Inicio de proyecto:</span>
-                              <span className="font-medium">{formatDate(proyecto.fecha_inicio)}</span>
+                              <span className="font-medium">{proyecto.fecha_inicio}</span>
                             </div>
                           </li>
                         </ul>
@@ -376,23 +396,7 @@ export default function ProyectoDetallePage() {
                     <CardTitle>Documentación</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {proyecto.documentos && proyecto.documentos.length > 0 ? (
-                      <ul className="space-y-3">
-                        {proyecto.documentos.map((doc, index) => (
-                          <li key={index}>
-                            <Button 
-                              variant="outline" 
-                              className="w-full justify-start text-left"
-                              onClick={() => window.open(doc.url, '_blank')}
-                            >
-                              <FileText className="w-5 h-5 mr-2 text-gray-500" />
-                              <span>{doc.nombre}</span>
-                            </Button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <ul className="space-y-3">
+                    <ul className="space-y-3">
                         <li>
                           <Button variant="outline" className="w-full justify-start text-left">
                             <FileText className="w-5 h-5 mr-2 text-gray-500" />
@@ -412,7 +416,6 @@ export default function ProyectoDetallePage() {
                           </Button>
                         </li>
                       </ul>
-                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -425,7 +428,7 @@ export default function ProyectoDetallePage() {
                     {/* Si hay actualizaciones en el proyecto, las mostramos, sino usamos datos genéricos */}
                     <div className="space-y-6">
                       <div className="border-l-2 border-green-500 pl-4">
-                        <p className="text-xs text-gray-500 mb-1">{formatDate(proyecto.fecha_inicio)}</p>
+                        <p className="text-xs text-gray-500 mb-1">{proyecto.fecha_inicio}</p>
                         <h3 className="font-medium mb-2">Lanzamiento oficial del proyecto</h3>
                         <p className="text-gray-700">
                           Hemos iniciado oficialmente la campaña de inversión. Los primeros resultados son prometedores y estamos recibiendo mucho interés de potenciales inversores.
@@ -433,7 +436,7 @@ export default function ProyectoDetallePage() {
                       </div>
                       
                       <div className="border-l-2 border-green-500 pl-4">
-                        <p className="text-xs text-gray-500 mb-1">{formatDate(new Date(new Date(proyecto.fecha_inicio).getTime() - 10 * 24 * 60 * 60 * 1000))}</p>
+                        <p className="text-xs text-gray-500 mb-1">{new Date(new Date(proyecto.fecha_inicio).getTime() - 10 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
                         <h3 className="font-medium mb-2">Preparativos para el lanzamiento</h3>
                         <p className="text-gray-700">
                           Estamos ultimando los detalles para el lanzamiento oficial. El equipo está trabajando arduamente para asegurar que todo esté listo para recibir a los primeros inversores.
@@ -441,7 +444,7 @@ export default function ProyectoDetallePage() {
                       </div>
                       
                       <div className="border-l-2 border-green-500 pl-4">
-                        <p className="text-xs text-gray-500 mb-1">{formatDate(new Date(new Date(proyecto.fecha_inicio).getTime() - 20 * 24 * 60 * 60 * 1000))}</p>
+                        <p className="text-xs text-gray-500 mb-1">{new Date(new Date(proyecto.fecha_inicio).getTime() - 20 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
                         <h3 className="font-medium mb-2">Validación del modelo de negocio</h3>
                         <p className="text-gray-700">
                           Hemos completado la fase de validación con clientes potenciales y los resultados son muy positivos. Esto nos da confianza en el potencial de crecimiento del proyecto.
@@ -477,11 +480,11 @@ export default function ProyectoDetallePage() {
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                     <div 
                       className="bg-green-600 h-2 rounded-full" 
-                      style={{ width: `${fundingPercentage}%` }}
+                      style={{ width: `${proyecto.porcentaje}%` }}
                     ></div>
                   </div>
                   <div className="text-sm text-center text-gray-600">
-                    {fundingPercentage}% completado
+                    {proyecto.porcentaje}% completado
                   </div>
                 </div>
                 
@@ -490,10 +493,10 @@ export default function ProyectoDetallePage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Empresa:
+                      <User className="w-4 h-4 mr-2"/>
+                      Emprendedor:
                     </span>
-                    <span className="font-medium">{proyecto.empresa}</span>
+                    <span className="font-medium">{proyecto.emprendedor}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center">
@@ -547,7 +550,7 @@ export default function ProyectoDetallePage() {
                   className="w-full mt-2 border-green-600 text-green-600 hover:bg-green-50 cursor-pointer transition-all duration-200 font-medium py-3 text-base"
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  Chatear con {proyecto.empresa}
+                  Chatear con {proyecto.emprendedor}
                 </Button>
 
                 {/* Investment Dialog */}

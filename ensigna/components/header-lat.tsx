@@ -1,16 +1,37 @@
 "use client";
-import { Menu, Home, User, BarChart2, LogOut, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { Menu, Home, User, BarChart2, LogOut, ChevronLeft, ChevronRight, Building2, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useSidebar } from "@/context/SidebarContext";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 export default function HeaderLat() {
   const {collapsed, setCollapsed} = useSidebar();
-  const router = useRouter();
+  const [tipoUsuario, setTipoUsuario] = useState("");
+  const token = window?.localStorage?.getItem("token");
+  
+  interface DecodedToken {
+    id: number
+    email: string
+    tipo_usuario: string
+    exp: number
+  }
+
+  useEffect(() => {
+    if(token) {
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      setTipoUsuario(decodedToken.tipo_usuario)
+      console.log(tipoUsuario)
+    }
+    else {
+      redirect("/auth/login")
+    }
+  })
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    router.push("/");
+    redirect("/")
   };
 
   return (
@@ -29,17 +50,21 @@ export default function HeaderLat() {
         </button>
       </div>
       <nav className="mt-6 flex flex-col gap-2">
-        <Link href="/dashboard/empresa" className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
+        <Link href={`/dashboard/${tipoUsuario}`} className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
           <Home className="w-5 h-5" />
           <span className={`${collapsed ? 'hidden' : 'block'}`}>Inicio</span>
         </Link>
-        <Link href="#" className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
-          <BarChart2 className="w-5 h-5" />
-          <span className={`${collapsed ? 'hidden' : 'block'}`}>Estadísticas</span>
-        </Link>
-        <Link href="./" className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
+        <Link href={`/dashboard/${tipoUsuario}/perfil`} className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
           <User className="w-5 h-5" />
           <span className={`${collapsed ? 'hidden' : 'block'}`}>Perfil</span>
+        </Link>
+        <Link href="/oportunidades" className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
+          <TrendingUp className="w-5 h-5" />
+          <span className={`${collapsed ? 'hidden' : 'block'}`}>Oportunidades</span>
+        </Link>
+        <Link href="/" className="flex items-center gap-3 px-4 py-2  hover:bg-green-50 transition-colors">
+          <Home className="w-5 h-5" />
+          <span className={`${collapsed ? 'hidden' : 'block'}`}>Pagina Principal</span>
         </Link>
         <button
           onClick={handleLogout} // Llama a la función de logout
@@ -52,3 +77,7 @@ export default function HeaderLat() {
     </aside>
   );
 }
+function userState(arg0: string): [any, any] {
+  throw new Error("Function not implemented.");
+}
+

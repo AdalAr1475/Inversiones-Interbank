@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
 
-//Interfaces
 interface DocumentoProyecto {
   id: number;
   nombre: string;
@@ -53,7 +52,6 @@ interface DocumentoProyecto {
 interface Proyecto {
   id: number;
   nombre: string;
-  // Agrega otras propiedades del proyecto que necesites, como descripción, etc.
 }
 
 export default function DashboardEmpresa() {
@@ -182,7 +180,7 @@ export default function DashboardEmpresa() {
 
   // --- EFECTO PARA CARGAR PROYECTOS AL INICIO ---
   useEffect(() => {
-    fetch(`http://localhost:8000/project/${2}`) // Asegúrate de que esta URL sea la correcta para obtener tus proyectos
+    fetch(`http://localhost:8000/project/${1}`) // Asegúrate de que esta URL sea la correcta para obtener tus proyectos
       .then((res) => res.json())
       .then((data: Proyecto[]) => {
         setProyectos(data);
@@ -232,7 +230,7 @@ export default function DashboardEmpresa() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">
-                Dashboard de Empresa
+                Dashboard de Emprendedor
               </h1>
               <p className="text-gray-600">
                 Gestiona tu campaña de financiamiento y conecta con inversores
@@ -569,16 +567,20 @@ export default function DashboardEmpresa() {
                           <SelectValue placeholder="Selecciona un proyecto" />
                         </SelectTrigger>
                         <SelectContent>
-                          {proyectos.length === 0 ? (
+                          {Array.isArray(proyectos) && proyectos.length === 0 ? (
                             <SelectItem value="no-projects" disabled>
                               No hay proyectos disponibles
                             </SelectItem>
-                          ) : (
+                          ) : Array.isArray(proyectos) ? (
                             proyectos.map((p) => (
                               <SelectItem key={p.id} value={String(p.id)}>
                                 {p.nombre}
                               </SelectItem>
                             ))
+                          ) : (
+                            <SelectItem value="error" disabled>
+                              Error cargando proyectos
+                            </SelectItem>
                           )}
                         </SelectContent>
                       </Select>

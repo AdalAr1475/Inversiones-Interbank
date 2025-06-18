@@ -2,7 +2,9 @@
 import { Building2 } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 // Este es un mock para simular si el usuario está autenticado
 // Después se reemplazará con la lógica real de autenticación
@@ -20,10 +22,46 @@ const useAuth = () => {
   
   return { isAuthenticated, user: userData };
 };
+  
+interface DecodedToken {
+  id: number
+  email: string
+  tipo_usuario: string
+  exp: number
+}
 
 export default function Header() {    const pathname = usePathname();
     const isHomePage = pathname === "/";
     const { isAuthenticated, user } = useAuth();
+    const token = window?.localStorage?.getItem("token");
+
+    const handleLogin = () => {
+      if(token) {
+        const decodedToken = jwtDecode<DecodedToken>(token);
+        if(decodedToken.tipo_usuario==="emprendedor"){
+          redirect("/dashboard/emprendedor")
+        } else {
+          redirect("/dashboard/inversor")
+        }
+      }
+      else{
+        redirect("/auth/login")
+      }
+    }
+
+    const handleRegister = () => {
+      if(token) {
+        const decodedToken = jwtDecode<DecodedToken>(token);
+        if(decodedToken.tipo_usuario==="emprendedor"){
+          redirect("/dashboard/emprendedor")
+        } else {
+          redirect("/dashboard/inversor")
+        }
+      }
+      else{
+        redirect("/auth/register")
+      }
+    }
     
     return (
         <header className="border-b border-green-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
@@ -100,16 +138,20 @@ export default function Header() {    const pathname = usePathname();
                 </>
               ) : (
                 <>
-                  <Link href="/auth/login">
-                    <Button variant="ghost" className="text-green-600 shadow cursor-pointer hover:text-green-700">
-                      Iniciar Sesión
-                    </Button>
-                  </Link>
-                  <Link href="/auth/register">
-                    <Button className="bg-green-600 hover:bg-green-700 shadow cursor-pointer text-white">
-                      Registrarse
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    className="text-green-600 shadow cursor-pointer hover:text-green-700"
+                    onClick={handleLogin}
+                  >
+                    Iniciar Sesión
+                  </Button>
+                
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700 shadow cursor-pointer text-white"
+                    onClick={handleRegister}
+                  >
+                    Registrarse
+                  </Button> 
                 </>
               )}
             </div>

@@ -14,8 +14,6 @@ export interface ProyectoResumen {
     retorno_estimado: number; // Retorno estimado en porcentaje
 }
 
-
-
 /*
     Endpoints
 */

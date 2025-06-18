@@ -16,14 +16,32 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { redirect } from "next/navigation"
+import { jwtDecode } from "jwt-decode";
 // Importamos useEffect para el efecto de scrolling suave
 
 export default function EnsignaLanding() {
   const [proyectos, setProyectos] = useState<any[]>([])
   const [proyectosDestacados, setProyectosDestacados] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(true)
+  const [isLogeado, setIsLogeado] = useState<boolean>(false)
+  const [tipoUsuario, setTipoUsuario] = useState("")
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+      id: number
+      email: string
+      tipo_usuario: string
+      exp: number
+  }
 
   useEffect(() => {
+
+    if (token) {
+      setIsLogeado(true)
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      setTipoUsuario(decodedToken.tipo_usuario)
+    }
     
     // Función para manejar el desplazamiento suave
     const handleSmoothScroll = (e: MouseEvent) => {
@@ -69,16 +87,38 @@ export default function EnsignaLanding() {
   
   }, [])
 
+  const handleClickOportunidades = () => {
+    if (isLogeado) {
+      redirect("/oportunidades"); // Redirige a oportunidades si está logeado
+    } else {
+      redirect("/auth/login"); // Redirige al login si no está logeado
+    }
+  };
+
+  const handleClickVerificar = () => {
+    if(isLogeado) {
+      if(tipoUsuario === "inversor") {
+        redirect("/dashboard/inversor")
+      }
+      else {
+        redirect("/dashboard/emprendedor")
+      }
+    }
+    else {
+      redirect("/auth/login")
+    }
+  }
+
  const getLogoColorClass = (sector: string) => {
     const colorMap: { [key: string]: string } = {
-      'Energía': 'bg-yellow-600',            // Amarillo para energía
-      'Agricultura y Agroindustria': 'bg-green-600', // Verde para agricultura
+      'Energía': 'bg-yellow-600',   
+      'Agricultura y Agroindustria': 'bg-orange-600',
       'Tecnología y Innovación': 'bg-blue-600',  // Azul para tecnología
       'Salud': 'bg-red-600',                 // Rojo para salud
       'Turismo': 'bg-teal-600',              // Teal para turismo
       'Finanzas': 'bg-indigo-600',           // Índigo para finanzas
       'Construcción e Infraestructura': 'bg-orange-600', // Naranja para construcción
-      'Sostenibilidad y Medio Ambiente': 'bg-lime-600', // Verde lima para sostenibilidad
+      'Sostenibilidad y Medio Ambiente': 'bg-green-600',
       'Educación': 'bg-purple-600',          // Morado para educación
     }
     return colorMap[sector] || 'bg-gray-600'; // Color por defecto en gris
@@ -117,21 +157,25 @@ export default function EnsignaLanding() {
                   <p className="text-gray-600">
                     Descubre emprendimientos prometedores y diversifica tu portafolio
                   </p>
-                  <Link href={"/auth/login"}>
-                    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                      Explorar Oportunidades
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </Link>
+                  <Button
+                    size="lg"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleClickOportunidades}
+                  >
+                    Explorar Oportunidades
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
                 </TabsContent>
                 <TabsContent value="empresa" className="space-y-4">
                   <p className="text-gray-600">Presenta tu emprendimiento a inversores calificados</p>
-                  <Link href={"/auth/login"}>
-                    <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                      Publicar Oportunidad
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </Link>
+                  <Button 
+                    size="lg" 
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleClickVerificar}
+                  >
+                    Publicar Oportunidad
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
                 </TabsContent>
               </Tabs>
 
@@ -296,6 +340,7 @@ export default function EnsignaLanding() {
               {proyectos.map((proyecto) => (
                 <CardInvest
                   key={proyecto.id}  // Usamos el título como clave para cada CardInvest
+                  id = {proyecto.id}
                   category={proyecto.categoria}
                   title={proyecto.titulo}
                   description={proyecto.descripcion}
@@ -303,21 +348,21 @@ export default function EnsignaLanding() {
                   raised={proyecto.recaudado}
                   rentabilidad={proyecto.rentabilidad}
                   investors={proyecto.inversores}
+                  logeado = {isLogeado}
                 />
               ))}
             </div>
           )}
 
           <div className="text-center mt-12">
-            <Link href="/auth/login">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-green-600 cursor-pointer text-green-600 hover:text-green-600 hover:shadow-md"
-              >
-                Ver Todas las Oportunidades
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-green-600 cursor-pointer text-green-600 hover:text-green-600 hover:shadow-md"
+              onClick={handleClickOportunidades}
+            >
+              Ver Todas las Oportunidades
+            </Button>
           </div>
         </div>
       </section>
@@ -411,20 +456,21 @@ export default function EnsignaLanding() {
               Únete a la comunidad de emprededores e inversores que están construyendo el futuro
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href={"/auth/login"}>
-                <Button size="lg" className="bg-white text-green-600 border cursor-pointer border-white  hover:bg-transparent hover:text-white">
-                  Soy Inversor
-                </Button>
-              </Link>
-              <Link href={"/auth/login"}>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-white cursor-pointer text-white bg-transparent hover:bg-white hover:text-green-600"
-                >
-                  Busco Inversión
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-white text-green-600 border cursor-pointer border-white  hover:bg-transparent hover:text-white"
+                onClick={handleClickVerificar}
+              >
+                Soy Inversor
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white cursor-pointer text-white bg-transparent hover:bg-white hover:text-green-600"
+                onClick={handleClickVerificar}
+              >
+                Busco Inversión
+              </Button>
             </div>
             <p className="text-sm text-green-200">
               Proceso 100% digital • Verificación completa • Soporte especializado
