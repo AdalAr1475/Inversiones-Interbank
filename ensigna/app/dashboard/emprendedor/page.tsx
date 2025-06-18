@@ -120,6 +120,8 @@ export default function DashboardEmpresa() {
     fecha_inicio: "",
     fecha_fin: ""
   });
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   interface DecodedToken {
@@ -162,6 +164,26 @@ export default function DashboardEmpresa() {
         });
     }
   }, [emprendedorId]);
+
+  const fetchProyectos = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/project/emprendedor/${emprendedorId}`);
+      if (!res.ok) {
+        throw new Error(`Error al cargar proyectos: ${res.status}`);
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setProyectos(data);
+      } else {
+        setProyectos([]);
+        console.warn("La API no devolvió un array de proyectos:", data);
+      }
+    } catch (error) {
+      console.error(error);
+      setProyectos([]);
+    }
+  };
+
 
   const proyectos_nombre = proyectos.map(proyecto => proyecto.nombre_proyecto);
 
@@ -210,29 +232,80 @@ export default function DashboardEmpresa() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    // Limpiar los campos del formulario al cerrar el modal
+    setNuevoProyecto({
+      nombre_proyecto: "",
+      descripcion: "",
+      descripcion_extendida: "",
+      sector: "Energía",
+      ubicacion: "",
+      monto_pedido: 0,
+      retorno_estimado: 0,
+      fecha_inicio: "",
+      fecha_fin: ""
+    });
+    // Limpiar el mensaje y el estado de éxito/fallo
+    setResponseMessage(null);
+    setIsSuccess(null);
   };
 
   const openModal = () => {
     setIsModalOpen(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setNuevoProyecto((prevState) => ({
-      ...prevState,
+    setNuevoProyecto((prev) => ({
+      ...prev,
       [name]: value,
     }));
-  };
+  }; 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const proyectoData = {
+      emprendedor_id: parseInt(emprendedorId), // asegurándote de convertir el ID a número
+      nombre_proyecto: nuevoProyecto.nombre_proyecto,
+      descripcion: nuevoProyecto.descripcion,
+      descripcion_extendida: nuevoProyecto.descripcion_extendida,
+      monto_pedido: nuevoProyecto.monto_pedido,
+      sector: nuevoProyecto.sector,
+      retorno_estimado: nuevoProyecto.retorno_estimado, // Convierte el porcentaje a decimal
+      fecha_fin: nuevoProyecto.fecha_fin,
+      ubicacion: nuevoProyecto.ubicacion,
+    };
+
     try {
-      const response = await axios.post("http://localhost:8000/proyectos", nuevoProyecto);
-      console.log("Proyecto creado:", response.data);
-      closeModal();
-      // Puedes actualizar la lista de proyectos aquí si es necesario
+      // Realiza la solicitud POST para crear un nuevo proyecto con fetch
+      const response = await fetch("http://localhost:8000/project/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(proyectoData), // Convierte los datos a JSON
+      });
+
+      // Verifica si la respuesta es exitosa
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Error desconocido");
+      }
+
+      setResponseMessage("Proyecto creado exitosamente");
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        closeModal();
+        fetchProyectos();
+      }, 2000);
     } catch (error) {
-      console.error("Error al crear proyecto:", error);
+      console.error("Error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      setResponseMessage(errorMessage);
+      setIsSuccess(false);
     }
   };
 
@@ -405,12 +478,12 @@ export default function DashboardEmpresa() {
               {/* Modal */}
               {isModalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 bg-green-600 bg-opacity-800 overflow-y-auto">
-                  <div 
+                  <div
                     className="bg-white p-6 rounded-xl relative
                                 w-full sm:w-5/6 md:w-2/3 lg:w-1/2    
                                 py-4 px-6 max-h-[85vh] overflow-y-auto"
                   >
-                  
+
                     <h2 className="text-xl font-semibold mb-4">Crear Nuevo Proyecto</h2>
                     <form onSubmit={handleSubmit}>
                       {/* Nombre del proyecto */}
@@ -446,6 +519,7 @@ export default function DashboardEmpresa() {
                           id="descripcion_extendida"
                           name="descripcion_extendida"
                           value={nuevoProyecto.descripcion_extendida}
+                          onChange={handleInputChange}
                           required
                           className="border border-green-200 focus:border-green-500 focus:ring-green-500 w-full h-32 p-2"
                         />
@@ -455,35 +529,35 @@ export default function DashboardEmpresa() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="mb-4">
                           <Label htmlFor="sector" className="mb-2">Sector</Label>
-                            <Select
-                              value={nuevoProyecto.sector}
-                              onValueChange={(value) =>
-                                setNuevoProyecto((prev) => ({ ...prev, sector: value }))
-                              }
-                            >
-                              <SelectTrigger className="border border-green-200 focus:border-green-500 focus:ring-green-500 w-full rounded-md">
-                                <SelectValue placeholder="Selecciona un sector" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {['Energía', 'Agricultura y Agroindustria', 'Tecnología y Innovación', 'Salud', 'Turismo', 'Finanzas', 'Construcción e Infraestructura', 'Sostenibilidad y Medio Ambiente', 'Educación'].map((sector) => (
-                                  <SelectItem key={sector} value={sector}>
-                                    {sector}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <Select
+                            value={nuevoProyecto.sector}
+                            onValueChange={(value) =>
+                              setNuevoProyecto((prev) => ({ ...prev, sector: value }))
+                            }
+                          >
+                            <SelectTrigger className="border border-green-200 focus:border-green-500 focus:ring-green-500 w-full rounded-md">
+                              <SelectValue placeholder="Selecciona un sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {['Energía', 'Agricultura y Agroindustria', 'Tecnología y Innovación', 'Salud', 'Turismo', 'Finanzas', 'Construcción e Infraestructura', 'Sostenibilidad y Medio Ambiente', 'Educación'].map((sector) => (
+                                <SelectItem key={sector} value={sector}>
+                                  {sector}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         <div className="mb-4">
                           <Label htmlFor="ubicacion" className="mb-2">Ubicación</Label>
-                            <Input
-                              id="ubicacion"
-                              name="ubicacion"
-                              value={nuevoProyecto.ubicacion}
-                              onChange={handleInputChange}
-                              required
-                              className="border-green-200 focus:border-green-500 focus:ring-green-500"
-                            />
+                          <Input
+                            id="ubicacion"
+                            name="ubicacion"
+                            value={nuevoProyecto.ubicacion}
+                            onChange={handleInputChange}
+                            required
+                            className="border-green-200 focus:border-green-500 focus:ring-green-500"
+                          />
                         </div>
 
                       </div>
@@ -491,39 +565,25 @@ export default function DashboardEmpresa() {
                       {/* Monto pedido */}
                       <div className="mb-4">
                         <Label htmlFor="monto_pedido" className="mb-2">Monto pedido</Label>
-                          <Input
-                            id="monto_pedido"
-                            name="monto_pedido"
-                            type="number"
-                            value={nuevoProyecto.monto_pedido}
-                            onChange={handleInputChange}
-                            required
-                            className="border-green-200 focus:border-green-500 focus:ring-green-500"
-                          />
-                      </div>
-
-                      {/* Retorno estimado */}
-                      <div className="mb-4">
-                        <Label htmlFor="retorno_estimado" className="mb-2">Retorno estimado (%)</Label> 
                         <Input
-                          id="retorno_estimado"
-                          name="retorno_estimado"
+                          id="monto_pedido"
+                          name="monto_pedido"
                           type="number"
-                          value={nuevoProyecto.retorno_estimado}
+                          value={nuevoProyecto.monto_pedido}
                           onChange={handleInputChange}
                           required
                           className="border-green-200 focus:border-green-500 focus:ring-green-500"
                         />
                       </div>
 
-                      {/* Fecha inicio */}
+                      {/* Retorno estimado */}
                       <div className="mb-4">
-                        <Label htmlFor="fecha_inicio" className="mb-2">Fecha de inicio</Label>
+                        <Label htmlFor="retorno_estimado" className="mb-2">Retorno estimado (%)</Label>
                         <Input
-                          id="fecha_inicio"
-                          name="fecha_inicio"
-                          type="date"
-                          value={nuevoProyecto.fecha_inicio}
+                          id="retorno_estimado"
+                          name="retorno_estimado"
+                          type="number"
+                          value={nuevoProyecto.retorno_estimado}
                           onChange={handleInputChange}
                           required
                           className="border-green-200 focus:border-green-500 focus:ring-green-500"
@@ -543,6 +603,14 @@ export default function DashboardEmpresa() {
                           className="border-green-200 focus:border-green-500 focus:ring-green-500"
                         />
                       </div>
+
+                      {responseMessage && (
+                        <div
+                          className={`mb-4 p-4 rounded-md text-white ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`}
+                        >
+                          {responseMessage}
+                        </div>
+                      )}
 
                       <div className="flex justify-end space-x-4">
                         <Button className="mb-2" variant="outline" onClick={closeModal}>

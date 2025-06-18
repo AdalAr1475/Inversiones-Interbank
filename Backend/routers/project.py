@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import DateTime, Integer, func, desc, case
 from db.conexion_db import get_db
@@ -12,19 +13,18 @@ router = APIRouter(tags=["Projects"])
 # ----------- Pydantic Schemas -----------
 from pydantic import BaseModel
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 
 class ProyectoCreate(BaseModel):
-    empresa_id: int
+    emprendedor_id: int
     nombre_proyecto: str
     descripcion: str
     descripcion_extendida: str
     monto_pedido: Decimal
-    sector: str  # sector de la empresa
-    retorno_estimado: Decimal  # porcentaje
-    fecha_inicio: date
+    sector: str 
+    retorno_estimado: Decimal
     fecha_fin: date
-    ubicacion: str  # ubicación de la empresa
+    ubicacion: str
 
 @router.get("/get-proyectos")
 def obtener_all_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)):
@@ -279,3 +279,55 @@ def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db))
 
     return proyectos_invertidos
 
+@router.post("/create")
+def crear_proyecto(emprendedor_id: int, proyecto: ProyectoCreate, db: Session=Depends(get_db)):
+
+    estado = db.query(Usuario).filter(Usuario.id==emprendedor_id).first().estado
+
+    if estado == "inactivo":
+        raise HTTPException(
+            status_code=401,
+            detail="Active su cuenta stripe para continuar"
+        )
+
+    proyectos_encontrados = db.query(Proyecto).all()
+
+    for proyect in proyectos_encontrados:
+        if proyect.nombre_proyecto.lower() == proyecto.nombre_proyecto.lower():
+            raise HTTPException(
+                status_code=401,
+                detail="El nombre del proyecto ya lo registro. Pruebe otro"
+            )
+        
+    if proyecto.retorno_estimado >= 1:
+        raise HTTPException(
+            status_code=401,
+            detail="El retorno debe ser menor a 1"
+        )
+    
+    if proyecto.fecha_fin < datetime.today().date():
+        raise HTTPException(
+            status_code=401,
+            detail="Ingrese una fecha de finalización valida"
+        )
+    
+    new_proyecto = Proyecto(
+        emprendedor_id = proyecto.emprendedor_id,
+        nombre_proyecto = proyecto.nombre_proyecto,
+        descripcion = proyecto.descripcion,
+        descripcion_extendida = proyecto.descripcion_extendida,
+        sector = proyecto.sector,
+        ubicacion = proyecto.ubicacion,
+        fecha_fin = proyecto.fecha_fin,
+        monto_pedido = proyecto.monto_pedido,
+        monto_recaudado = 0.0,
+        retorno_estimado = proyecto.retorno_estimado
+    )
+
+    db.add(new_proyecto)
+    db.commit()
+    db.refresh(new_proyecto)
+    
+    return JSONResponse(content={
+                "message": "Proyecto creado exitosamente"
+            })

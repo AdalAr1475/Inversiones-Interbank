@@ -21,7 +21,7 @@ CREATE TABLE Usuarios (
     "tipo_usuario" VARCHAR(255) CHECK (tipo_usuario IN ('emprendedor', 'inversor')) NOT NULL,
     "creado_en" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     "stripe_account_id" VARCHAR(255) UNIQUE, -- ID de la cuenta de Stripe
-    "estado" VARCHAR(20) CHECK (estado IN ('activo', 'inactivo')) DEFAULT 'activo'
+    "estado" VARCHAR(20) CHECK (estado IN ('activo', 'inactivo')) DEFAULT 'inactivo'
 );
 
 -- Creación de la tabla wallets
