@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from utils.stripe_utils import create_stripe_customer, create_connected_account, create_account_onboarding_link
 from utils.db_wallet_utils import crear_wallet
 import db.models as models
-from config_token.authenticate import get_hashed_password
+from config_token.authenticate import get_hashed_password, get_current_user
 from db.conexion_db import get_db, engine
 from funciones import validar_dni, validar_numero
 router = APIRouter()
@@ -148,3 +148,49 @@ async def activate_user_account(
     db.refresh(user)
 
     return {"message": "Cuenta activada exitosamente."}
+
+@router.get("/get-inversor/{idUsuario}", tags=["auth"])
+async def get_inversor_profile(
+    idUsuario: int,
+    db: db_dependency,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Obtiene el perfil completo de un inversor por su ID.
+    Requiere autenticación válida.
+    """
+    try:
+        # Buscar el usuario por ID y verificar que sea un inversor
+        usuario = db.query(models.Usuario).filter(
+            models.Usuario.id == idUsuario,
+            models.Usuario.tipo_usuario == "inversor"
+        ).first()
+        
+        if not usuario:
+            raise HTTPException(
+                status_code=404, 
+                detail="Inversor no encontrado"
+            )
+        
+        # Construir el perfil del inversor según el tipo InversorProfile
+        perfil_inversor = {
+            "id": usuario.id,
+            "nombre_inversor": usuario.nombre,
+            "apellido_inversor": f"{usuario.apellido_paterno} {usuario.apellido_materno}".strip(),
+            "dni": usuario.dni,
+            "telefono": usuario.telefono,
+            "experiencia": getattr(usuario, 'experiencia', 'Sin especificar'),  # Campo opcional
+            "pais": getattr(usuario, 'pais', 'Sin especificar'),  # Campo opcional
+            "email": usuario.email
+        }
+        
+        return JSONResponse(
+            status_code=200,
+            content=perfil_inversor
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error interno del servidor: {str(e)}"
+        )

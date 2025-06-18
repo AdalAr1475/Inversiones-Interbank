@@ -30,7 +30,7 @@ class OnboardingLinkRequest(BaseModel):
     refresh_url: str
 
 class CheckoutSessionRequest(BaseModel):
-    user_id: str
+    user_id: int
     amount_cents: int
 
 class TransferRequest(BaseModel):
@@ -71,6 +71,7 @@ def stripe_create_onboarding_link(data: OnboardingLinkRequest):
 
 @router.post("/create-checkout-session")
 def stripe_create_checkout_session(data: CheckoutSessionRequest):
+    
     url = create_checkout_session_for_wallet(
         user_id=data.user_id,
         amount_cents=data.amount_cents
