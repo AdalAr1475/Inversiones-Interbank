@@ -106,6 +106,7 @@ def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db))
     result = db.query(
         Usuario.nombre,
         Usuario.apellido_paterno,
+        Inversion.monto_invertido,
         (func.extract('epoch', func.now() - Inversion.fecha_inversion)).label('diferencia'),
         case(
             (func.extract('epoch', func.now() - Inversion.fecha_inversion) < 3600, '0 horas desde inversión'),
@@ -126,21 +127,27 @@ def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db))
         for inversor in inversores:
             if row[0] == inversor["nombre"]:
                 found = True
-                if inversor["diferencia"] > row[2]:
-                    inversor["diferencia"] = row[2]
-                    inversor["tiempo_desde_inversion"] = row[3]
+                if inversor["diferencia"] > row[3]:
+                    inversor["diferencia"] = row[3]
+                    inversor["tiempo_desde_inversion"] = row[4]
                 break
         
         if not found:
             result_dict = {
                 "nombre": row[0],
                 "apellido": row[1],
-                "diferencia": row[2],
-                "tiempo_desde_inversion": row[3]
+                "monto_invertido": row[2],
+                "diferencia": row[3],
+                "tiempo_desde_inversion": row[4]
             }
             inversores.append(result_dict)
     
-    return inversores
+    inversores_formateado = [
+        {key: value for key, value in inversor.items() if key != 'diferencia'}
+        for inversor in inversores
+    ]
+    
+    return inversores_formateado
 
 
 @router.get("/emprendedor/{emprendedor_id}")
@@ -234,7 +241,7 @@ def obtener_proyectos_emprendedor(emprendedor_id: int, db: Session = Depends(get
             "descripcion": proyecto.descripcion,
             "descripcion_extendida": proyecto.descripcion_extendida,
             "tiempo_valor": tiempo_valor,
-            "tiempo_unidad": tiempo_unidad,
+            "tiempo_unidad": tiempo_unidad.capitalize(),
             "tiempo_valor_total": tiempo_valor_total,
             "tiempo_unidad_total": tiempo_unidad_total,
             "inversores": inversores
