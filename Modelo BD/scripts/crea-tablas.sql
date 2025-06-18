@@ -38,7 +38,7 @@ CREATE TABLE Recargas_wallet (
     "inversor_id" INTEGER REFERENCES Usuarios(id) ON DELETE CASCADE,
     "stripe_payment_intent" VARCHAR(255),
     "monto" NUMERIC(12, 2) NOT NULL,
-    "estado" VARCHAR(20) CHECK (estado IN ('exitoso', 'fallido', 'pendiente')) DEFAULT 'pendiente',
+    "estado" VARCHAR(20) CHECK (estado IN ('Real', 'Simulado')) DEFAULT 'pendiente',
     "fecha_recarga" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

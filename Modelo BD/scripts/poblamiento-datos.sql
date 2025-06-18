@@ -27,17 +27,17 @@ END $$;
 
 
 -- Poblamiento de la tabla Usuarios
-INSERT INTO Usuarios (nombre, apellido_paterno, apellido_materno, dni, telefono, email, password_hash, tipo_usuario)
+INSERT INTO Usuarios (nombre, apellido_paterno, apellido_materno, dni, telefono, email, password_hash, tipo_usuario, stripe_account_id, estado)
 VALUES 
-  ('Matiaz','Chevez','Collahuacho','70235612','910910910','matiaz.chevez.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Adal','Aranda','Nuñez','70348211','923412222','adal.aranda.n@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Diogo','Abregu','Gonzales','74209982','910234123','diogo.abregu.g@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Diego','Bernal','Tamayo','71443322','910333444','diego.bernal.t@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Nicol','Auqui','Castilla','73029934','910934583','nicol.auqui.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Sharon','Guisado','Alejo','72340094','912343511','sharon.guisado.a@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Saul','Anyaipoma','Hurtado','68991023','923111434','saul.anyaipoma.h@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor'),
-  ('Elvis','Arboleda','Terrones','71232210','923100100','elvis.arboleda.t@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor'),
-  ('Sebastian','Cardenas','Lujan','73707123','901344222','sebastian.cardenas.l@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor');
+  ('Matiaz','Chevez','Collahuacho','70235612','910910910','matiaz.chevez.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Adal','Aranda','Nuñez','70348211','923412222','adal.aranda.n@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Diogo','Abregu','Gonzales','74209982','910234123','diogo.abregu.g@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Diego','Bernal','Tamayo','71443322','910333444','diego.bernal.t@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Nicol','Auqui','Castilla','73029934','910934583','nicol.auqui.c@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Sharon','Guisado','Alejo','72340094','912343511','sharon.guisado.a@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Saul','Anyaipoma','Hurtado','68991023','923111434','saul.anyaipoma.h@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'inversor', NULL, 'inactivo'),
+  ('Elvis','Arboleda','Terrones','71232210','923100100','elvis.arboleda.t@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor', 'acct_1Rb54PPe3NoT10Lk', 'activo'),
+  ('Sebastian','Cardenas','Lujan','73707123','901344222','sebastian.cardenas.l@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor', 'acct_1Rb3ShB1VrcHHR4Y', 'activo');
 
 -- Poblamiento de la tabla Wallets
 INSERT INTO Wallets (inversor_id, saldo)

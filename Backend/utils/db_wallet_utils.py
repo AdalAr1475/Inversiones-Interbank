@@ -24,6 +24,8 @@ def registrar_recarga(inversor_id: int, monto: Decimal, db: Session):
 
     return {"mensaje": "Recarga registrada", "nuevo_saldo": str(wallet.saldo)}
 
+
+
 def obtener_wallet(inversor_id: int, db: Session):
     wallet = db.query(Wallet).filter_by(inversor_id=inversor_id).first()
     if not wallet:

@@ -96,8 +96,8 @@ def create_checkout_session_for_wallet(user_id: str, amount_cents: int) -> str:
             "quantity": 1,
         }],
         mode="payment",
-        success_url=f"http://localhost:3000/dashboard?success=true&user_id={user_id}&amount={amount_cents}",  # puedes usar IDs seguros con JWT o hash
-        cancel_url="http://localhost:3000/dashboard?success=false",
+        success_url=f"http://localhost:3000/dashboard/inversor/perfil?success=true&user_id={user_id}&amount={amount_cents}",  # puedes usar IDs seguros con JWT o hash
+        cancel_url="http://localhost:3000/dashboard/inversor/perfil?success=false",
         metadata={"user_id": user_id},  # importante para verificar luego
     )
     return session.url
