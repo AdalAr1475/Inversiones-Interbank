@@ -303,13 +303,13 @@ export default function DashboardEmpresa() {
     }
 
     const proyectoData = {
-      emprendedor_id: parseInt(emprendedorId),
+      emprendedor_id: emprendedorId,
       nombre_proyecto: nuevoProyecto.nombre_proyecto,
       descripcion: nuevoProyecto.descripcion,
       descripcion_extendida: nuevoProyecto.descripcion_extendida,
-      monto_pedido: parseFloat(nuevoProyecto.monto_pedido),
+      monto_pedido: nuevoProyecto.monto_pedido,
       sector: nuevoProyecto.sector,
-      retorno_estimado: parseFloat(nuevoProyecto.retorno_estimado),
+      retorno_estimado: nuevoProyecto.retorno_estimado,
       fecha_fin: nuevoProyecto.fecha_fin,
       ubicacion: nuevoProyecto.ubicacion,
     };
