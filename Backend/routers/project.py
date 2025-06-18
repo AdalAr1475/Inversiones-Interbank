@@ -23,7 +23,7 @@ class ProyectoCreate(BaseModel):
     monto_pedido: Decimal
     sector: str 
     retorno_estimado: Decimal
-    fecha_fin: date
+    fecha_fin: str
     ubicacion: str
 
 @router.get("/get-proyectos")
@@ -280,9 +280,9 @@ def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db))
     return proyectos_invertidos
 
 @router.post("/create")
-def crear_proyecto(emprendedor_id: int, proyecto: ProyectoCreate, db: Session=Depends(get_db)):
+def crear_proyecto(proyecto: ProyectoCreate, db: Session=Depends(get_db)):
 
-    estado = db.query(Usuario).filter(Usuario.id==emprendedor_id).first().estado
+    estado = db.query(Usuario).filter(Usuario.id==proyecto.emprendedor_id).first().estado
 
     if estado == "inactivo":
         raise HTTPException(
@@ -304,8 +304,13 @@ def crear_proyecto(emprendedor_id: int, proyecto: ProyectoCreate, db: Session=De
             status_code=401,
             detail="El retorno debe ser menor a 1"
         )
+    try:
+        fecha_fin_date = datetime.strptime(proyecto.fecha_fin, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format for fecha_fin. Expected YYYY-MM-DD.")
+
     
-    if proyecto.fecha_fin < datetime.today().date():
+    if fecha_fin_date < datetime.today().date():
         raise HTTPException(
             status_code=401,
             detail="Ingrese una fecha de finalización valida"

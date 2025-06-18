@@ -114,11 +114,10 @@ export default function DashboardEmpresa() {
     nombre_proyecto: "",
     descripcion: "",
     descripcion_extendida: "",
-    sector: "Energía",
+    sector: "",
     ubicacion: "",
-    monto_pedido: 0,
-    retorno_estimado: 0,
-    fecha_inicio: "",
+    monto_pedido: 0.0,
+    retorno_estimado: 0.0,
     fecha_fin: ""
   });
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
@@ -150,7 +149,7 @@ export default function DashboardEmpresa() {
         try {
           await axios.get(`http://127.0.0.1:8000/users/activate-account?user_id=${userId}&success=true`);
           alert("¡Tu cuenta ha sido activada exitosamente!");
-          
+
           // Redirigir a la página de Dashboard de Emprendedor
           window.location.href = "/dashboard/emprendedor"; // Redirección manual en el cliente
         } catch (error) {
@@ -160,7 +159,7 @@ export default function DashboardEmpresa() {
       };
       activateAccount();
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     if (emprendedorId) {
@@ -207,8 +206,6 @@ export default function DashboardEmpresa() {
       setProyectos([]);
     }
   };
-
-
 
   const proyectos_nombre = proyectos.map(proyecto => proyecto.nombre_proyecto);
 
@@ -264,9 +261,8 @@ export default function DashboardEmpresa() {
       descripcion_extendida: "",
       sector: "Energía",
       ubicacion: "",
-      monto_pedido: 0,
-      retorno_estimado: 0,
-      fecha_inicio: "",
+      monto_pedido: 0.0,
+      retorno_estimado: 0.0,
       fecha_fin: ""
     });
     // Limpiar el mensaje y el estado de éxito/fallo
@@ -291,29 +287,44 @@ export default function DashboardEmpresa() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validación del retorno estimado
+    if (nuevoProyecto.retorno_estimado >= 1) {
+      setResponseMessage("El retorno debe ser menor a 1");
+      setIsSuccess(false);
+      return;
+    }
+
+    // Validación de la fecha de finalización
+    const fechaFin = new Date(nuevoProyecto.fecha_fin);
+    if (fechaFin < new Date()) {
+      setResponseMessage("Ingrese una fecha de finalización válida");
+      setIsSuccess(false);
+      return;
+    }
+
     const proyectoData = {
-      emprendedor_id: parseInt(emprendedorId), // asegurándote de convertir el ID a número
+      emprendedor_id: parseInt(emprendedorId),
       nombre_proyecto: nuevoProyecto.nombre_proyecto,
       descripcion: nuevoProyecto.descripcion,
       descripcion_extendida: nuevoProyecto.descripcion_extendida,
-      monto_pedido: nuevoProyecto.monto_pedido,
+      monto_pedido: parseFloat(nuevoProyecto.monto_pedido),
       sector: nuevoProyecto.sector,
-      retorno_estimado: nuevoProyecto.retorno_estimado, // Convierte el porcentaje a decimal
+      retorno_estimado: parseFloat(nuevoProyecto.retorno_estimado),
       fecha_fin: nuevoProyecto.fecha_fin,
       ubicacion: nuevoProyecto.ubicacion,
     };
 
+    console.log(proyectoData)
+
     try {
-      // Realiza la solicitud POST para crear un nuevo proyecto con fetch
       const response = await fetch("http://localhost:8000/project/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(proyectoData), // Convierte los datos a JSON
+        body: JSON.stringify(proyectoData),
       });
 
-      // Verifica si la respuesta es exitosa
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Error desconocido");
@@ -327,11 +338,12 @@ export default function DashboardEmpresa() {
         fetchProyectos();
       }, 2000);
     } catch (error) {
-      console.error("Error:", error);
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       setResponseMessage(errorMessage);
       setIsSuccess(false);
     }
+
+
   };
 
   const handleUploadClick = () => {
