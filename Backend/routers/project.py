@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
-from sqlalchemy import DateTime, func, desc
+from sqlalchemy import DateTime, Integer, func, desc, case
 from db.conexion_db import get_db
 from db.models import Proyecto, Inversion, Usuario
 from config_token.authenticate import check_emprendedor
@@ -26,37 +26,8 @@ class ProyectoCreate(BaseModel):
     fecha_fin: date
     ubicacion: str  # ubicación de la empresa
 
-# ----------- Endpoints -----------
-@router.post("/", dependencies=[Depends(check_emprendedor)])
-def crear_proyecto(data: ProyectoCreate, db: Session = Depends(get_db)):
-    # Verificar que la empresa exista
-    empresa = db.query(Usuario).filter_by(id=data.empresa_id).first()
-    if not empresa:
-        raise HTTPException(status_code=404, detail="Empresa no encontrada")
-
-    nuevo_proyecto = Proyecto(
-        emprendedor_id=data.empresa_id,
-        nombre_proyecto=data.nombre_proyecto,
-        descripcion_extendida=data.descripcion_extendida,
-        descripcion=data.descripcion,
-        monto_pedido=data.monto_pedido,
-        retorno_estimado=data.retorno_estimado,
-        fecha_inicio=data.fecha_inicio,
-        ubicacion=data.ubicacion,
-        sector=data.sector,
-        fecha_fin=data.fecha_fin,
-        estado="activo",  # por defecto
-        monto_recaudado=0
-    )
-
-    db.add(nuevo_proyecto)
-    db.commit()
-    db.refresh(nuevo_proyecto)
-
-    return {"mensaje": "Proyecto de inversión creado", "proyecto_id": nuevo_proyecto.id}
-
 @router.get("/get-proyectos")
-def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)):
+def obtener_all_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)):
     
     list_proyecto = []
     
@@ -86,7 +57,7 @@ def obtener_proyectos(limit: Optional[int] = None, db: Session = Depends(get_db)
 
 
 @router.get("/{proyecto_id}")
-def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
+def obtener_proyecto_detail(proyecto_id: int, db: Session = Depends(get_db)):
     
     proyecto = db.query(Proyecto).filter(Proyecto.id == proyecto_id).first()
     
@@ -129,33 +100,147 @@ def obtener_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
     
 @router.get("/inversores/{proyecto_id}")
 def obtener_inversores_proyecto(proyecto_id: int, db: Session = Depends(get_db)):
-    
+
+    inversores = []
+
     result = db.query(
-        Usuario.nombre_inversor,
-        Usuario.apellido_inversor,
-        (func.date(func.current_date()) - func.date(Inversion.fecha_inversion)).label('dias_desde_inversion')
+        Usuario.nombre,
+        Usuario.apellido_paterno,
+        (func.extract('epoch', func.now() - Inversion.fecha_inversion)).label('diferencia'),
+        case(
+            (func.extract('epoch', func.now() - Inversion.fecha_inversion) < 3600, '0 horas desde inversión'),
+            (func.extract('epoch', func.now() - Inversion.fecha_inversion) < 86400, (func.extract('epoch', func.now() - Inversion.fecha_inversion) / 3600.0).cast(Integer).concat(' horas desde inversión')),  # Less than 1 day -> hours
+            (func.extract('epoch', func.now() - Inversion.fecha_inversion) < 604800, (func.extract('epoch', func.now() - Inversion.fecha_inversion) / 86400.0).cast(Integer).concat(' días desde inversión')), # Less than 1 week -> days
+            (func.extract('epoch', func.now() - Inversion.fecha_inversion) < 2592000, (func.extract('epoch', func.now() - Inversion.fecha_inversion) / 604800.0).cast(Integer).concat(' semanas desde inversión')), # Less than 1 month (approx 30 days) -> weeks
+            (func.extract('epoch', func.now() - Inversion.fecha_inversion) < 31536000, (func.extract('epoch', func.now() - Inversion.fecha_inversion) / 2592000.0).cast(Integer).concat(' meses desde inversión')), # Less than 1 year (approx 365 days) -> months
+            else_=(func.extract('epoch', func.now() - Inversion.fecha_inversion) / 31536000.0).cast(Integer).concat(' años desde inversión') # More than 1 year -> years
+        ).label('tiempo_desde_inversión')
     ).join(Usuario, Inversion.inversor_id == Usuario.id).filter(Inversion.proyecto_id == proyecto_id).all()
 
-    # Verificar si hay resultados
     if not result:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-
-    # Convertir el resultado de las tuplas a diccionarios
-    result_dict = [
-        {
-            "nombre_inversor": row[0],
-            "apellido_inversor": row[1],
-            "dias_desde_inversion": row[2]
-        }
-        for row in result
-    ]
     
-    # Serializar la respuesta usando jsonable_encoder
-    response = jsonable_encoder(result_dict)
+    for row in result:
+        found = False
+        
+        for inversor in inversores:
+            if row[0] == inversor["nombre"]:
+                found = True
+                if inversor["diferencia"] > row[2]:
+                    inversor["diferencia"] = row[2]
+                    inversor["tiempo_desde_inversion"] = row[3]
+                break
+        
+        if not found:
+            result_dict = {
+                "nombre": row[0],
+                "apellido": row[1],
+                "diferencia": row[2],
+                "tiempo_desde_inversion": row[3]
+            }
+            inversores.append(result_dict)
+    
+    return inversores
 
-    # Regresar los datos serializados
-    return response
 
+@router.get("/emprendedor/{emprendedor_id}")
+def obtener_proyectos_emprendedor(emprendedor_id: int, db: Session = Depends(get_db)):
+
+    proyectos_emprendedor = []
+
+    proyectos = db.query(Proyecto).filter(Proyecto.emprendedor_id==emprendedor_id).all()
+
+    if not proyectos:
+        raise HTTPException(status_code=404, detail="Proyectos no encontrados")
+    
+    for proyecto in proyectos:
+        # Calcular la diferencia entre fecha_inicio y fecha_fin
+        diferencia_segundos = func.extract('epoch', proyecto.fecha_fin - func.now())
+        diferencia_segundos_total = func.extract('epoch', proyecto.fecha_fin - proyecto.fecha_inicio)
+
+        tiempo_diferencia_valor = case(
+            (diferencia_segundos < 60, 0),
+            (diferencia_segundos < 3600, 
+             (func.cast(diferencia_segundos / 60, Integer)).label('tiempo_diferencia')),
+            (diferencia_segundos < 86400, 
+             (func.cast(diferencia_segundos / 3600, Integer)).label('tiempo_diferencia')),            
+            (diferencia_segundos < 604800, 
+             (func.cast(diferencia_segundos / 86400, Integer)).label('tiempo_diferencia')),
+            (diferencia_segundos < 2592000, 
+             (func.cast(diferencia_segundos / 604800, Integer)).label('tiempo_diferencia')),
+            (diferencia_segundos < 31536000, 
+             (func.cast(diferencia_segundos / 2592000, Integer)).label('tiempo_diferencia')),
+            else_=(func.cast(diferencia_segundos / 31536000, Integer)).label('tiempo_diferencia')
+        ).label('tiempo_desde_inversión')
+
+        tiempo_valor = db.query(tiempo_diferencia_valor).filter(Proyecto.id == proyecto.id).scalar()
+
+        tiempo_diferencia_valor_total = case(
+            (diferencia_segundos_total < 60, 0),
+            (diferencia_segundos_total < 3600, 
+             (func.cast(diferencia_segundos_total / 60, Integer)).label('tiempo_diferencia')),
+            (diferencia_segundos_total < 86400, 
+             (func.cast(diferencia_segundos_total / 3600, Integer)).label('tiempo_diferencia')),            
+            (diferencia_segundos_total < 604800, 
+             (func.cast(diferencia_segundos_total / 86400, Integer)).label('tiempo_diferencia')),
+            (diferencia_segundos_total < 2592000, 
+             (func.cast(diferencia_segundos_total / 604800, Integer)).label('tiempo_diferencia')),
+            (diferencia_segundos_total < 31536000, 
+             (func.cast(diferencia_segundos_total / 2592000, Integer)).label('tiempo_diferencia')),
+            else_=(func.cast(diferencia_segundos_total / 31536000, Integer)).label('tiempo_diferencia')
+        ).label('tiempo_desde_inversión_total')
+
+        tiempo_valor_total = db.query(tiempo_diferencia_valor_total).filter(Proyecto.id == proyecto.id).scalar()
+
+        tiempo_diferencia_unidad = case(
+            (diferencia_segundos < 60, 'minutos'),
+            (diferencia_segundos < 3600, 'minutos'),
+            (diferencia_segundos < 86400, 'horas'),
+            (diferencia_segundos < 604800, 'días'),
+            (diferencia_segundos < 2592000, 'semanas'),
+            (diferencia_segundos < 31536000, 'meses'),
+            else_='años'
+        ).label('tiempo_unidad')
+
+        tiempo_unidad = db.query(tiempo_diferencia_unidad).filter(Proyecto.id == proyecto.id).scalar()
+
+        tiempo_diferencia_unidad_total = case(
+            (diferencia_segundos_total < 60, 'minutos'),
+            (diferencia_segundos_total < 3600, 'minutos'),
+            (diferencia_segundos_total < 86400, 'horas'),
+            (diferencia_segundos_total < 604800, 'días'),
+            (diferencia_segundos_total < 2592000, 'semanas'),
+            (diferencia_segundos_total < 31536000, 'meses'),
+            else_='años'
+        ).label('tiempo_unidad_total')
+
+        tiempo_unidad_total = db.query(tiempo_diferencia_unidad_total).filter(Proyecto.id==proyecto.id).scalar()
+
+        inversores = db.query(func.count(func.distinct(Inversion.inversor_id))) \
+                    .filter(Inversion.proyecto_id == proyecto.id).scalar() or 0
+        
+        porcentaje_reacudado = (int) (
+            (proyecto.monto_recaudado or Decimal('0.00')) / 
+            (proyecto.monto_pedido or Decimal('1.00')) * 100
+        )
+        
+        proyectos_emprendedor.append({
+            "id": proyecto.id,
+            "nombre_proyecto": proyecto.nombre_proyecto,
+            "total_recaudado": proyecto.monto_recaudado,
+            "objetivo": proyecto.monto_pedido,
+            "porcentaje": porcentaje_reacudado,
+            "estado": proyecto.estado,
+            "descripcion": proyecto.descripcion,
+            "descripcion_extendida": proyecto.descripcion_extendida,
+            "tiempo_valor": tiempo_valor,
+            "tiempo_unidad": tiempo_unidad,
+            "tiempo_valor_total": tiempo_valor_total,
+            "tiempo_unidad_total": tiempo_unidad_total,
+            "inversores": inversores
+        })
+    
+    return proyectos_emprendedor
 
 @router.get("/proyectos-invertidos/{usuario_id}")
 def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db)):
@@ -186,3 +271,4 @@ def obtener_proyectos_invertidos(usuario_id: int, db: Session = Depends(get_db))
                 })
 
     return proyectos_invertidos
+

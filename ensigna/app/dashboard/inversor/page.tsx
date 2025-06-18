@@ -17,6 +17,7 @@ import MisInversionesSection from "@/components/mis-inversiones-section";
 import NuevasOportunidadesSection from "@/components/nuevas-oportunidades-section";
 import MisContratosSeccion from "@/components/mis-contratos-seccion";
 import { getInvestSummary, InvestSummary } from "@/api/invest";
+import { useSidebar } from "@/context/SidebarContext";
 
 export default function DashboardInversor() {
   // Estado para el resumen de inversiones
@@ -67,11 +68,14 @@ export default function DashboardInversor() {
     });
   };
 
+  const {collapsed} = useSidebar();
+
   return (
+
     <ProtectedRoute requiredRole="inversor">
-      <div className="min-h-screen bg-gray-50">
+      <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
         <HeaderLat />
-        <div className="ml-56 transition-all duration-300">
+        <div className="transition-all duration-300">
           {/* Main Content */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">

@@ -57,7 +57,8 @@ export default function MisInversionesSection() {
                 descripcion: "Plataforma de inteligencia artificial para predicción de mercados",
                 monto_invertido: "15000",
                 fecha_inversion: new Date().toISOString(),
-                estado: "Activa"
+                estado: "Activa",
+                retorno_estimado: 0.25
               },
               {
                 proyecto_id: 2,
@@ -65,7 +66,8 @@ export default function MisInversionesSection() {
                 descripcion: "Soluciones sostenibles para la industria energética",
                 monto_invertido: "25000",
                 fecha_inversion: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-                estado: "En progreso"
+                estado: "En progreso",
+                retorno_estimado: 0.24
               }
             ];
             

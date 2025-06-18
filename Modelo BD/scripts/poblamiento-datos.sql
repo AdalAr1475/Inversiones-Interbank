@@ -51,57 +51,57 @@ VALUES
   (7, 100000.00); -- Saul Anyaipoma
 
 -- Poblamiento de tabla proyectos_inversion
-INSERT INTO Proyectos (emprendedor_id, nombre_proyecto, descripcion, descripcion_extendida, sector, ubicacion, monto_pedido, monto_recaudado, retorno_estimado, fecha_fin) 
+INSERT INTO Proyectos (emprendedor_id, nombre_proyecto, descripcion, descripcion_extendida, sector, ubicacion, monto_pedido, monto_recaudado, retorno_estimado, fecha_inicio, fecha_fin) 
 VALUES
   (8, 'Energía Solar en Comunidades Rurales de Arequipa', 
     'Proyecto para la instalación de paneles solares en comunidades rurales de la región sur de Perú', 
     'Este proyecto tiene como objetivo llevar energía limpia y accesible a zonas rurales de Arequipa que no tienen acceso a la red eléctrica. La implementación de paneles solares permitirá a las comunidades rurales no solo reducir su dependencia de fuentes de energía contaminantes, sino también mejorar la calidad de vida mediante el acceso a electricidad para iluminación, comunicación y desarrollo de pequeñas industrias. A largo plazo, se prevé que el uso de energía solar contribuya a la mejora de la salud, la educación y la economía local, generando una fuente de ingresos sostenible mediante la comercialización de excedentes de energía, cuando sea posible. Este proyecto también contempla la capacitación de las comunidades en el mantenimiento y gestión de los sistemas solares, asegurando la sostenibilidad a largo plazo.',
-    'Energía', 'Arequipa, Perú', 150000, 90000, 0.25, '2026-12-31'),
+    'Energía', 'Arequipa, Perú', 150000, 90000, 0.25, '2024-05-10', '2025-12-31'),
     
   (8, 'Agroprocesadora de Quinua en Cusco para Exportación', 
     'Planta para el procesamiento de quinua, maca y otros productos andinos para la exportación', 
     'El proyecto busca crear una planta moderna de procesamiento de productos agrícolas andinos, como quinua, maca, camu camu y otros superalimentos. La iniciativa se centrará en añadir valor a estos productos, que actualmente son exportados en su forma cruda. A través del procesamiento y empaquetado, se generarán productos alimenticios listos para el mercado internacional, tales como harina de quinua, extractos de maca y otros productos derivados. Además de promover la agricultura sostenible, la planta brindará una fuente de ingresos para los pequeños agricultores locales mediante la compra de sus cosechas a precios justos. El impacto positivo en la comunidad incluirá la creación de empleo, mejoras en la infraestructura agrícola y el fortalecimiento de la identidad cultural mediante el impulso a la agricultura tradicional andina.',
-    'Agricultura y Agroindustria', 'Cusco, Perú', 200000, 120000, 0.35, '2027-05-30'),
+    'Agricultura y Agroindustria', 'Cusco, Perú', 200000, 120000, 0.35, '2024-05-11', '2025-11-30'),
 
   (8, 'Plataforma Educativa Online para Zonas Rurales de Ayacucho', 
     'Desarrollo de una plataforma educativa online dirigida a estudiantes de zonas rurales', 
     'Este proyecto tiene como objetivo proporcionar acceso a educación de calidad a estudiantes de zonas rurales de Ayacucho, donde los recursos educativos y las infraestructuras tradicionales son limitadas. A través de una plataforma digital, se ofrecerán cursos, talleres y materiales educativos en áreas como matemáticas, ciencias, idiomas y habilidades técnicas. La plataforma será accesible desde dispositivos móviles, permitiendo a los estudiantes de regiones remotas seguir su educación sin tener que desplazarse a las grandes ciudades. Además, el proyecto contempla la creación de una red de tutores locales que apoyen a los estudiantes, garantizando que tengan la orientación necesaria para completar los cursos. Este proyecto también ayudará a reducir la brecha educativa en el país, proporcionando a los estudiantes rurales las mismas oportunidades que a aquellos que viven en áreas urbanas.',
-    'Educación', 'Ayacucho, Perú', 100000, 50000, 0.4, '2026-06-15'),
+    'Educación', 'Ayacucho, Perú', 100000, 50000, 0.4, '2024-05-12', '2026-06-15'),
 
   (8, 'Agroturismo Sostenible en la Selva Central de Junín', 
     'Desarrollo de un complejo de agroturismo que promueve el turismo rural y sostenible', 
     'El proyecto busca ofrecer una experiencia única de turismo en la selva central de Junín, que combine actividades agrícolas con ecoturismo. Los turistas podrán participar en actividades agrícolas como la cosecha de cacao, café y otros cultivos locales, y al mismo tiempo disfrutar de la belleza natural de la selva. A través de este proyecto, se promoverá la conservación del medio ambiente, el respeto por las comunidades locales y la preservación de las tradiciones culturales de la zona. El agroturismo no solo será una forma de incentivar el turismo en áreas rurales, sino también una oportunidad para los agricultores de diversificar sus fuentes de ingreso y mejorar la calidad de vida. Se incluirán alojamientos sostenibles, transporte ecológico y actividades que involucren a los habitantes locales como guías turísticos.',
-    'Turismo', 'Junín, Perú', 130000, 80000, 0.3, '2027-11-10'),
+    'Turismo', 'Junín, Perú', 130000, 80000, 0.3, '2024-06-01', '2025-11-10'),
 
   (8, 'Planta de Reciclaje de Residuos Sólidos en Lima', 
     'Creación de una planta de reciclaje que gestione residuos sólidos urbanos en Lima', 
     'Este proyecto tiene como objetivo construir y operar una planta de reciclaje de residuos sólidos en Lima, con el fin de mejorar la gestión de residuos en la ciudad y reducir la contaminación. La planta se encargará de recolectar, clasificar y procesar materiales reciclables como plásticos, metales, papel y vidrio. Además, se desarrollará una red de recolección selectiva que permita a los ciudadanos separar los residuos reciclables en sus hogares, contribuyendo al proceso de reciclaje. El proyecto también incluirá un centro de concientización y educación ambiental, con el objetivo de sensibilizar a la población sobre la importancia del reciclaje y la reducción de residuos. A largo plazo, se espera generar empleo y, a través de la venta de materiales reciclados, contribuir a la economía circular del país.',
-    'Sostenibilidad y Medio Ambiente', 'Lima, Perú', 250000, 180000, 0.5, '2026-04-05'),
+    'Sostenibilidad y Medio Ambiente', 'Lima, Perú', 250000, 180000, 0.5, '2024-06-02', '2026-04-05'),
 
   (9, 'Fintech de Inclusión Financiera en la Región de Lima', 
     'Desarrollo de una plataforma de pagos y microcréditos para personas no bancarizadas en áreas rurales', 
     'Este proyecto se enfoca en ofrecer servicios financieros básicos como pagos móviles, microcréditos, ahorro y seguros para personas que no tienen acceso a bancos tradicionales, especialmente en áreas rurales. A través de una aplicación móvil fácil de usar, los usuarios podrán realizar pagos, transferencias y gestionar sus ahorros sin la necesidad de una cuenta bancaria. Además, el proyecto permitirá el acceso a microcréditos para emprendedores rurales que necesitan capital para sus negocios. Esto no solo incrementará la inclusión financiera, sino que también estimulará la economía local al ofrecer a los habitantes rurales las herramientas necesarias para participar en la economía formal. La plataforma también incluirá una red de agentes locales que brindarán soporte y educación financiera.',
-    'Finanzas', 'Lima, Perú', 120000, 75000, 0.4, '2027-02-28'),
+    'Finanzas', 'Lima, Perú', 120000, 75000, 0.4, '2024-06-03', '2026-02-28'),
 
   (9, 'Energía Eólica en la Costa Norte de Piura', 
     'Instalación de turbinas eólicas en la costa norte para generar energía limpia', 
     'Este proyecto tiene como objetivo aprovechar los fuertes vientos que se presentan en la costa norte de Piura para generar energía eólica. La instalación de turbinas eólicas no solo contribuirá a diversificar la matriz energética del país, sino que también reducirá las emisiones de gases de efecto invernadero. La energía producida será vendida a la red nacional y utilizará tecnologías de vanguardia para maximizar la eficiencia. A largo plazo, el proyecto creará empleos directos en la construcción y operación de las turbinas eólicas, además de beneficiar a las comunidades locales con el acceso a energía más barata y limpia. Este proyecto también contempla la capacitación de la fuerza laboral en energías renovables, fomentando el desarrollo de nuevas habilidades técnicas.',
-    'Energía', 'Piura, Perú', 200000, 150000, 0.35, '2027-08-20'),
+    'Energía', 'Piura, Perú', 200000, 150000, 0.35, '2024-06-04', '2025-08-20'),
 
   (9, 'Soluciones Tecnológicas para la Agricultura en Lima', 
     'Desarrollo de herramientas tecnológicas para mejorar la productividad agrícola', 
     'Este proyecto propone la creación de plataformas tecnológicas que faciliten la gestión de cultivos, optimicen el uso de agua y recursos, y aumenten la eficiencia de los agricultores en Lima y otras regiones cercanas. La tecnología incluirá sensores para monitorear el crecimiento de los cultivos, drones para la aplicación de pesticidas y fertilizantes, y plataformas móviles que proporcionen recomendaciones en tiempo real sobre prácticas agrícolas sostenibles. Además, se brindarán servicios de capacitación a los agricultores para que puedan integrar estas tecnologías en sus prácticas diarias. El objetivo es aumentar la productividad agrícola, reducir el uso de recursos naturales y mejorar la calidad de los productos para que los agricultores puedan acceder a mejores mercados tanto locales como internacionales.',
-    'Tecnología y Innovación', 'Lima, Perú', 180000, 130000, 0.45, '2026-12-10'),
+    'Tecnología y Innovación', 'Lima, Perú', 180000, 130000, 0.45, '2024-06-05', '2025-12-10'),
 
   (9, 'Viviendas Sostenibles en Arequipa para Familias de Bajos Recursos', 
     'Desarrollo de un proyecto inmobiliario que utilice materiales ecológicos y eficiencia energética', 
     'El proyecto busca construir viviendas utilizando materiales sostenibles como madera certificada, materiales reciclados y técnicas de eficiencia energética para reducir el consumo de energía en las viviendas. Se desarrollarán viviendas accesibles para familias de ingresos medios y bajos en Arequipa, con un diseño que maximice la utilización de recursos naturales como la luz solar y la ventilación natural. Además de la sostenibilidad en la construcción, el proyecto se enfocará en la creación de un entorno verde que promueva la calidad de vida, con espacios comunes para la comunidad y el fomento de un estilo de vida más saludable. Este proyecto contribuirá al desarrollo de un mercado inmobiliario más responsable y a la creación de una comunidad más sostenible.',
-    'Construcción e Infraestructura', 'Arequipa, Perú', 220000, 150000, 0.3, '2027-04-25'),
+    'Construcción e Infraestructura', 'Arequipa, Perú', 220000, 150000, 0.3, '2024-06-06', '2026-04-25'),
 
   (9, 'Telemedicina para Comunidades Aisladas en Loreto', 
     'Desarrollo de una plataforma digital de telemedicina para atender a poblaciones remotas', 
     'Este proyecto tiene como objetivo ofrecer consultas médicas a distancia mediante una plataforma digital de telemedicina, destinada a las comunidades más remotas del departamento de Loreto, que no tienen acceso a servicios de salud especializados. A través de esta plataforma, los pacientes podrán recibir diagnósticos, recomendaciones médicas y seguimiento de su salud sin necesidad de desplazarse a centros urbanos. La plataforma incluirá un sistema de videollamadas, mensajería segura y una base de datos de médicos especializados en diversas áreas. Además, se implementará un sistema de monitoreo remoto de pacientes para condiciones crónicas, lo que permitirá realizar un seguimiento constante sin que el paciente tenga que estar físicamente presente. El proyecto también incluirá campañas de concientización sobre el uso de la telemedicina y el acceso a servicios médicos en línea.',
-    'Salud', 'Loreto, Perú', 150000, 95000, 0.4, '2027-03-15');
+    'Salud', 'Loreto, Perú', 150000, 95000, 0.4, '2024-06-07', '2026-03-15');
 
 -- Poblamiento de tabla Inversiones
 INSERT INTO Inversiones (proyecto_id, inversor_id, monto_invertido, fecha_inversion) 

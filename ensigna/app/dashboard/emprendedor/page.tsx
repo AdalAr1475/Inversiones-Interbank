@@ -10,6 +10,7 @@ import {
   Eye,
   MessageSquare,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SelectTrigger } from "@radix-ui/react-select";
+import { jwtDecode } from "jwt-decode";
 
 interface DocumentoProyecto {
   id: number;
@@ -51,16 +53,29 @@ interface DocumentoProyecto {
 
 interface Proyecto {
   id: number;
-  nombre: string;
+  nombre_proyecto: string;
+  total_recaudado: number;
+  objetivo: number;
+  porcentaje: number;
+  estado: string;
+  descripción: string;
+  descripción_extensida: string;
+  tiempo_valor: number;
+  tiempo_unidad: string;
+  tiempo_valor_total: number;
+  tiempo_unidad_total: string;
+  inversores: number;
 }
 
 export default function DashboardEmpresa() {
-  //Hooks
+
+  const [emprendedorId, setEmprendedorId] = useState("");
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [proyectoId, setProyectoId] = useState<number | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState("");
 
   // --- Nuevos Hooks para manejar el estado de firma y verificación ---
@@ -71,6 +86,76 @@ export default function DashboardEmpresa() {
   const [newDocumentDescription, setNewDocumentDescription] = useState<string>(
     "Documento subido desde UI"
   ); // Para la descripción
+
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+      id: number
+      email: string
+      tipo_usuario: string
+      exp: number
+  }
+
+  useEffect(() => {
+    if (token) {
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      setEmprendedorId(String(decodedToken.id));
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (emprendedorId) {
+      fetch(`http://localhost:8000/project/emprendedor/${emprendedorId}`)
+        .then((res) => {
+          if (res.status === 404) {
+            console.log("No hay proyectos para este emprendedor (HTTP 404).");
+            return [];
+          }
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data: Proyecto[] | any) => { 
+          if (Array.isArray(data)) {
+            console.log("Datos de proyectos recibidos:", data);
+            setProyectos(data);
+          } else {
+            console.warn("La API no devolvió un array de proyectos:", data);
+            setProyectos([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error al cargar proyectos:", error);
+          setProyectos([]); 
+        });
+    }
+  }, [emprendedorId]);
+
+  const proyectos_nombre = proyectos.map(proyecto => proyecto.nombre_proyecto);
+  const [proyectoSeleccionado, setProyectoSeleccionado] = useState<string>("");
+
+  useEffect(() => {
+    if (proyectos.length > 0 && !proyectoSeleccionado) {
+      
+    } else if (proyectos.length === 0) {
+      setProyectoSeleccionado("");
+      setProyectoId(null);
+    }
+  }, [proyectos, proyectoSeleccionado]);
+
+  const handleProyectoChange = (nombreProyecto: string) => {
+    setProyectoSeleccionado(nombreProyecto);
+    
+    const proyecto = proyectos.find(p => p.nombre_proyecto
+      
+       === nombreProyecto);
+    if (proyecto) {
+      setProyectoId(proyecto.id);
+      console.log("Proyecto seleccionado:", proyecto);
+    } else {
+      setProyectoId(null);
+    }
+  };
 
   const handleUploadClick = () => {
     if (fileInputRef.current) {
@@ -140,11 +225,6 @@ export default function DashboardEmpresa() {
     reader.readAsDataURL(file);
   };
 
-  // Manejador para el cambio de proyecto seleccionado
-  const handleProyectoChange = (value: string) => {
-    setProyectoId(parseInt(value)); // Convertir el valor de string a number
-  };
-
   // Función para verificar la firma de un documento
   const handleVerifyDocument = async (documentId: number) => {
     setVerifyingId(documentId); // Inicia el estado de carga
@@ -177,22 +257,6 @@ export default function DashboardEmpresa() {
       setVerifyingId(null); // Finaliza el estado de carga
     }
   };
-
-  // --- EFECTO PARA CARGAR PROYECTOS AL INICIO ---
-  useEffect(() => {
-    fetch(`http://localhost:8000/project/${1}`) // Asegúrate de que esta URL sea la correcta para obtener tus proyectos
-      .then((res) => res.json())
-      .then((data: Proyecto[]) => {
-        setProyectos(data);
-        // Opcional: Seleccionar automáticamente el primer proyecto si existe
-        if (data.length > 0) {
-          setProyectoId(data[0].id);
-        }
-      })
-      .catch((error) => {
-        console.error("Error al cargar proyectos:", error);
-      });
-  }, []); // Se ejecuta solo una vez al montar el componente
 
   // --- EFECTO PARA CARGAR DOCUMENTOS CUANDO EL proyectoId CAMBIA ---
   useEffect(() => {
@@ -235,6 +299,93 @@ export default function DashboardEmpresa() {
               <p className="text-gray-600">
                 Gestiona tu campaña de financiamiento y conecta con inversores
               </p>
+            </div>
+
+            <div className="mb-8 space-y-6">
+              {/* Botón Crear Proyecto Mejorado */}
+              <div className="bg-green-600 rounded-xl p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-xl font-semibold mb-2">¿Listo para tu próximo proyecto?</h1>
+                    <p className="text-green-100">
+                      Crea una nueva campaña de financiamiento y comienza a atraer inversores
+                    </p>
+                  </div>
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-green-600 hover:bg-gray-100 font-bold px-10 py-7 shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Crear Nuevo Proyecto
+                  </Button>
+                </div>
+              </div>
+
+              {/* Selector de Proyectos */}
+              <Card className="border-2 border-gray-200 bg-gray-50/50">
+                <CardHeader>
+                  <CardTitle className="text-green-800">Mis Proyectos</CardTitle>
+                  <CardDescription>Selecciona un proyecto existente para gestionar</CardDescription>
+                </CardHeader>
+                <CardContent>   
+                  <div className="relative">
+                    <Select value={proyectoSeleccionado} onValueChange={handleProyectoChange}>
+                      <SelectTrigger className="border-gray-200 focus:border-green-500 focus:ring-green-500 w-full bg-white">
+                        {/* Contenido del SelectTrigger */}
+                        {proyectoSeleccionado ? (
+                          <div className="flex items-center space-x-3 w-full"> {/* Usamos space-x-3 para el espaciado */}
+                            <div className={`w-2 h-2 rounded-full ${
+                                // Aquí buscamos el proyecto completo usando proyectoSeleccionado
+                                proyectos.find(p => p.nombre_proyecto === proyectoSeleccionado)?.estado === 'activo'
+                                  ? 'bg-green-500'
+                                  : 'bg-gray-400'
+                              }`}></div>
+                            <SelectValue placeholder="Selecciona un proyecto para gestionar">
+                              {/* El nombre del proyecto seleccionado se muestra aquí */}
+                              {proyectoSeleccionado}
+                            </SelectValue>
+                          </div>
+                        ) : (
+                          <SelectValue placeholder="Selecciona un proyecto para gestionar" />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        {proyectos_nombre && proyectos_nombre.length > 0 ? (
+                          proyectos_nombre.map((proyecto, index) => (
+                            <SelectItem key={index} value={proyecto}>
+                              {/* Aseguramos que este div ocupe todo el ancho del SelectItem para que space-x funcione bien */}
+                              <div className="flex items-center w-full"> 
+                                <div className={`w-2 h-2 rounded-full ${
+                                    proyectos.find(p => p.nombre_proyecto === proyecto)?.estado === 'activo' 
+                                      ? 'bg-green-500' 
+                                      : 'bg-gray-400'
+                                  }`}></div>
+                                {/* Ajusta este valor de 'ml-X' o 'mr-X' para controlar el espacio entre el círculo y el texto.
+                                  Podrías usar 'ml-4' o 'ml-6' para más espacio.
+                                  Alternativamente, puedes usar 'space-x-X' en el div padre si los agrupas.
+                                */}
+                                <span className="ml-3">{proyecto}</span> 
+                                {/* O podrías usar 'mr-3' en el div del círculo */}
+                              </div>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-projects" disabled>
+                            No hay proyectos disponibles
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                    
+                    {proyectos_nombre && proyectos_nombre.length === 0 && (
+                      <p className="text-xs text-gray-500 mt-2 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        Crea tu primer proyecto para comenzar
+                      </p>
+                    )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Stats Cards */}
@@ -414,10 +565,6 @@ export default function DashboardEmpresa() {
                         <CardTitle>Acciones Rápidas</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
-                        <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Actualizar Campaña
-                        </Button>
                         <Button variant="outline" className="w-full">
                           <MessageSquare className="w-4 h-4 mr-2" />
                           Mensaje a Inversores
@@ -554,38 +701,6 @@ export default function DashboardEmpresa() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {/* SELECTOR DE PROYECTO */}
-                    <div className="mb-6">
-                      <Label htmlFor="selectProject">
-                        Seleccionar Proyecto
-                      </Label>
-                      <Select
-                        value={proyectoId ? String(proyectoId) : ""}
-                        onValueChange={handleProyectoChange}
-                      >
-                        <SelectTrigger className="w-[240px]">
-                          <SelectValue placeholder="Selecciona un proyecto" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.isArray(proyectos) && proyectos.length === 0 ? (
-                            <SelectItem value="no-projects" disabled>
-                              No hay proyectos disponibles
-                            </SelectItem>
-                          ) : Array.isArray(proyectos) ? (
-                            proyectos.map((p) => (
-                              <SelectItem key={p.id} value={String(p.id)}>
-                                {p.nombre}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="error" disabled>
-                              Error cargando proyectos
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
                     {/* Subida de documento nuevo - AÑADIR INPUTS PARA DESCRIPCION Y TIPO */}
                     <div className="mb-6 space-y-4">
                       <div>
