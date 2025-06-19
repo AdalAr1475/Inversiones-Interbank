@@ -39,3 +39,11 @@ def obtener_inversiones(inversor_id: int, db: Session = Depends(get_db)):
     if not inversiones:
         raise HTTPException(status_code=404, detail="No se encontraron inversiones para este inversor")
     return inversiones
+
+#Endpoint para obtener el id de la ultima inversion creada en un proyecto
+@router.get("/get-ultima-inversion-proyecto/{proyecto_id}")
+def obtener_ultima_inversion(proyecto_id: int, db: Session = Depends(get_db)):
+    ultima_inversion = db.query(Inversion).filter_by(proyecto_id=proyecto_id).order_by(Inversion.fecha_inversion.desc()).first()
+    if not ultima_inversion:
+        raise HTTPException(status_code=404, detail="No se encontraron inversiones para este proyecto")
+    return {"ultima_inversion_id": ultima_inversion.id}

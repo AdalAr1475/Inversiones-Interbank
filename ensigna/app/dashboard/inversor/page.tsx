@@ -15,20 +15,38 @@ import HeaderLat from "@/components/header-lat";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MisInversionesSection from "@/components/mis-inversiones-section";
 import NuevasOportunidadesSection from "@/components/nuevas-oportunidades-section";
-import MisContratosSeccion from "@/components/mis-contratos-seccion";
+import { MisContratosSeccion } from "@/components/mis-contratos-seccion";
 import { getInvestSummary, InvestSummary } from "@/api/invest";
 import { useSidebar } from "@/context/SidebarContext";
+import { useSearchParams } from "next/navigation";
 
 export default function DashboardInversor() {
   // Estado para el resumen de inversiones
-  const [investSummary, setInvestSummary] = useState<InvestSummary | null>(null);
+  const [investSummary, setInvestSummary] = useState<InvestSummary | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
+
+  // --- Lógica para controlar las pestañas ---
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const inversionIdFromUrl = searchParams.get("inversion_id"); // También leemos el ID de la inversión aquí
+
+  // Estado para la pestaña activa
+  const [activeTab, setActiveTab] = useState(tabFromUrl || "portafolio");
 
   interface DecodedToken {
     id: string;
     rol: string;
     exp: number;
   }
+
+  // Efecto para actualizar la pestaña si la URL cambia
+  useEffect(() => {
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl, activeTab]);
 
   useEffect(() => {
     // Función para cargar los datos del resumen de inversiones
@@ -60,20 +78,24 @@ export default function DashboardInversor() {
 
   // Formatear el monto del portafolio con separadores de miles
   const formatCurrency = (amount: number) => {
-    return amount.toLocaleString('es-ES', {
-      style: 'currency',
-      currency: 'USD',
+    return amount.toLocaleString("es-ES", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     });
   };
 
-  const {collapsed} = useSidebar();
+  const { collapsed } = useSidebar();
 
   return (
-
     <ProtectedRoute requiredRole="inversor">
-      <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
+      <div
+        className={
+          "min-h-screen bg-white transition-all duration-150" +
+          (collapsed ? " ml-16" : " ml-56")
+        }
+      >
         <HeaderLat />
         <div className="transition-all duration-300">
           {/* Main Content */}
@@ -101,7 +123,9 @@ export default function DashboardInversor() {
                     <div className="h-8 w-32 bg-gray-200 animate-pulse rounded"></div>
                   ) : (
                     <div className="text-2xl font-bold text-green-600">
-                      {investSummary ? formatCurrency(investSummary.porfolio_total) : "$0"}
+                      {investSummary
+                        ? formatCurrency(investSummary.porfolio_total)
+                        : "$0"}
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
@@ -170,15 +194,13 @@ export default function DashboardInversor() {
               </Card>
             </div>
 
-            <Tabs defaultValue="portafolio" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList>
                 <TabsTrigger value="portafolio">Mi Portafolio</TabsTrigger>
                 <TabsTrigger value="oportunidades">
                   Nuevas Oportunidades
                 </TabsTrigger>
-                <TabsTrigger value="contratos">
-                  Mis contratos
-                </TabsTrigger>
+                <TabsTrigger value="contratos">Mis contratos</TabsTrigger>
               </TabsList>{" "}
               <TabsContent value="portafolio" className="space-y-6">
                 <MisInversionesSection />
@@ -187,7 +209,7 @@ export default function DashboardInversor() {
                 <NuevasOportunidadesSection />
               </TabsContent>
               <TabsContent value="contratos" className="space-y-6">
-                <MisContratosSeccion />
+                <MisContratosSeccion selectedInversionId={inversionIdFromUrl}/>
               </TabsContent>
             </Tabs>
           </div>

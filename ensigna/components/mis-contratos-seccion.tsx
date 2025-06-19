@@ -40,16 +40,27 @@ interface Inversion {
   monto: number;
 }
 
-export default function MisContratosSeccion() {
+// --- Define las props que el componente recibirá ---
+interface MisContratosSeccionProps {
+  selectedInversionId?: string | null;
+}
+
+export const MisContratosSeccion = ({
+  selectedInversionId,
+}: MisContratosSeccionProps) => {
   //Hooks
   const [usuarioId, setUsuarioId] = useState<number>(0);
   const [inversiones, setInversiones] = useState<Inversion[]>([]);
   const [inversionId, setInversionId] = useState<number>(0);
   const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
+  const [loadingInversiones, setLoadingInversiones] = useState(true);
 
   // --- Nuevos Hooks para manejar el estado de firma y verificación ---
   const [signingId, setSigningId] = useState<number | null>(null);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
+
+  //Enrutador
+  const searchParams = useSearchParams();
 
   // Función para firmar un documento
   const handleSignDocument = async (documentId: number) => {
@@ -158,10 +169,9 @@ export default function MisContratosSeccion() {
     }
   };
 
-  // --- Nueva función para manejar el cambio en el selector ---
+  //Para manejar cambios en el selector de inversiones
   const handleInversionChange = (id: string) => {
-    const newInversionId = parseInt(id, 10);
-    setInversionId(newInversionId);
+    setInversionId(parseInt(id, 10));
   };
 
   //Sección para obtener id de usuario
@@ -185,51 +195,52 @@ export default function MisContratosSeccion() {
     }
   });
 
-  //Efecto para traer los contrato cuando cambie la inversionID
+  // Efecto para traer los contratos cuando cambie la inversionID seleccionada
   useEffect(() => {
-    if (!inversionId) return;
-    // Aquí podrías consumir una API que traiga los documentos
-    fetch(
-      `http://localhost:8000/documents/contrato-por-inversion/${inversionId}`
-    ) // Ejemplo
+    if (!inversionId) {
+      setDocumentos([]); // Limpia los documentos si no hay inversión seleccionada
+      return;
+    };
+
+    fetch(`http://localhost:8000/documents/contrato-por-inversion/${inversionId}`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Documentos recibidos:", data);
         setDocumentos(data);
       });
-  }, [inversionId]);
+  }, [inversionId]); // Correcto, depende solo de inversionId
 
-  //Efecto para traer las inversiones
+
+  // Efecto para traer las inversiones CUANDO tengamos el usuarioId
   useEffect(() => {
-    // Aquí podrías consumir una API que traiga las inversiones del usuario
-    fetch(
-      `http://localhost:8000/documents/get-inversiones-usuario/${usuarioId}`
-    )
+    if (!usuarioId) return; // No hacer nada si no tenemos el ID de usuario
+
+    setLoadingInversiones(true);
+    fetch(`http://localhost:8000/documents/get-inversiones-usuario/${usuarioId}`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Inversiones recibidas:", data);
-        setInversiones(data);
-      });
-  }, []);
+        if (Array.isArray(data)) {
+          setInversiones(data);
+        }
+      })
+      .catch(error => console.error("Error al cargar inversiones:", error))
+      .finally(() => setLoadingInversiones(false));
+  }, [usuarioId]); // Depende de usuarioId
 
-  //Efecto para leer la url y procesar inversion
-  /*
+ // Efecto para seleccionar la inversión que viene de la URL (prop)
+  // Se ejecuta cuando la prop 'selectedInversionId' cambia O cuando la lista de 'inversiones' se carga.
   useEffect(() => {
-  const inversionIdFromUrl = searchParams.get("inversion_id");
+    if (selectedInversionId && inversiones.length > 0) {
+      const idNum = parseInt(selectedInversionId, 10);
+      const inversionExiste = inversiones.some(inv => inv.id === idNum);
 
-  // Nos aseguramos de tener el ID de la URL y de que la lista de inversiones ya se haya cargado
-  if (inversionIdFromUrl && inversiones.length > 0) {
-    const idNum = parseInt(inversionIdFromUrl, 10);
-    
-    // Verificamos si la inversión de la URL existe en nuestra lista
-    const inversionExiste = inversiones.some(inv => inv.id === idNum);
-
-    if (inversionExiste) {
-      setInversionId(idNum);
+      if (inversionExiste) {
+        setInversionId(idNum); // ¡Aquí se establece el valor para el <Select>!
+      }
     }
-  }
-}, [searchParams, inversiones]); // Dependencias: se ejecuta si la URL o la lista de inversiones cambian
-*/
+  }, [selectedInversionId, inversiones]);
+
   return (
     <Card>
       <CardHeader>
@@ -240,41 +251,46 @@ export default function MisContratosSeccion() {
       </CardHeader>
       <CardContent>
         {/* --- SELECTOR DE INVERSIONES --- */}
-      <div>
-        <Label htmlFor="inversion-selector">Selecciona una Inversión</Label>
-        <Select
-          value={inversionId?.toString() ?? ""}
-          onValueChange={handleInversionChange}
-        >
-          <SelectTrigger id="inversion-selector">
-            <SelectValue placeholder="Elige una inversión..." />
-          </SelectTrigger>
-          <SelectContent>
-            {inversiones.length > 0 ? (
-              inversiones.map((inv) => (
-                <SelectItem key={inv.id} value={inv.id.toString()}>
-                  {/* Muestra información útil, como el nombre del proyecto y el monto */}
-                  {inv.proyecto_nombre} - ${inv.monto.toLocaleString()}
+        <div>
+          <Label htmlFor="inversion-selector">Selecciona una Inversión</Label>
+          <Select
+            value={inversionId ? inversionId.toString() : ""} // Controlado por el estado
+            onValueChange={handleInversionChange}
+            disabled={loadingInversiones} // Deshabilitar mientras carga
+          >
+            <SelectTrigger id="inversion-selector">
+              <SelectValue placeholder="Elige una inversión..." />
+            </SelectTrigger>
+            <SelectContent>
+              {inversiones.length > 0 ? (
+                inversiones.map((inv) => (
+                  <SelectItem key={inv.id} value={inv.id.toString()}>
+                    {/* Muestra información útil, como el nombre del proyecto y el monto */}
+                    {inv.proyecto_nombre} - ${inv.monto.toLocaleString()}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-inversiones" disabled>
+                  No tienes inversiones todavía.
                 </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="no-inversiones" disabled>
-                No tienes inversiones todavía.
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-      </div>
-      <Separator />
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        <Separator className="my-4"/>
         {/* Lista de documentos */}
         {/* Si no hay inversión seleccionada, muestra un mensaje */}
         {!inversionId && (
-            <p className="text-sm text-gray-500">Por favor, selecciona una inversión para ver sus documentos.</p>
+          <p className="text-sm text-gray-500">
+            Por favor, selecciona una inversión para ver sus documentos.
+          </p>
         )}
-        
+
         {/* Cuando hay inversión pero no documentos */}
         {inversionId && documentos.length === 0 && (
-          <p className="text-sm text-gray-500">No hay documentos para esta inversión.</p>
+          <p className="text-sm text-gray-500">
+            No hay documentos para esta inversión.
+          </p>
         )}
 
         <div className="space-y-4">
@@ -353,4 +369,4 @@ export default function MisContratosSeccion() {
       </CardContent>
     </Card>
   );
-}
+};

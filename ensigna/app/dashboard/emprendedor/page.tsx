@@ -362,7 +362,7 @@ export default function DashboardEmpresa() {
       }, 2000);
 
       //Después de crear el proyecto, redirigir al usuario a la página del proyecto, pestaña documentos
-      router.push(`/dashboard/emprendedor?project_id=${data.new_proyecto_id}&tab="documentos"`);
+      router.push(`/dashboard/emprendedor?project_id=${data.new_proyecto_id}&tab=documentos`);
 
       // Opcional: mostrar un mensaje de éxito
       alert("¡Proyecto creado y redirigiendo a la pestaña de documentos!");
