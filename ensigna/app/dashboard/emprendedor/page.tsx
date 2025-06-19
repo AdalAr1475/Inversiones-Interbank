@@ -39,7 +39,7 @@ import {
 import { SelectTrigger } from "@radix-ui/react-select";
 import { jwtDecode } from "jwt-decode";
 import { useSidebar } from "@/context/SidebarContext";
-import { useRouter, useSearchParams } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 
 interface DocumentoProyecto {
   id: number;
