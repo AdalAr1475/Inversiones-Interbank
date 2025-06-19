@@ -96,24 +96,35 @@ def get_conversaciones_empresa(
     db: Session = Depends(get_db)
 ):
     """
-    Obtiene todas las conversaciones (usuarios únicos) que han enviado mensajes a una empresa
+    Obtiene todas las conversaciones (usuarios únicos) que han enviado mensajes a una empresa (emprendedor)
     """
+    # Verificar que el usuario empresa_id sea efectivamente un emprendedor
+    empresa = db.query(Usuario).filter(
+        Usuario.id == empresa_id,
+        Usuario.tipo_usuario == 'emprendedor'
+    ).first()
+    if not empresa:
+        return []
+    
     # Subconsulta para obtener el último mensaje de cada usuario
     from sqlalchemy import func
     
-    # Obtener usuarios únicos que han enviado mensajes a la empresa
+    # Obtener usuarios únicos que han enviado mensajes a la empresa (emprendedor)
+    # Solo incluir usuarios de tipo 'inversor' que han contactado al emprendedor
     conversaciones = db.query(
         Mensaje.remitente_id.label('usuario_id'),
         Usuario.nombre.label('nombre_inversor'),
         Usuario.apellido_paterno.label('apellido_paterno_inversor'),
+        Usuario.apellido_materno.label('apellido_materno_inversor'),
         func.max(Mensaje.enviado_en).label('fecha_ultimo_mensaje')
     ).join(
         Usuario, Usuario.id == Mensaje.remitente_id
     ).filter(
         Mensaje.destinatario_id == empresa_id,
-        Mensaje.remitente_id != empresa_id  # Excluir mensajes de la propia empresa
+        Mensaje.remitente_id != empresa_id,  # Excluir mensajes de la propia empresa
+        Usuario.tipo_usuario == 'inversor'  # Solo mostrar conversaciones con inversores
     ).group_by(
-        Mensaje.remitente_id, Usuario.nombre, Usuario.apellido_paterno
+        Mensaje.remitente_id, Usuario.nombre, Usuario.apellido_paterno, Usuario.apellido_materno
     ).order_by(
         desc(func.max(Mensaje.enviado_en))
     ).all()
@@ -130,15 +141,16 @@ def get_conversaciones_empresa(
         
         resultado.append({
             "usuario_id": conv.usuario_id,
-            "usuario_nombre": f"{conv.nombre_inversor} {conv.apellido_inversor}",
+            "usuario_nombre": f"{conv.nombre_inversor} {conv.apellido_paterno_inversor}",
             "ultimo_mensaje": ultimo_mensaje.mensaje if ultimo_mensaje else "",
             "fecha_ultimo_mensaje": conv.fecha_ultimo_mensaje.isoformat() if conv.fecha_ultimo_mensaje else ""
         })
+    print(resultado)
     
     return resultado
 
 # Ruta para obtener información básica de un usuario
-@router.get("/usuario/{usuario_id}")
+@router.get("/chat/usuario/{usuario_id}")
 def get_usuario_info(
     usuario_id: int,
     db: Session = Depends(get_db)
@@ -152,8 +164,8 @@ def get_usuario_info(
     
     # Buscar información del inversor si existe
     inversor = db.query(Usuario).filter(Usuario.id == usuario_id).first()
-    nombre_completo = f"{inversor.nombre_inversor} {inversor.apellido_paterno_inversor}" if inversor else "Usuario"
-    
+    nombre_completo = f"{inversor.nombre} {inversor.apellido_paterno}" if inversor else "Usuario"
+    print(nombre_completo)
     return {
         "id": usuario.id,
         "nombre": nombre_completo,

@@ -95,7 +95,11 @@ export default function ChatDialog({ open, onOpenChange, project }: ChatDialogPr
       return;
     }
 
-    const empresaId = project.empresa_id || 5;
+    const empresaId = project.emprendedor_id;
+    if (typeof empresaId !== "number") {
+      setError("No se pudo identificar el proyecto. Por favor, intente nuevamente.");
+      return;
+    }
     
     // Cargar historial primero
     cargarHistorial(userId, empresaId);
@@ -173,7 +177,7 @@ export default function ChatDialog({ open, onOpenChange, project }: ChatDialogPr
         ws.close();
       }
     };
-  }, [open, project.empresa_id, getUserId, cargarHistorial]);
+  }, [open, project.emprendedor_id, getUserId, cargarHistorial]);
 
   // Auto-scroll al final cuando llegan nuevos mensajes
   useEffect(() => {
@@ -245,7 +249,7 @@ export default function ChatDialog({ open, onOpenChange, project }: ChatDialogPr
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center">
             <MessageCircle className="w-5 h-5 mr-2 text-green-600" />
-            Chat con {project.empresa}
+            Chat con {project.emprendedor}
           </DialogTitle>
           <DialogDescription>
             Chatea en tiempo real sobre el proyecto <span className="font-medium">{project.titulo}</span>.
