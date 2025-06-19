@@ -137,11 +137,17 @@ export default function DashboardEmpresa() {
   }
 
   useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token) {
       const decodedToken = jwtDecode<DecodedToken>(token);
       setEmprendedorId(String(decodedToken.id));
     }
-  }, [token]);
+    else {
+      redirect("/auth/login")
+    }
+  });
+
+  console.log(emprendedorId)
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search); // Usamos window.location.search para obtener los parámetros de la URL
