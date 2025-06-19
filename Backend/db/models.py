@@ -132,7 +132,6 @@ class DocumentoProyecto(Base):
     inversion_id = Column(Integer, ForeignKey("inversiones.id", ondelete="CASCADE"))
     nombre_documento = Column(String(255), nullable=False)
     descripcion_documento = Column(Text, nullable=False)
-    url = Column(Text, nullable=False)
     contenido_base64 = Column(Text)
     tipo_documento = Column(String(50), nullable=False)
     creado_en = Column(TIMESTAMP, server_default=func.current_timestamp())

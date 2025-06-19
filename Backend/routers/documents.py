@@ -11,7 +11,6 @@ from pydantic import BaseModel
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/documentos",
     tags=["Documentos"]
 )
 
@@ -37,6 +36,7 @@ class RegistrarDocumentoRequest(BaseModel):
     contenido_base64: str
     tipo_documento: str
     visibilidad: str = "privado"  # público | privado
+    usuario_id: int  
 
 @router.post("/registrar-documento")
 def crear_documento_endpoint(request: RegistrarDocumentoRequest, db: Session = Depends(get_db)):
@@ -48,6 +48,7 @@ def crear_documento_endpoint(request: RegistrarDocumentoRequest, db: Session = D
             contenido_base64=request.contenido_base64,
             tipo_documento=request.tipo_documento, # ¡NUEVO! Pasar el tipo de documento
             visibilidad=request.visibilidad,
+            inversor_id=request.usuario_id, # Asumiendo que el inversor_id es el usuario_id
             db=db
         )
         return {"mensaje": "Documento registrado con éxito", "documento_id": documento_id}
@@ -73,3 +74,15 @@ def obtener_documento(documento_id: int):
 @router.get("/documentos/{proyecto_id}")
 def listar_documentos(proyecto_id: int, db=Depends(get_db)):
     return doc_utils.listar_documentos(proyecto_id,db)
+
+@router.get("/copiar-contrato/{proyecto_id}")
+def copiar_contrato(proyecto_id: int, db=Depends(get_db)):
+    """
+    Endpoint para copiar la plantilla de contrato de un proyecto específico.
+    Retorna el id del contrato creado.
+    """
+    try:
+        contrato_id = doc_utils.copiar_contrato(proyecto_id, db)
+        return {"ID del contrato copiado": contrato_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al copiar contrato: {str(e)}")

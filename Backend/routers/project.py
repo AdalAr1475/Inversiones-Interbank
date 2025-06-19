@@ -334,5 +334,5 @@ def crear_proyecto(proyecto: ProyectoCreate, db: Session=Depends(get_db)):
     db.refresh(new_proyecto)
     
     return JSONResponse(content={
-                "message": "Proyecto creado exitosamente"
+                "message": "Proyecto creado exitosamente","new_proyecto_id": new_proyecto.id
             })

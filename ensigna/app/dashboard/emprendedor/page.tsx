@@ -39,7 +39,7 @@ import {
 import { SelectTrigger } from "@radix-ui/react-select";
 import { jwtDecode } from "jwt-decode";
 import { useSidebar } from "@/context/SidebarContext";
-import { redirect } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface DocumentoProyecto {
   id: number;
@@ -77,7 +77,6 @@ interface Inversor {
 }
 
 export default function DashboardEmpresa() {
-
   const [emprendedorId, setEmprendedorId] = useState("");
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [proyectoId, setProyectoId] = useState<number | null>(null);
@@ -93,7 +92,7 @@ export default function DashboardEmpresa() {
   const [tiempoValorTotal, setTiempoValorTotal] = useState<number | null>(null);
   const [tiempoUnidadTotal, setTiempoUnidadTotal] = useState("");
   const [inversores, setInversores] = useState<number | null>(null);
-  const [inversoresProyecto, setInversoresProyecto] = useState<Inversor[]>([])
+  const [inversoresProyecto, setInversoresProyecto] = useState<Inversor[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
@@ -109,6 +108,11 @@ export default function DashboardEmpresa() {
     "Documento subido desde UI"
   ); // Para la descripción
 
+  //Enrutador
+  const [activeTab, setActiveTab] = useState("proyecto"); // Pestaña por defecto
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nuevoProyecto, setNuevoProyecto] = useState({
     nombre_proyecto: "",
@@ -118,17 +122,18 @@ export default function DashboardEmpresa() {
     ubicacion: "",
     monto_pedido: 0.0,
     retorno_estimado: 0.0,
-    fecha_fin: ""
+    fecha_fin: "",
   });
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
   interface DecodedToken {
-    id: number
-    email: string
-    tipo_usuario: string
-    exp: number
+    id: number;
+    email: string;
+    tipo_usuario: string;
+    exp: number;
   }
 
   useEffect(() => {
@@ -147,14 +152,18 @@ export default function DashboardEmpresa() {
       // Llamar al backend para marcar la cuenta como activa
       const activateAccount = async () => {
         try {
-          await axios.get(`http://127.0.0.1:8000/users/activate-account?user_id=${userId}&success=true`);
+          await axios.get(
+            `http://127.0.0.1:8000/users/activate-account?user_id=${userId}&success=true`
+          );
           alert("¡Tu cuenta ha sido activada exitosamente!");
 
           // Redirigir a la página de Dashboard de Emprendedor
           window.location.href = "/dashboard/emprendedor"; // Redirección manual en el cliente
         } catch (error) {
           console.error("Error al activar la cuenta:", error);
-          alert("Hubo un error al activar tu cuenta. Por favor, inténtalo de nuevo o contacta a soporte.");
+          alert(
+            "Hubo un error al activar tu cuenta. Por favor, inténtalo de nuevo o contacta a soporte."
+          );
         }
       };
       activateAccount();
@@ -190,7 +199,9 @@ export default function DashboardEmpresa() {
 
   const fetchProyectos = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/project/emprendedor/${emprendedorId}`);
+      const res = await fetch(
+        `http://localhost:8000/project/emprendedor/${emprendedorId}`
+      );
       if (!res.ok) {
         throw new Error(`Error al cargar proyectos: ${res.status}`);
       }
@@ -207,12 +218,15 @@ export default function DashboardEmpresa() {
     }
   };
 
-  const proyectos_nombre = proyectos.map(proyecto => proyecto.nombre_proyecto);
+  const proyectos_nombre = proyectos.map(
+    (proyecto) => proyecto.nombre_proyecto
+  );
 
   const handleProyectoChange = (nombreProyecto: string) => {
-
     setProyectoNombre(nombreProyecto);
-    const proyecto = proyectos.find(p => p.nombre_proyecto === nombreProyecto);
+    const proyecto = proyectos.find(
+      (p) => p.nombre_proyecto === nombreProyecto
+    );
     if (proyecto) {
       setProyectoId(proyecto.id);
       setTotalRecaudado(proyecto.total_recaudado);
@@ -263,7 +277,7 @@ export default function DashboardEmpresa() {
       ubicacion: "",
       monto_pedido: 0.0,
       retorno_estimado: 0.0,
-      fecha_fin: ""
+      fecha_fin: "",
     });
     // Limpiar el mensaje y el estado de éxito/fallo
     setResponseMessage(null);
@@ -275,7 +289,9 @@ export default function DashboardEmpresa() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setNuevoProyecto((prev) => ({
@@ -314,7 +330,7 @@ export default function DashboardEmpresa() {
       ubicacion: nuevoProyecto.ubicacion,
     };
 
-    console.log(proyectoData)
+    console.log(proyectoData);
 
     try {
       const response = await fetch("http://localhost:8000/project/create", {
@@ -329,6 +345,7 @@ export default function DashboardEmpresa() {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Error desconocido");
       }
+      const data = await response.json();
 
       setResponseMessage("Proyecto creado exitosamente");
       setIsSuccess(true);
@@ -337,13 +354,18 @@ export default function DashboardEmpresa() {
         closeModal();
         fetchProyectos();
       }, 2000);
+
+      //Después de crear el proyecto, redirigir al usuario a la página del proyecto, pestaña documentos
+      router.push(`/dashboard/emprendedor?project_id=${data.new_proyecto_id}&tab="documentos"`);
+
+      // Opcional: mostrar un mensaje de éxito
+      alert("¡Proyecto creado y redirigiendo a la pestaña de documentos!");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      const errorMessage =
+        error instanceof Error ? error.message : "Error desconocido";
       setResponseMessage(errorMessage);
       setIsSuccess(false);
     }
-
-
   };
 
   const handleUploadClick = () => {
@@ -374,6 +396,7 @@ export default function DashboardEmpresa() {
             contenido_base64: base64Content,
             tipo_documento: newDocumentType, // ¡Envía el tipo de documento!
             visibilidad: "privado", // o público según el caso
+            usuario_id: emprendedorId, // Asumiendo que el emprendedor es el que sube el documento
           }
         );
 
@@ -396,7 +419,8 @@ export default function DashboardEmpresa() {
             error.response.data
           );
           alert(
-            `Error al registrar documento: ${error.response.data.detail || "Error desconocido del servidor."
+            `Error al registrar documento: ${
+              error.response.data.detail || "Error desconocido del servidor."
             }`
           );
         } else {
@@ -446,6 +470,34 @@ export default function DashboardEmpresa() {
     }
   };
 
+  //Efecto para cambiar pestaña con searchParams
+  useEffect(() => {
+    // Obtenemos los parámetros de la URL.
+    const projectIdFromUrl = searchParams.get("project_id");
+    const tabFromUrl = searchParams.get("tab");
+
+    // 1. Sincronizar la pestaña activa.
+    if (tabFromUrl) {
+        setActiveTab(tabFromUrl);
+    }
+
+    // 2. Sincronizar el proyecto seleccionado.
+    // Nos aseguramos de que tengamos un ID de proyecto en la URL y que la lista de proyectos ya se haya cargado.
+    if (projectIdFromUrl && proyectos.length > 0) {
+        const projectIdNum = parseInt(projectIdFromUrl, 10);
+        
+        // Buscamos el proyecto en la lista de proyectos cargados.
+        const proyectoSeleccionado = proyectos.find(p => p.id === projectIdNum);
+        
+        // Si encontramos el proyecto y no está ya seleccionado, lo seleccionamos.
+        if (proyectoSeleccionado && proyectoSeleccionado.id !== proyectoId) {
+            // Usamos tu función existente para asegurar que todos los estados se actualicen correctamente.
+            handleProyectoChange(proyectoSeleccionado.nombre_proyecto);
+        }
+    }
+}, [searchParams, proyectos]); // Dependencias: se ejecuta si la URL o la lista de proyectos cambian.
+
+
   // --- EFECTO PARA CARGAR DOCUMENTOS CUANDO EL proyectoId CAMBIA ---
   useEffect(() => {
     if (proyectoId === null) {
@@ -476,7 +528,12 @@ export default function DashboardEmpresa() {
 
   return (
     <ProtectedRoute requiredRole="emprendedor">
-      <div className={"min-h-screen bg-white transition-all duration-150" + (collapsed ? " ml-16" : " ml-56")}>
+      <div
+        className={
+          "min-h-screen bg-white transition-all duration-150" +
+          (collapsed ? " ml-16" : " ml-56")
+        }
+      >
         <HeaderLat />
         <div className="transition-all duration-300">
           {/* Main Content */}
@@ -496,9 +553,12 @@ export default function DashboardEmpresa() {
               <div className="bg-green-600 rounded-xl p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-xl font-semibold mb-2">¿Listo para tu próximo proyecto?</h1>
+                    <h1 className="text-xl font-semibold mb-2">
+                      ¿Listo para tu próximo proyecto?
+                    </h1>
                     <p className="text-green-100">
-                      Crea una nueva campaña de financiamiento y comienza a atraer inversores
+                      Crea una nueva campaña de financiamiento y comienza a
+                      atraer inversores
                     </p>
                   </div>
                   <Button
@@ -520,12 +580,15 @@ export default function DashboardEmpresa() {
                                 w-full sm:w-5/6 md:w-2/3 lg:w-1/2    
                                 py-4 px-6 max-h-[85vh] overflow-y-auto"
                   >
-
-                    <h2 className="text-xl font-semibold mb-4">Crear Nuevo Proyecto</h2>
+                    <h2 className="text-xl font-semibold mb-4">
+                      Crear Nuevo Proyecto
+                    </h2>
                     <form onSubmit={handleSubmit}>
                       {/* Nombre del proyecto */}
                       <div className="mb-4">
-                        <Label htmlFor="nombre_proyecto" className="mb-2">Nombre del Proyecto</Label>
+                        <Label htmlFor="nombre_proyecto" className="mb-2">
+                          Nombre del Proyecto
+                        </Label>
                         <Input
                           id="nombre_proyecto"
                           name="nombre_proyecto"
@@ -538,7 +601,9 @@ export default function DashboardEmpresa() {
 
                       {/* Descripción breve */}
                       <div className="mb-4">
-                        <Label htmlFor="descripcion" className="mb-2">Descripción breve</Label>
+                        <Label htmlFor="descripcion" className="mb-2">
+                          Descripción breve
+                        </Label>
                         <Input
                           id="descripcion"
                           name="descripcion"
@@ -551,7 +616,9 @@ export default function DashboardEmpresa() {
 
                       {/* Descripción completa */}
                       <div className="mb-4">
-                        <Label htmlFor="descripcion_extendida" className="mb-2">Descripción completa</Label>
+                        <Label htmlFor="descripcion_extendida" className="mb-2">
+                          Descripción completa
+                        </Label>
                         <textarea
                           id="descripcion_extendida"
                           name="descripcion_extendida"
@@ -565,18 +632,33 @@ export default function DashboardEmpresa() {
                       {/* Sector */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="mb-4">
-                          <Label htmlFor="sector" className="mb-2">Sector</Label>
+                          <Label htmlFor="sector" className="mb-2">
+                            Sector
+                          </Label>
                           <Select
                             value={nuevoProyecto.sector}
                             onValueChange={(value) =>
-                              setNuevoProyecto((prev) => ({ ...prev, sector: value }))
+                              setNuevoProyecto((prev) => ({
+                                ...prev,
+                                sector: value,
+                              }))
                             }
                           >
                             <SelectTrigger className="border border-green-200 focus:border-green-500 focus:ring-green-500 w-full rounded-md">
                               <SelectValue placeholder="Selecciona un sector" />
                             </SelectTrigger>
                             <SelectContent>
-                              {['Energía', 'Agricultura y Agroindustria', 'Tecnología y Innovación', 'Salud', 'Turismo', 'Finanzas', 'Construcción e Infraestructura', 'Sostenibilidad y Medio Ambiente', 'Educación'].map((sector) => (
+                              {[
+                                "Energía",
+                                "Agricultura y Agroindustria",
+                                "Tecnología y Innovación",
+                                "Salud",
+                                "Turismo",
+                                "Finanzas",
+                                "Construcción e Infraestructura",
+                                "Sostenibilidad y Medio Ambiente",
+                                "Educación",
+                              ].map((sector) => (
                                 <SelectItem key={sector} value={sector}>
                                   {sector}
                                 </SelectItem>
@@ -586,7 +668,9 @@ export default function DashboardEmpresa() {
                         </div>
 
                         <div className="mb-4">
-                          <Label htmlFor="ubicacion" className="mb-2">Ubicación</Label>
+                          <Label htmlFor="ubicacion" className="mb-2">
+                            Ubicación
+                          </Label>
                           <Input
                             id="ubicacion"
                             name="ubicacion"
@@ -596,12 +680,13 @@ export default function DashboardEmpresa() {
                             className="border-green-200 focus:border-green-500 focus:ring-green-500"
                           />
                         </div>
-
                       </div>
 
                       {/* Monto pedido */}
                       <div className="mb-4">
-                        <Label htmlFor="monto_pedido" className="mb-2">Monto pedido</Label>
+                        <Label htmlFor="monto_pedido" className="mb-2">
+                          Monto pedido
+                        </Label>
                         <Input
                           id="monto_pedido"
                           name="monto_pedido"
@@ -615,7 +700,9 @@ export default function DashboardEmpresa() {
 
                       {/* Retorno estimado */}
                       <div className="mb-4">
-                        <Label htmlFor="retorno_estimado" className="mb-2">Retorno estimado (%)</Label>
+                        <Label htmlFor="retorno_estimado" className="mb-2">
+                          Retorno estimado (%)
+                        </Label>
                         <Input
                           id="retorno_estimado"
                           name="retorno_estimado"
@@ -629,7 +716,9 @@ export default function DashboardEmpresa() {
 
                       {/* Fecha fin */}
                       <div className="mb-4">
-                        <Label htmlFor="fecha_fin" className="mb-2">Fecha de fin</Label>
+                        <Label htmlFor="fecha_fin" className="mb-2">
+                          Fecha de fin
+                        </Label>
                         <Input
                           id="fecha_fin"
                           name="fecha_fin"
@@ -643,14 +732,20 @@ export default function DashboardEmpresa() {
 
                       {responseMessage && (
                         <div
-                          className={`mb-4 p-4 rounded-md text-white ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`}
+                          className={`mb-4 p-4 rounded-md text-white ${
+                            isSuccess ? "bg-green-600" : "bg-red-600"
+                          }`}
                         >
                           {responseMessage}
                         </div>
                       )}
 
                       <div className="flex justify-end space-x-4">
-                        <Button className="mb-2" variant="outline" onClick={closeModal}>
+                        <Button
+                          className="mb-2"
+                          variant="outline"
+                          onClick={closeModal}
+                        >
                           Cancelar
                         </Button>
                         <Button type="submit">Crear Proyecto</Button>
@@ -663,22 +758,35 @@ export default function DashboardEmpresa() {
               {/* Selector de Proyectos */}
               <Card className="border-2 border-gray-200 bg-gray-50/50">
                 <CardHeader>
-                  <CardTitle className="text-green-800">Mis Proyectos</CardTitle>
-                  <CardDescription>Selecciona un proyecto existente para gestionar</CardDescription>
+                  <CardTitle className="text-green-800">
+                    Mis Proyectos
+                  </CardTitle>
+                  <CardDescription>
+                    Selecciona un proyecto existente para gestionar
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="relative">
-                    <Select value={proyectoNombre} onValueChange={handleProyectoChange}>
+                    <Select
+                      value={proyectoNombre}
+                      onValueChange={handleProyectoChange}
+                    >
                       <SelectTrigger className="border-gray-200 focus:border-green-500 focus:ring-green-500 w-full bg-white">
                         {/* Contenido del SelectTrigger */}
                         {proyectoNombre ? (
-                          <div className="flex items-center space-x-3 w-full"> {/* Usamos space-x-3 para el espaciado */}
-                            <div className={`w-2 h-2 rounded-full ${
-                              // Aquí buscamos el proyecto completo usando proyectoSeleccionado
-                              proyectos.find(p => p.nombre_proyecto === proyectoNombre)?.estado === 'activo'
-                                ? 'bg-green-500'
-                                : 'bg-gray-400'
-                              }`}></div>
+                          <div className="flex items-center space-x-3 w-full">
+                            {" "}
+                            {/* Usamos space-x-3 para el espaciado */}
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                // Aquí buscamos el proyecto completo usando proyectoSeleccionado
+                                proyectos.find(
+                                  (p) => p.nombre_proyecto === proyectoNombre
+                                )?.estado === "activo"
+                                  ? "bg-green-500"
+                                  : "bg-gray-400"
+                              }`}
+                            ></div>
                             <SelectValue placeholder="Selecciona un proyecto para gestionar">
                               {/* El nombre del proyecto seleccionado se muestra aquí */}
                               {proyectoNombre}
@@ -694,10 +802,15 @@ export default function DashboardEmpresa() {
                             <SelectItem key={index} value={proyecto}>
                               {/* Aseguramos que este div ocupe todo el ancho del SelectItem para que space-x funcione bien */}
                               <div className="flex items-center w-full">
-                                <div className={`w-2 h-2 rounded-full ${proyectos.find(p => p.nombre_proyecto === proyecto)?.estado === 'activo'
-                                  ? 'bg-green-500'
-                                  : 'bg-gray-400'
-                                  }`}></div>
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    proyectos.find(
+                                      (p) => p.nombre_proyecto === proyecto
+                                    )?.estado === "activo"
+                                      ? "bg-green-500"
+                                      : "bg-gray-400"
+                                  }`}
+                                ></div>
                                 {/* Ajusta este valor de 'ml-X' o 'mr-X' para controlar el espacio entre el círculo y el texto.
                                   Podrías usar 'ml-4' o 'ml-6' para más espacio.
                                   Alternativamente, puedes usar 'space-x-X' en el div padre si los agrupas.
@@ -759,9 +872,7 @@ export default function DashboardEmpresa() {
                       <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">
-                        {inversores}
-                      </div>
+                      <div className="text-2xl font-bold">{inversores}</div>
                       <p className="text-xs text-muted-foreground">
                         +1 esta semana
                       </p>
@@ -784,7 +895,7 @@ export default function DashboardEmpresa() {
                   </Card>
                 </div>
 
-                <Tabs defaultValue="proyecto" className="space-y-6">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                   <TabsList>
                     <TabsTrigger value="proyecto">Mi Proyecto</TabsTrigger>
                     <TabsTrigger value="inversores">Inversores</TabsTrigger>
@@ -802,13 +913,13 @@ export default function DashboardEmpresa() {
                                 {estado}
                               </Badge>
                             </div>
-                            <CardDescription>
-                              {descripcion}
-                            </CardDescription>
+                            <CardDescription>{descripcion}</CardDescription>
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-4">
-                              <h4 className="text-lg font-semibold">Descripción</h4>
+                              <h4 className="text-lg font-semibold">
+                                Descripción
+                              </h4>
                               <div className="text-justify text-sm">
                                 {descripcionExtendida}
                               </div>
@@ -820,17 +931,26 @@ export default function DashboardEmpresa() {
                                   {porcentaje}% completado
                                 </span>
                               </div>
-                              <Progress value={porcentaje} className="w-full h-3" />
+                              <Progress
+                                value={porcentaje}
+                                className="w-full h-3"
+                              />
                               <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                  <span className="text-gray-600">Recaudado:</span>
+                                  <span className="text-gray-600">
+                                    Recaudado:
+                                  </span>
                                   <div className="font-semibold text-green-600">
                                     ${totalRecaudado}
                                   </div>
                                 </div>
                                 <div>
-                                  <span className="text-gray-600">Objetivo:</span>
-                                  <div className="font-semibold">${objetivo}</div>
+                                  <span className="text-gray-600">
+                                    Objetivo:
+                                  </span>
+                                  <div className="font-semibold">
+                                    ${objetivo}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -851,14 +971,19 @@ export default function DashboardEmpresa() {
                         {inversoresProyecto.length > 0 ? (
                           <div className="space-y-4">
                             {inversoresProyecto.map((inversor, index) => (
-                              <div key={index} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                              <div
+                                key={index}
+                                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                              >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-4">
                                     <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-semibold">
                                       {inversor.nombre.charAt(0)}
                                     </div>
                                     <div>
-                                      <h3 className="font-semibold">{inversor.nombre} {inversor.apellido}</h3>
+                                      <h3 className="font-semibold">
+                                        {inversor.nombre} {inversor.apellido}
+                                      </h3>
                                       <p className="text-sm text-gray-600">
                                         {inversor.tiempo_desde_inversion}
                                       </p>
@@ -878,7 +1003,9 @@ export default function DashboardEmpresa() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-500">No hay inversores aún.</p>
+                          <p className="text-sm text-gray-500">
+                            No hay inversores aún.
+                          </p>
                         )}
                       </CardContent>
                     </Card>
@@ -912,7 +1039,9 @@ export default function DashboardEmpresa() {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="documentType">Tipo de Documento</Label>
+                            <Label htmlFor="documentType">
+                              Tipo de Documento
+                            </Label>
                             <Select
                               value={newDocumentType}
                               onValueChange={setNewDocumentType}
@@ -921,7 +1050,9 @@ export default function DashboardEmpresa() {
                                 <SelectValue placeholder="Selecciona un tipo" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Contrato">Contrato</SelectItem>
+                                <SelectItem value="Contrato">
+                                  Contrato
+                                </SelectItem>
                                 <SelectItem value="Acuerdo">Acuerdo</SelectItem>
                                 <SelectItem value="Financiero">
                                   Financiero
@@ -934,8 +1065,13 @@ export default function DashboardEmpresa() {
                               </SelectContent>
                             </Select>
                           </div>
-                          <Button onClick={handleUploadClick} disabled={uploading}>
-                            {uploading ? "Subiendo..." : "Subir nuevo documento"}
+                          <Button
+                            onClick={handleUploadClick}
+                            disabled={uploading}
+                          >
+                            {uploading
+                              ? "Subiendo..."
+                              : "Subir nuevo documento"}
                           </Button>
                           <input
                             type="file"
@@ -967,13 +1103,17 @@ export default function DashboardEmpresa() {
                               >
                                 <div className="flex items-center justify-between">
                                   <div>
-                                    <h3 className="font-semibold">{doc.nombre}</h3>
+                                    <h3 className="font-semibold">
+                                      {doc.nombre}
+                                    </h3>
                                     <p className="text-sm text-gray-600">
                                       {doc.descripcion}
                                     </p>
                                     <p className="text-xs text-gray-500">
                                       Subido el{" "}
-                                      {new Date(doc.creadoEn).toLocaleDateString()}
+                                      {new Date(
+                                        doc.creadoEn
+                                      ).toLocaleDateString()}
                                     </p>
                                     {/* Mostrar el tipo de documento también */}
                                     <p className="text-xs text-gray-500">
@@ -982,10 +1122,11 @@ export default function DashboardEmpresa() {
                                   </div>
                                   <div className="text-right space-y-2">
                                     <Badge
-                                      className={`${doc.visibilidad === "público"
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-gray-100 text-gray-800"
-                                        }`}
+                                      className={`${
+                                        doc.visibilidad === "público"
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
                                     >
                                       {doc.visibilidad ?? "privado"}
                                     </Badge>
@@ -1003,7 +1144,9 @@ export default function DashboardEmpresa() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => handleVerifyDocument(doc.id)}
+                                      onClick={() =>
+                                        handleVerifyDocument(doc.id)
+                                      }
                                       disabled={verifyingId === doc.id}
                                     >
                                       {verifyingId === doc.id

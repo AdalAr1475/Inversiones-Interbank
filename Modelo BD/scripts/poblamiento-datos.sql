@@ -170,12 +170,11 @@ VALUES
 
 
 -- Poblar Documentos_proyecto (5 documentos en total)
-INSERT INTO Documentos_proyecto (inversion_id, nombre_documento, descripcion_documento, url, contenido_base64, tipo_documento, creado_en, visibilidad)
+INSERT INTO Documentos_proyecto (inversion_id, nombre_documento, descripcion_documento, contenido_base64, tipo_documento, creado_en, visibilidad)
 VALUES
     -- Documento 1: Plan de Negocio
     (1, 'Plan de Negocio - E-learning', 
      'Documento detallado del modelo de negocio', 
-     'https://example.com/docs/plan_nego_elearning.pdf', 
      'JVBERi0xLjcNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFuZyhlcy1FUykvU3RydWN0VHJlZzMNCjEgMCBvYmoNCjw8L1R5cGUvUGFnZX', -- CONTENIDO_BASE64_DEL_PDF real aquí
 	 'Plan de Negocio', 
      TO_DATE('17-06-2025','DD-MM-YYYY'),
@@ -184,7 +183,6 @@ VALUES
     -- Documento 2: Proyección Financiera
     (1, 'Proyección Financiera 2025', 
      'Proyecciones de ingresos y egresos del proyecto', 
-     'https://example.com/docs/finanzas_elearning.pdf', 
      'JVBERi0xLjcNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFuZyhlcy1FUykvU3RydWN0VHJlZzMNCjEgMCBvYmoNCjw8L1R5cGUvUGFn', -- CONTENIDO_BASE64_DEL_PDF real aquí
 	 'Financiero', 
       TO_DATE('17-06-2025','DD-MM-YYYY'),
@@ -193,7 +191,6 @@ VALUES
     -- Documento 3: Wireframes de la App
     (2, 'Wireframes de la App', 
      'Diseños iniciales de la interfaz de usuario', 
-     'https://example.com/docs/wireframes_app.pdf', 
      'JVBERi0xLjcNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFuZyhlcy1FUykvU3RydWN0VHJlZzMNCjEgMCBvYmoNCjw8L1R5cGUvUGFn', -- CONTENIDO_BASE64_DEL_PDF real aquí
 	 'Diseño', 
       TO_DATE('17-06-2025','DD-MM-YYYY'),
@@ -202,7 +199,6 @@ VALUES
     -- Documento 4: Estudio de Impacto Ambiental
     (3, 'Estudio de Impacto Ambiental', 
      'Informe ambiental requerido para licencias', 
-     'https://example.com/docs/impacto_solar.pdf', 
      'JVBERi0xLjcNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFuZyhlcy1FUykvU3RydWN0VHJlZzMNCjEgMCBvYmoNCjw8L1R5cGUvUGFn', -- CONTENIDO_BASE64_DEL_PDF real aquí
      'Informe Ambiental', 
       TO_DATE('17-06-2025','DD-MM-YYYY'),
@@ -211,7 +207,6 @@ VALUES
     -- Documento 5: Contrato de Energía Renovable
     (3, 'Contrato de Energía Renovable', 
      'Borrador del contrato de venta de energía', 
-     'https://example.com/docs/contrato_solar.pdf', 
      'JVBERi0xLjcNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFuZyhlcy1FUykvU3RydWN0VHJlZzMNCjEgMCBvYmoNCjw8L1R5cGUvUGFn', -- CONTENIDO_BASE64_DEL_PDF real aquí
      'Contrato', 
       TO_DATE('17-06-2025','DD-MM-YYYY'),

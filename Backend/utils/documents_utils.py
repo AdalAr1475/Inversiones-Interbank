@@ -26,13 +26,14 @@ def guardar_archivo(contenido_base64, nombre_archivo):
     return ruta_archivo  # puedes adaptar esto a una URL pública si estás sirviendo archivos con FastAPI/NGINX/etc.
 
 def registrar_documento(
-    inversion_id: int, # CORREGIDO: Se usa inversion_id para coincidir con el modelo.
+    proyecto_id: int, # CORREGIDO: Se usa inversion_id para coincidir con el modelo.
     nombre: str,
     descripcion: str,
     contenido_base64: str,
     tipo_documento: str,
+    inversor_id: int,
     db: Session, # CORREGIDO: Tipado correcto para la sesión.
-    visibilidad: str = "privado"
+    visibilidad: str = "privado",
 ) -> int:
     """
     Registra un documento asociado a una inversión específica.
@@ -42,6 +43,21 @@ def registrar_documento(
     # nombre_unico = f"{timestamp}_{nombre}"
     # ruta_archivo_url = guardar_archivo(contenido_base64, nombre_unico)
 
+    #Crear nueva inversion ficticia para enlazar el documento.
+
+    nueva_inversion = Inversion(
+        proyecto_id=proyecto_id,  # Asumiendo que el proyecto_id es correcto.
+        inversor_id=inversor_id,  # Asumiendo que el inversor_id es 1, deberías adaptarlo según tu lógica.
+        monto_invertido=0.0,  # Asumiendo que el monto es 0, deberías adaptarlo según tu lógica.
+        fecha_inversion=datetime.now(),  # Asignar la fecha actual.
+        estado="pendiente"  # Asumiendo que el estado es "pendiente", deberías adaptarlo según tu lógica.
+    )
+
+    db.add(nueva_inversion)
+    db.commit()
+    db.refresh(nueva_inversion)
+    inversion_id = nueva_inversion.id  # Obtener el ID de la nueva inversión creada.
+    
     nuevo_doc = DocumentoProyecto(
         inversion_id=inversion_id, # Usando el parámetro correcto.
         nombre_documento=nombre, # Coincidiendo con el nombre de la columna en el modelo.
@@ -92,7 +108,6 @@ def listar_documentos(proyecto_id: int, db: Session) -> list[dict]:
             "id": doc.id,
             "nombre": doc.nombre_documento,
             "descripcion": doc.descripcion_documento,
-            "url": doc.url,
             # No se recomienda devolver el base64 en una lista. Es muy pesado.
             # "contenidoBase64": doc.contenido_base64, 
             "tipo_documento": doc.tipo_documento,
@@ -158,3 +173,38 @@ def firmar_documento(documento_id: int, db: Session):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def copiar_contrato(proyecto_id: int, db: Session):
+    """
+    Copia un contrato existente y lo registra como un nuevo documento.
+    """
+    # Obtener el documento original
+    documento_original = session.query(DocumentoProyecto)\
+    .filter(DocumentoProyecto.proyecto_id == proyecto_id)\
+    .order_by(DocumentoProyecto.id)\
+    .limit(1)\
+    .first()
+    
+    if not documento_original:
+        raise HTTPException(status_code=404, detail="Plantilla de contrato no encontrada")
+    
+    # Obtener la última inversión asociada al proyecto
+    ultima_inversion = db.query(Inversion).filter(Inversion.proyecto_id == proyecto_id).order_by(Inversion.id.desc()).first()
+
+    # Crear una copia del documento
+    nuevo_documento = DocumentoProyecto(
+        inversion_id=documento_original.inversion_id,
+        nombre_documento=f"Contrato #{proyecto_id}-{ultima_inversion.id if ultima_inversion else 1}",
+        descripcion_documento=documento_original.descripcion_documento,
+        contenido_base64=documento_original.contenido_base64,
+        tipo_documento=documento_original.tipo_documento,
+        visibilidad="público",  # Asignar visibilidad pública por defecto
+        creado_en=datetime.now()  # Asignar la fecha actual
+    )
+
+    db.add(nuevo_documento)
+    db.commit()
+    db.refresh(nuevo_documento)
+
+    return nuevo_documento.id  # Retornar el ID del nuevo documento creado
