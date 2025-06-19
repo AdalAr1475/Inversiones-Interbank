@@ -36,9 +36,27 @@ def obtener_dashboard(inversor_id: int, db: Session = Depends(get_db)):
 @router.get("/get-inversiones-usuario/{inversor_id}")
 def obtener_inversiones(inversor_id: int, db: Session = Depends(get_db)):
     inversiones = db.query(Inversion).filter_by(inversor_id=inversor_id).all()
+
     if not inversiones:
         raise HTTPException(status_code=404, detail="No se encontraron inversiones para este inversor")
-    return inversiones
+
+    inversiones_list = []
+
+    for inversion in inversiones:
+        proyecto_nombre = db.query(Proyecto).filter(Proyecto.id==inversion.proyecto_id).first().nombre_proyecto
+
+        inversion_dict = {
+            "proyecto_nombre": proyecto_nombre,
+            "inversor_id": inversion.inversor_id,
+            "fecha_inversion": inversion.fecha_inversion,
+            "id": inversion.id,
+            "monto_invertido": inversion.monto_invertido,
+            "estado": inversion.estado
+        }
+
+        inversiones_list.append(inversion_dict)
+
+    return inversiones_list
 
 #Endpoint para obtener el id de la ultima inversion creada en un proyecto
 @router.get("/get-ultima-inversion-proyecto/{proyecto_id}")

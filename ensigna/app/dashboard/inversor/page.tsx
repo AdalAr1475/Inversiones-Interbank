@@ -196,11 +196,15 @@ export default function DashboardInversor() {
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList>
-                <TabsTrigger value="portafolio">Mi Portafolio</TabsTrigger>
+                <TabsTrigger value="portafolio">
+                  Mi Portafolio
+                </TabsTrigger>
                 <TabsTrigger value="oportunidades">
                   Nuevas Oportunidades
                 </TabsTrigger>
-                <TabsTrigger value="contratos">Mis contratos</TabsTrigger>
+                <TabsTrigger value="contratos">
+                  Mis contratos
+                </TabsTrigger>
               </TabsList>{" "}
               <TabsContent value="portafolio" className="space-y-6">
                 <MisInversionesSection />

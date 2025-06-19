@@ -35,9 +35,12 @@ interface DocumentoProyecto {
 }
 
 interface Inversion {
-  id: number;
-  proyecto_nombre: string;
-  monto: number;
+  proyecto_nombre: number
+  inversor_id: number;
+  fecha_inversion: string
+  id: number
+  monto_invertido: number;
+  estado: string;
 }
 
 // --- Define las props que el componente recibirá ---
@@ -205,7 +208,6 @@ export const MisContratosSeccion = ({
     fetch(`http://localhost:8000/documents/contrato-por-inversion/${inversionId}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Documentos recibidos:", data);
         setDocumentos(data);
       });
   }, [inversionId]); // Correcto, depende solo de inversionId
@@ -216,10 +218,9 @@ export const MisContratosSeccion = ({
     if (!usuarioId) return; // No hacer nada si no tenemos el ID de usuario
 
     setLoadingInversiones(true);
-    fetch(`http://localhost:8000/documents/get-inversiones-usuario/${usuarioId}`)
+    fetch(`http://localhost:8000/invest/get-inversiones-usuario/${usuarioId}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Inversiones recibidas:", data);
         if (Array.isArray(data)) {
           setInversiones(data);
         }
@@ -227,6 +228,7 @@ export const MisContratosSeccion = ({
       .catch(error => console.error("Error al cargar inversiones:", error))
       .finally(() => setLoadingInversiones(false));
   }, [usuarioId]); // Depende de usuarioId
+
 
  // Efecto para seleccionar la inversión que viene de la URL (prop)
   // Se ejecuta cuando la prop 'selectedInversionId' cambia O cuando la lista de 'inversiones' se carga.
@@ -242,6 +244,7 @@ export const MisContratosSeccion = ({
   }, [selectedInversionId, inversiones]);
 
   return (
+    
     <Card>
       <CardHeader>
         <CardTitle>Documentos de la Campaña</CardTitle>
@@ -265,8 +268,7 @@ export const MisContratosSeccion = ({
               {inversiones.length > 0 ? (
                 inversiones.map((inv) => (
                   <SelectItem key={inv.id} value={inv.id.toString()}>
-                    {/* Muestra información útil, como el nombre del proyecto y el monto */}
-                    {inv.proyecto_nombre} - ${inv.monto.toLocaleString()}
+                    {inv.proyecto_nombre} - ${inv.monto_invertido ? inv.monto_invertido.toLocaleString() : "0"}
                   </SelectItem>
                 ))
               ) : (
@@ -293,6 +295,7 @@ export const MisContratosSeccion = ({
           </p>
         )}
 
+        
         <div className="space-y-4">
           {Array.isArray(documentos) ? (
             documentos.map((doc) => (
