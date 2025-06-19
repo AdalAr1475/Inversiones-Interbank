@@ -22,7 +22,7 @@ import ChatDialog from "@/components/chat-dialog"
 import { useEffect, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { jwtDecode } from "jwt-decode"
-import { redirect } from "next/navigation"
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 
 export default function ProyectoDetallePage() {
   const params = useParams()
@@ -31,6 +31,10 @@ export default function ProyectoDetallePage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showInvestDialog, setShowInvestDialog] = useState<boolean>(false);
   const [showQuestionDialog, setShowQuestionDialog] = useState<boolean>(false);
+
+  //Routeador
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   interface DecodedToken {
@@ -141,6 +145,9 @@ export default function ProyectoDetallePage() {
     // Aquí se podría implementar una notificación o algún feedback visual
     console.log(`Inversión de $${amount} procesada correctamente`);
     // También se podría actualizar el estado del proyecto después de la inversión
+
+    //Redireccionar al inversor a la página de documentos de la inversión para firmar
+    //router.push(`/dashboard/inversor?inversion_id=${nuevaInversionId}`);
   }
 
   if (isLoading) {

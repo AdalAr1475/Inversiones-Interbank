@@ -104,18 +104,16 @@ def get_conversaciones_empresa(
     # Obtener usuarios únicos que han enviado mensajes a la empresa
     conversaciones = db.query(
         Mensaje.remitente_id.label('usuario_id'),
-        Inversor.nombre_inversor.label('nombre_inversor'),
-        Inversor.apellido_inversor.label('apellido_inversor'),
+        Usuario.nombre.label('nombre_inversor'),
+        Usuario.apellido_paterno.label('apellido_paterno_inversor'),
         func.max(Mensaje.enviado_en).label('fecha_ultimo_mensaje')
     ).join(
         Usuario, Usuario.id == Mensaje.remitente_id
-    ).join(
-        Inversor, Inversor.usuario_id == Usuario.id
     ).filter(
         Mensaje.destinatario_id == empresa_id,
         Mensaje.remitente_id != empresa_id  # Excluir mensajes de la propia empresa
     ).group_by(
-        Mensaje.remitente_id, Inversor.nombre_inversor, Inversor.apellido_inversor
+        Mensaje.remitente_id, Usuario.nombre, Usuario.apellido_paterno
     ).order_by(
         desc(func.max(Mensaje.enviado_en))
     ).all()
@@ -153,8 +151,8 @@ def get_usuario_info(
         return {"error": "Usuario no encontrado"}
     
     # Buscar información del inversor si existe
-    inversor = db.query(Inversor).filter(Inversor.usuario_id == usuario_id).first()
-    nombre_completo = f"{inversor.nombre_inversor} {inversor.apellido_inversor}" if inversor else "Usuario"
+    inversor = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    nombre_completo = f"{inversor.nombre_inversor} {inversor.apellido_paterno_inversor}" if inversor else "Usuario"
     
     return {
         "id": usuario.id,

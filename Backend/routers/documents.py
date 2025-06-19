@@ -75,6 +75,20 @@ def obtener_documento(documento_id: int):
 def listar_documentos(proyecto_id: int, db=Depends(get_db)):
     return doc_utils.listar_documentos(proyecto_id,db)
 
+@router.get("/contrato-por-inversion/{inversion_id}")
+def obtener_documento_por_inversion(inversion_id: int, db=Depends(get_db)):
+    """
+    Endpoint para obtener el documento de contrato asociado a una inversión específica.
+    Retorna el contenido del documento en base64.
+    """
+    try:
+        documento = doc_utils.obtener_documento_por_inversion(inversion_id, db)
+        if not documento:
+            raise HTTPException(status_code=404, detail="Documento no encontrado")
+        return documento
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener documento: {str(e)}")
+
 @router.get("/copiar-contrato/{proyecto_id}")
 def copiar_contrato(proyecto_id: int, db=Depends(get_db)):
     """

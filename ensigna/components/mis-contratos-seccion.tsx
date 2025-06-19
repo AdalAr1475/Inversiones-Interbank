@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,14 +18,15 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { SelectTrigger } from "@radix-ui/react-select";
+import { SelectTrigger, Separator } from "@radix-ui/react-select";
+import { jwtDecode } from "jwt-decode";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 
 //Interfaces
 interface DocumentoProyecto {
   id: number;
   nombre: string;
   descripcion: string;
-  url: string;
   visibilidad: "público" | "privado";
   creadoEn: string;
   firmado: boolean;
@@ -33,9 +34,17 @@ interface DocumentoProyecto {
   tipo_documento: string;
 }
 
+interface Inversion {
+  id: number;
+  proyecto_nombre: string;
+  monto: number;
+}
+
 export default function MisContratosSeccion() {
   //Hooks
-  const [proyectoId, setProyectoId] = useState<number>(1); // Simulando un ID de proyecto
+  const [usuarioId, setUsuarioId] = useState<number>(0);
+  const [inversiones, setInversiones] = useState<Inversion[]>([]);
+  const [inversionId, setInversionId] = useState<number>(0);
   const [documentos, setDocumentos] = useState<DocumentoProyecto[]>([]);
 
   // --- Nuevos Hooks para manejar el estado de firma y verificación ---
@@ -149,17 +158,78 @@ export default function MisContratosSeccion() {
     }
   };
 
+  // --- Nueva función para manejar el cambio en el selector ---
+  const handleInversionChange = (id: string) => {
+    const newInversionId = parseInt(id, 10);
+    setInversionId(newInversionId);
+  };
+
+  //Sección para obtener id de usuario
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  interface DecodedToken {
+    id: number;
+    email: string;
+    tipo_usuario: string;
+    exp: number;
+  }
+
   useEffect(() => {
-    if (!proyectoId) return;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      setUsuarioId(Number(decodedToken.id));
+    } else {
+      redirect("/auth/login");
+    }
+  });
+
+  //Efecto para traer los contrato cuando cambie la inversionID
+  useEffect(() => {
+    if (!inversionId) return;
     // Aquí podrías consumir una API que traiga los documentos
-    fetch(`http://localhost:8000/documents/documentos/${proyectoId}`) // Ejemplo
+    fetch(
+      `http://localhost:8000/documents/contrato-por-inversion/${inversionId}`
+    ) // Ejemplo
       .then((res) => res.json())
       .then((data) => {
         console.log("Documentos recibidos:", data);
         setDocumentos(data);
       });
+  }, [inversionId]);
+
+  //Efecto para traer las inversiones
+  useEffect(() => {
+    // Aquí podrías consumir una API que traiga las inversiones del usuario
+    fetch(
+      `http://localhost:8000/documents/get-inversiones-usuario/${usuarioId}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Inversiones recibidas:", data);
+        setInversiones(data);
+      });
   }, []);
 
+  //Efecto para leer la url y procesar inversion
+  /*
+  useEffect(() => {
+  const inversionIdFromUrl = searchParams.get("inversion_id");
+
+  // Nos aseguramos de tener el ID de la URL y de que la lista de inversiones ya se haya cargado
+  if (inversionIdFromUrl && inversiones.length > 0) {
+    const idNum = parseInt(inversionIdFromUrl, 10);
+    
+    // Verificamos si la inversión de la URL existe en nuestra lista
+    const inversionExiste = inversiones.some(inv => inv.id === idNum);
+
+    if (inversionExiste) {
+      setInversionId(idNum);
+    }
+  }
+}, [searchParams, inversiones]); // Dependencias: se ejecuta si la URL o la lista de inversiones cambian
+*/
   return (
     <Card>
       <CardHeader>
@@ -169,14 +239,46 @@ export default function MisContratosSeccion() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* --- SELECTOR DE INVERSIONES --- */}
+      <div>
+        <Label htmlFor="inversion-selector">Selecciona una Inversión</Label>
+        <Select
+          value={inversionId?.toString() ?? ""}
+          onValueChange={handleInversionChange}
+        >
+          <SelectTrigger id="inversion-selector">
+            <SelectValue placeholder="Elige una inversión..." />
+          </SelectTrigger>
+          <SelectContent>
+            {inversiones.length > 0 ? (
+              inversiones.map((inv) => (
+                <SelectItem key={inv.id} value={inv.id.toString()}>
+                  {/* Muestra información útil, como el nombre del proyecto y el monto */}
+                  {inv.proyecto_nombre} - ${inv.monto.toLocaleString()}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="no-inversiones" disabled>
+                No tienes inversiones todavía.
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      <Separator />
         {/* Lista de documentos */}
-        {Array.isArray(documentos) && documentos.length === 0 && (
-          <p className="text-sm text-gray-500">No hay documentos aún.</p>
+        {/* Si no hay inversión seleccionada, muestra un mensaje */}
+        {!inversionId && (
+            <p className="text-sm text-gray-500">Por favor, selecciona una inversión para ver sus documentos.</p>
+        )}
+        
+        {/* Cuando hay inversión pero no documentos */}
+        {inversionId && documentos.length === 0 && (
+          <p className="text-sm text-gray-500">No hay documentos para esta inversión.</p>
         )}
 
         <div className="space-y-4">
           {Array.isArray(documentos) ? (
-          
             documentos.map((doc) => (
               <div
                 key={doc.id}
@@ -243,7 +345,9 @@ export default function MisContratosSeccion() {
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500">Hubo un error al cargar los documentos.</p>
+            <p className="text-sm text-gray-500">
+              Hubo un error al cargar los documentos.
+            </p>
           )}
         </div>
       </CardContent>

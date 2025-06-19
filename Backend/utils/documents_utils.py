@@ -119,6 +119,24 @@ def listar_documentos(proyecto_id: int, db: Session) -> list[dict]:
 
     return documentos_lista
 
+def get_documento_por_inversion(inversion_id: int, db: Session) -> DocumentoProyecto | None:
+    """
+    Obtiene el contrato asociado a una inversión específica.
+
+    Args:
+        inversion_id (int): ID de la inversión para la cual se busca el contrato.
+        db (Session): Sesión de base de datos.
+
+    Returns:
+        DocumentoProyecto | None: El documento del contrato si existe, o None si no se encuentra.
+    """
+    # .filter(...): Busca por el ID de la inversión.
+    # .first(): Devuelve el primer resultado o None si no hay resultados.
+    return db.query(DocumentoProyecto).filter(
+        DocumentoProyecto.inversion_id == inversion_id
+    ).first()
+    
+
     
 def get_documento_contenido(db: Session, documento_id: int) -> str | None:
     """

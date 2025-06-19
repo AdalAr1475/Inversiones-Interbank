@@ -31,3 +31,11 @@ def obtener_dashboard(inversor_id: int, db: Session = Depends(get_db)):
         "proyectos_activos" : len(set([inv.proyecto_id for inv in inversiones])),
         "proyectos_disponibles": len(proyectos),
     }
+
+#Endpoint para obtener todas las inversiones de un inversor
+@router.get("/get-inversiones-usuario/{inversor_id}")
+def obtener_inversiones(inversor_id: int, db: Session = Depends(get_db)):
+    inversiones = db.query(Inversion).filter_by(inversor_id=inversor_id).all()
+    if not inversiones:
+        raise HTTPException(status_code=404, detail="No se encontraron inversiones para este inversor")
+    return inversiones

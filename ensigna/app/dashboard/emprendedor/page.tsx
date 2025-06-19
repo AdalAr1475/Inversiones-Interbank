@@ -481,13 +481,9 @@ export default function DashboardEmpresa() {
     // Obtenemos los parámetros de la URL.
     const projectIdFromUrl = searchParams.get("project_id");
     const tabFromUrl = searchParams.get("tab");
+    console.log("Tab:" + tabFromUrl);
 
-    // 1. Sincronizar la pestaña activa.
-    if (tabFromUrl) {
-        setActiveTab(tabFromUrl);
-    }
-
-    // 2. Sincronizar el proyecto seleccionado.
+    // 1. Sincronizar el proyecto seleccionado.
     // Nos aseguramos de que tengamos un ID de proyecto en la URL y que la lista de proyectos ya se haya cargado.
     if (projectIdFromUrl && proyectos.length > 0) {
         const projectIdNum = parseInt(projectIdFromUrl, 10);
@@ -500,6 +496,12 @@ export default function DashboardEmpresa() {
             // Usamos tu función existente para asegurar que todos los estados se actualicen correctamente.
             handleProyectoChange(proyectoSeleccionado.nombre_proyecto);
         }
+    }
+
+    // 2. Sincronizar la pestaña activa.
+    if (tabFromUrl) {
+      console.log("Tab desde URL:", tabFromUrl);
+        setActiveTab(tabFromUrl);
     }
 }, [searchParams, proyectos]); // Dependencias: se ejecuta si la URL o la lista de proyectos cambian.
 
