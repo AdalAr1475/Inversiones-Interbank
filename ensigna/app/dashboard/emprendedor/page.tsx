@@ -552,7 +552,7 @@ export default function DashboardEmpresa() {
                 Dashboard de Emprendedor
               </h1>
               <p className="text-gray-600">
-                Gestiona tu campaña de financiamiento y conecta con inversores
+                Gestiona tu proyecto de financiamiento y conecta con inversores
               </p>
             </div>
 
@@ -565,7 +565,7 @@ export default function DashboardEmpresa() {
                       ¿Listo para tu próximo proyecto?
                     </h1>
                     <p className="text-green-100">
-                      Crea una nueva campaña de financiamiento y comienza a
+                      Crea unn nuevo proyecto de financiamiento y comienza a
                       atraer inversores
                     </p>
                   </div>
@@ -1001,10 +1001,6 @@ export default function DashboardEmpresa() {
                                     <div className="text-lg font-semibold text-green-600">
                                       ${inversor.monto_invertido}
                                     </div>
-                                    <Button size="sm" variant="outline">
-                                      <MessageSquare className="w-4 h-4 mr-1" />
-                                      Mensaje
-                                    </Button>
                                   </div>
                                 </div>
                               </div>

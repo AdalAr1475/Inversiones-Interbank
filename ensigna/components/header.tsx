@@ -30,10 +30,18 @@ interface DecodedToken {
   exp: number
 }
 
-export default function Header() {    const pathname = usePathname();
+export default function Header() {    
+    const pathname = usePathname();
     const isHomePage = pathname === "/";
     const { isAuthenticated, user } = useAuth();
-    const token = window?.localStorage?.getItem("token");
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+      if (typeof window !== "undefined") {
+        const storedToken = window.localStorage.getItem("token");
+        setToken(storedToken);
+      }
+    }, []);
 
     const handleLogin = () => {
       if(token) {
@@ -42,13 +50,14 @@ export default function Header() {    const pathname = usePathname();
           redirect("/dashboard/emprendedor")
         } else {
           redirect("/dashboard/inversor")
+
         }
       }
       else{
         redirect("/auth/login")
       }
     }
-
+    
     const handleRegister = () => {
       if(token) {
         const decodedToken = jwtDecode<DecodedToken>(token);

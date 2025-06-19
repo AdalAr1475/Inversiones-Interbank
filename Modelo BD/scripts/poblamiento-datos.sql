@@ -40,15 +40,15 @@ VALUES
   ('Sebastian','Cardenas','Lujan','73707123','901344222','sebastian.cardenas.l@uni.pe', '$2b$12$zg8NKg8ksNNmW8.hJPehbOFduI2nG9A.MQseeKw27Kf2dixbSzp6m', 'emprendedor', 'acct_1Rb3ShB1VrcHHR4Y', 'activo');
 
 -- Poblamiento de la tabla Wallets
-INSERT INTO Wallets (inversor_id, saldo)
+INSERT INTO Wallets (inversor_id)
 VALUES 
-  (1, 100000.00), -- Matiaz Chevez
-  (2, 100000.00), -- Adal Aranda
-  (3, 100000.00), -- Diogo Abregu
-  (4, 100000.00), -- Diego Bernal
-  (5, 100000.00), -- Nicol Auqui
-  (6, 100000.00), -- Sharon Guisado
-  (7, 100000.00); -- Saul Anyaipoma
+  (1), -- Matiaz Chevez
+  (2), -- Adal Aranda
+  (3), -- Diogo Abregu
+  (4), -- Diego Bernal
+  (5), -- Nicol Auqui
+  (6), -- Sharon Guisado
+  (7); -- Saul Anyaipoma
 
 -- Poblamiento de tabla proyectos_inversion
 INSERT INTO Proyectos (emprendedor_id, nombre_proyecto, descripcion, descripcion_extendida, sector, ubicacion, monto_pedido, monto_recaudado, retorno_estimado, fecha_inicio, fecha_fin) 
