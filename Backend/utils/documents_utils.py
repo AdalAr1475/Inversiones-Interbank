@@ -134,7 +134,7 @@ def get_documento_por_inversion(inversion_id: int, db: Session) -> DocumentoProy
     # .first(): Devuelve el primer resultado o None si no hay resultados.
     return db.query(DocumentoProyecto).filter(
         DocumentoProyecto.inversion_id == inversion_id
-    ).first()
+    ).all()
     
 
     
@@ -197,25 +197,38 @@ def copiar_contrato(inversion_id: int, db: Session):
     """
     Copia un contrato existente y lo registra como un nuevo documento.
     """
-    #Obtener el ID del proyecto asociado a la inversión
+    #1. Obtener el ID del proyecto asociado a la inversión
     proyecto_id = db.query(Inversion.proyecto_id).filter(Inversion.id == inversion_id).scalar()
-    # Obtener el documento original
-    documento_original = session.query(DocumentoProyecto)\
-    .filter(DocumentoProyecto.proyecto_id == proyecto_id)\
-    .order_by(DocumentoProyecto.id)\
-    .limit(1)\
-    .first()
+    if proyecto_id is None:
+        raise ValueError("Inversión no encontrada")
     
-    if not documento_original:
+     # 2. Obtener la inversión más antigua del proyecto (la primera)
+    primera_inversion = db.query(Inversion).filter(
+        Inversion.proyecto_id == proyecto_id
+    ).order_by(Inversion.id.asc()).first()
+
+    if primera_inversion is None:
+        raise ValueError("No se encontraron inversiones para el proyecto")
+
+    # 3. Obtener el primer documento asociado a esa inversión
+    primer_documento = db.query(DocumentoProyecto).filter(
+        DocumentoProyecto.inversion_id == primera_inversion.id
+    ).order_by(DocumentoProyecto.id.asc()).first()
+
+    if primer_documento is None:
+        raise ValueError("No se encontraron documentos para la primera inversión")
+    
+    
+    if not primer_documento:
         raise HTTPException(status_code=404, detail="Plantilla de contrato no encontrada")
     
     # Crear una copia del documento
     nuevo_documento = DocumentoProyecto(
         inversion_id=inversion_id,
         nombre_documento=f"Contrato #{proyecto_id}-{inversion_id}",
-        descripcion_documento=documento_original.descripcion_documento,
-        contenido_base64=documento_original.contenido_base64,
-        tipo_documento=documento_original.tipo_documento,
+        descripcion_documento=primer_documento.descripcion_documento,
+        contenido_base64=primer_documento.contenido_base64,
+        tipo_documento=primer_documento.tipo_documento,
         visibilidad="público",  # Asignar visibilidad pública por defecto
         creado_en=datetime.now()  # Asignar la fecha actual
     )

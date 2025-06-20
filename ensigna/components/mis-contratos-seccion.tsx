@@ -25,13 +25,14 @@ import { redirect, useRouter, useSearchParams } from "next/navigation";
 //Interfaces
 interface DocumentoProyecto {
   id: number;
-  nombre: string;
-  descripcion: string;
-  visibilidad: "público" | "privado";
-  creadoEn: string;
-  firmado: boolean;
+  inversion_id: number;
+  nombre_documento: string;
+  descripcion_documento: string;
   contenidoBase64?: string; // <--- ¡Asegúrate de que esta propiedad exista!
   tipo_documento: string;
+  creado_en: string;
+  firmado: boolean;
+  visibilidad: "público" | "privado";
 }
 
 interface Inversion {
@@ -204,11 +205,16 @@ export const MisContratosSeccion = ({
       setDocumentos([]); // Limpia los documentos si no hay inversión seleccionada
       return;
     };
-
+    console.log("Cargando documentos para la inversión:", inversionId);
     fetch(`http://localhost:8000/documents/contrato-por-inversion/${inversionId}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log("Documentos cargados:", data);
         setDocumentos(data);
+      })
+      .catch((error) => {
+        console.error("Error al cargar documentos:", error)
+        setDocumentos([]); // Limpia los documentos en caso de error
       });
   }, [inversionId]); // Correcto, depende solo de inversionId
 
@@ -306,10 +312,10 @@ export const MisContratosSeccion = ({
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">{doc.nombre}</h3>
-                    <p className="text-sm text-gray-600">{doc.descripcion}</p>
+                    <h3 className="font-semibold">{doc.nombre_documento}</h3>
+                    <p className="text-sm text-gray-600">{doc.descripcion_documento}</p>
                     <p className="text-xs text-gray-500">
-                      Subido el {new Date(doc.creadoEn).toLocaleDateString()}
+                      Subido el {new Date(doc.creado_en).toLocaleDateString()}
                     </p>
                     {/* Mostrar el tipo de documento también */}
                     <p className="text-xs text-gray-500">

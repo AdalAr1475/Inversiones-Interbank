@@ -82,14 +82,14 @@ def obtener_documento_por_inversion(inversion_id: int, db=Depends(get_db)):
     Retorna el contenido del documento en base64.
     """
     try:
-        documento = doc_utils.obtener_documento_por_inversion(inversion_id, db)
+        documento = doc_utils.get_documento_por_inversion(inversion_id, db)
         if not documento:
             raise HTTPException(status_code=404, detail="Documento no encontrado")
         return documento
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener documento: {str(e)}")
 
-@router.get("/copiar-contrato/{proyecto_id}")
+@router.post("/copiar-contrato/{inversion_id}")
 def copiar_contrato(inversion_id: int, db=Depends(get_db)):
     """
     Endpoint para copiar la plantilla de contrato de un proyecto específico.

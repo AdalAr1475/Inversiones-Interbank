@@ -198,16 +198,23 @@ export default function ProyectoDetallePage() {
         const data = await res.json();
         //Copiar contrato
         fetch(
-          `http://localhost:8000/documents/copiar-contrato/${data.ultima_inversion_id}`
+          `http://localhost:8000/documents/copiar-contrato/${data.ultima_inversion_id}`,
+          {
+            method: "POST",
+          }
         )
           .then(async (res) => {
             if (!res.ok) {
               throw new Error(`HTTP error! status: ${res.status}`);
             }
+
+            const data = await res.json();
+            console.log("Contrato copiado:", data);
           })
           .catch((error) => {
             console.error("Error al copiar el contrato:", error);
           });
+
         router.push(
           `/dashboard/inversor?inversion_id=${data.ultima_inversion_id}&tab=contratos`
         );
