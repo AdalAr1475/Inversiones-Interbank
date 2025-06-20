@@ -235,7 +235,8 @@ export const MisContratosSeccion = ({
   useEffect(() => {
     if (selectedInversionId && inversiones.length > 0) {
       const idNum = parseInt(selectedInversionId, 10);
-      const inversionExiste = inversiones.some(inv => inv.id === idNum);
+      const inversionExiste = inversiones.some(inv => Number(inv.id) === idNum);
+      console.log(inversionExiste)
 
       if (inversionExiste) {
         setInversionId(idNum); // ¡Aquí se establece el valor para el <Select>!
