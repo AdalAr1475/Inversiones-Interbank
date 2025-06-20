@@ -90,13 +90,13 @@ def obtener_documento_por_inversion(inversion_id: int, db=Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error al obtener documento: {str(e)}")
 
 @router.get("/copiar-contrato/{proyecto_id}")
-def copiar_contrato(proyecto_id: int, db=Depends(get_db)):
+def copiar_contrato(inversion_id: int, db=Depends(get_db)):
     """
     Endpoint para copiar la plantilla de contrato de un proyecto específico.
     Retorna el id del contrato creado.
     """
     try:
-        contrato_id = doc_utils.copiar_contrato(proyecto_id, db)
+        contrato_id = doc_utils.copiar_contrato(inversion_id, db)
         return {"ID del contrato copiado": contrato_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al copiar contrato: {str(e)}")

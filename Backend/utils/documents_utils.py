@@ -193,10 +193,12 @@ def firmar_documento(documento_id: int, db: Session):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def copiar_contrato(proyecto_id: int, db: Session):
+def copiar_contrato(inversion_id: int, db: Session):
     """
     Copia un contrato existente y lo registra como un nuevo documento.
     """
+    #Obtener el ID del proyecto asociado a la inversión
+    proyecto_id = db.query(Inversion.proyecto_id).filter(Inversion.id == inversion_id).scalar()
     # Obtener el documento original
     documento_original = session.query(DocumentoProyecto)\
     .filter(DocumentoProyecto.proyecto_id == proyecto_id)\
@@ -207,13 +209,10 @@ def copiar_contrato(proyecto_id: int, db: Session):
     if not documento_original:
         raise HTTPException(status_code=404, detail="Plantilla de contrato no encontrada")
     
-    # Obtener la última inversión asociada al proyecto
-    ultima_inversion = db.query(Inversion).filter(Inversion.proyecto_id == proyecto_id).order_by(Inversion.id.desc()).first()
-
     # Crear una copia del documento
     nuevo_documento = DocumentoProyecto(
-        inversion_id=documento_original.inversion_id,
-        nombre_documento=f"Contrato #{proyecto_id}-{ultima_inversion.id if ultima_inversion else 1}",
+        inversion_id=inversion_id,
+        nombre_documento=f"Contrato #{proyecto_id}-{inversion_id}",
         descripcion_documento=documento_original.descripcion_documento,
         contenido_base64=documento_original.contenido_base64,
         tipo_documento=documento_original.tipo_documento,

@@ -365,7 +365,7 @@ export default function DashboardEmpresa() {
       router.push(`/dashboard/emprendedor?project_id=${data.new_proyecto_id}&tab=documentos`);
 
       // Opcional: mostrar un mensaje de éxito
-      alert("¡Proyecto creado y redirigiendo a la pestaña de documentos!");
+      alert("¡Proyecto creado. Por favor suba la plantilla de contrato!");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Error desconocido";

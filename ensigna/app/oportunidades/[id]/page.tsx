@@ -45,6 +45,7 @@ export default function ProyectoDetallePage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showInvestDialog, setShowInvestDialog] = useState<boolean>(false);
   const [showQuestionDialog, setShowQuestionDialog] = useState<boolean>(false);
+  const [inversorId, setInversorId] = useState("");
 
   //Routeador
   const router = useRouter();
@@ -88,6 +89,18 @@ export default function ProyectoDetallePage() {
 
     fetchProyectoDetails();
   }, [proyectoId]);
+
+  //Efecto para obtener el ID del inversor
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token) {
+      const decodedToken = jwtDecode<DecodedToken>(token);
+      setInversorId(String(decodedToken.id));
+    } else {
+      redirect("/auth/login");
+    }
+  });
 
   const getColorEstado = (categoria: string) => {
     const colorMap: Record<string, string> = {
@@ -165,35 +178,42 @@ export default function ProyectoDetallePage() {
     console.log(`Inversión de $${amount} procesada correctamente`);
     // También se podría actualizar el estado del proyecto después de la inversión
 
-    //Copiar contrato
-    fetch(`http://localhost:8000/documents/copiar-contrato/${proyectoId}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-      })
-      .catch((error) => {
-        console.error("Error al copiar el contrato:", error);
-      });
-
-    fetch(
-      `http://localhost:8000/invest/get-ultima-inversion-proyecto/${proyectoId}`
-    )
+    fetch("http://localhost:8000/invest/get-ultima-inversion-proyecto", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        proyecto_id: proyectoId,
+        usuario_id: inversorId,
+      }),
+    })
       .then(async (res) => {
         if (res.status === 404) {
-          return 0; // Si no se encuentra la inversión, retornar 0
+          return 0;
         }
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        //Redireccionar al inversor a la página de documentos de la inversión para firmar
+        //Copiar contrato
+        fetch(
+          `http://localhost:8000/documents/copiar-contrato/${data.ultima_inversion_id}`
+        )
+          .then(async (res) => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`);
+            }
+          })
+          .catch((error) => {
+            console.error("Error al copiar el contrato:", error);
+          });
         router.push(
           `/dashboard/inversor?inversion_id=${data.ultima_inversion_id}&tab=contratos`
         );
       })
       .catch((error) => {
-        console.error("Error al cargar la última inversion:", error);
+        console.error("Error al cargar la última inversión:", error);
       });
   };
 
