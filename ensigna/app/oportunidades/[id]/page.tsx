@@ -189,7 +189,7 @@ export default function ProyectoDetallePage() {
         const data = await res.json();
         //Redireccionar al inversor a la página de documentos de la inversión para firmar
         router.push(
-          `/dashboard/inversor?inversion_id=${data.inversion_id}&tab=contratos`
+          `/dashboard/inversor?inversion_id=${data.ultima_inversion_id}&tab=contratos`
         );
       })
       .catch((error) => {

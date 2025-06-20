@@ -6,28 +6,26 @@ import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 
-export default function HeaderLat() {
-  const {collapsed, setCollapsed} = useSidebar();
-  const [tipoUsuario, setTipoUsuario] = useState("");
-  const token = window?.localStorage?.getItem("token");
-  
-  interface DecodedToken {
+interface DecodedToken {
     id: number
     email: string
     tipo_usuario: string
     exp: number
-  }
+}
+
+export default function HeaderLat() {
+  const {collapsed, setCollapsed} = useSidebar();
+  const [tipoUsuario, setTipoUsuario] = useState("");
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if(token) {
-      const decodedToken = jwtDecode<DecodedToken>(token);
-      setTipoUsuario(decodedToken.tipo_usuario)
-      console.log(tipoUsuario)
-    }
-    else {
+    if (typeof window !== "undefined") {
+      const storedToken = window.localStorage.getItem("token");
+      setToken(storedToken);
+    } else {
       redirect("/auth/login")
     }
-  })
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');

@@ -40,6 +40,8 @@ export default function Header() {
       if (typeof window !== "undefined") {
         const storedToken = window.localStorage.getItem("token");
         setToken(storedToken);
+      } else{
+        redirect("/auth/login")
       }
     }, []);
 
