@@ -16,12 +16,16 @@ interface DecodedToken {
 export default function HeaderLat() {
   const {collapsed, setCollapsed} = useSidebar();
   const [tipoUsuario, setTipoUsuario] = useState("");
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedToken = window.localStorage.getItem("token");
-      setToken(storedToken);
+      if (storedToken) {
+        const decodeToken = jwtDecode<DecodedToken>(storedToken);
+        setTipoUsuario(decodeToken.tipo_usuario);
+      } else {
+        redirect("/auth/login");
+      }
     } else {
       redirect("/auth/login")
     }
