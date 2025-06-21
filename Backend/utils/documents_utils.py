@@ -149,21 +149,21 @@ def get_documento_por_inversion(inversion_id: int, db: Session) -> DocumentoProy
         select(DocumentoProyecto)
         .where(DocumentoProyecto.inversion_id == inversion_id)
     )
-    documento = db.scalar(stmt)
-    if documento:
-        return DocumentoRequest(
-            id=documento.id,
-            inversion_id=documento.inversion_id,
-            nombre_documento=documento.nombre_documento,
-            descripcion_documento=documento.descripcion_documento,
-            contenido_base64=documento.contenido_base64,
-            tipo_documento=documento.tipo_documento,
-            creado_en=documento.creado_en.isoformat() if documento.creado_en else None,
-            firmado=verificar_firma(documento.id, db),
-            visibilidad=documento.visibilidad
+    documentos = db.scalars(stmt).all()
+    return [
+        DocumentoRequest(
+            id=doc.id,
+            inversion_id=doc.inversion_id,
+            nombre_documento=doc.nombre_documento,
+            descripcion_documento=doc.descripcion_documento,
+            contenido_base64=doc.contenido_base64,
+            tipo_documento=doc.tipo_documento,
+            creado_en=doc.creado_en.isoformat() if doc.creado_en else None,
+            firmado=verificar_firma(doc.id, db),
+            visibilidad=doc.visibilidad
         )
-    
-
+        for doc in documentos
+    ]
     
 def get_documento_contenido(db: Session, documento_id: int) -> str | None:
     """
