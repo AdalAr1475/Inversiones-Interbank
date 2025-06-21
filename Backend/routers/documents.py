@@ -18,16 +18,13 @@ def hash_document(file_bytes):
     return '0x' + hashlib.sha256(file_bytes).hexdigest()
 
 
-@router.post("/firmar-documento")
+@router.post("/firmar-documento/{documento_id}", tags=["Blockchain"])
 def firmar_documento(documento_id: int, db=Depends(get_db)):
     return doc_utils.firmar_documento(documento_id, db)
 
-@router.post("/verify-document/", tags=["Blockchain"])
-async def verify(file: UploadFile = File(...)):
-    contents = await file.read()
-    doc_hash = hash_document(contents)
-    signed = is_signed(doc_hash)
-    return {"hash": doc_hash, "signed": signed}
+@router.post("/verify-document/{documento_id}", tags=["Blockchain"])
+def verificar_firma(documento_id: int, db=Depends(get_db)):
+    return doc_utils.verificar_firma(documento_id, db)
 
 class RegistrarDocumentoRequest(BaseModel):
     proyecto_id: int

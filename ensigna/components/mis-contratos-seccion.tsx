@@ -28,7 +28,7 @@ interface DocumentoProyecto {
   inversion_id: number;
   nombre_documento: string;
   descripcion_documento: string;
-  contenidoBase64?: string; // <--- ¡Asegúrate de que esta propiedad exista!
+  contenido_base64?: string; // <--- ¡Asegúrate de que esta propiedad exista!
   tipo_documento: string;
   creado_en: string;
   firmado: boolean;
@@ -68,6 +68,8 @@ export const MisContratosSeccion = ({
 
   // Función para firmar un documento
   const handleSignDocument = async (documentId: number) => {
+    console.log("Firmando documento con ID:", documentId);
+    console.log("Detalle del documento:", documentos);
     setSigningId(documentId); // Inicia el estado de carga para este documento
 
     // Paso 1: Encontrar el documento específico en tu estado 'documentos'
@@ -80,11 +82,11 @@ export const MisContratosSeccion = ({
     }
 
     // Paso 2: Extraer los datos necesarios del documento y del usuario
-    const contenidoBase64 = documentToSign.contenidoBase64;
+    const contenido_base64 = documentToSign.contenido_base64;
     const tipoDocumento = documentToSign.tipo_documento; // Obtiene tipo_documento del documento
-    const userId = 1; // <--- ¡IMPORTANTE! REEMPLAZA ESTO CON EL ID REAL DEL USUARIO AUTENTICADO
+    const userId = usuarioId; 
 
-    if (!contenidoBase64) {
+    if (!contenido_base64) {
       alert("Error: El contenido del documento en Base64 no está disponible.");
       setSigningId(null);
       return;
@@ -99,13 +101,8 @@ export const MisContratosSeccion = ({
     try {
       // Paso 3: Realizar la solicitud POST enviando TODOS los campos requeridos por el backend
       const response = await axios.post(
-        "http://localhost:8000/documents/firmar-documento",
-        {
-          documento_id: documentToSign.id,
-          contenido_base64: contenidoBase64,
-          usuario_id: userId,
-          tipo_documento: tipoDocumento, // ¡Envía el tipo_documento!
-        }
+        `http://localhost:8000/documents/firmar-documento/${documentId}`,
+
       );
 
       // Actualizar el estado del documento en el frontend (marcarlo como firmado)
@@ -150,18 +147,16 @@ export const MisContratosSeccion = ({
       // Si verify-document también espera contenido_base64 y tipo_documento,
       // deberías modificar esta función de manera similar a handleSignDocument.
       const response = await axios.post(
-        "http://localhost:8000/documents/verify-document",
-        {
-          document_id: documentId,
-          // Aquí podrías necesitar enviar contenido_base64 y tipo_documento si el backend lo requiere para verificar
-        }
+        `http://localhost:8000/documents/verify-document/${documentId}`,
+
       );
 
-      // Asumimos que el backend responde con una estructura como: { "success": boolean, "message": "..." }
-      if (response.data.success) {
-        alert(`Verificación exitosa: ${response.data.message}`);
-      } else {
-        alert(`Verificación fallida: ${response.data.message}`);
+      //El backend devuelve un booleano indicando si la firma es válida
+      if (response.data) {
+        alert("La firma del documento es válida.");
+      }
+      else {
+        alert("La firma del documento NO es válida.");
       }
     } catch (error) {
       console.error("Error al verificar la firma:", error);

@@ -4,11 +4,13 @@ import os
 from datetime import datetime
 
 from fastapi import HTTPException
+from pydantic import BaseModel
 from requests import Session, session
 from blockchain.contract_utils import sign_document
 from db import models
 from db.conexion_db import get_db
 from db.models import DocumentoProyecto, FirmaElectronica, Inversion
+from sqlalchemy import select
 
 CARPETA_DOCUMENTOS = "archivos"
 
@@ -119,6 +121,18 @@ def listar_documentos(proyecto_id: int, db: Session) -> list[dict]:
 
     return documentos_lista
 
+
+class DocumentoRequest(BaseModel):
+    id: int
+    inversion_id: int
+    nombre_documento: str
+    descripcion_documento: str
+    contenido_base64: str
+    tipo_documento: str
+    creado_en: str
+    firmado: bool
+    visibilidad: str
+
 def get_documento_por_inversion(inversion_id: int, db: Session) -> DocumentoProyecto | None:
     """
     Obtiene el contrato asociado a una inversión específica.
@@ -130,11 +144,24 @@ def get_documento_por_inversion(inversion_id: int, db: Session) -> DocumentoProy
     Returns:
         DocumentoProyecto | None: El documento del contrato si existe, o None si no se encuentra.
     """
-    # .filter(...): Busca por el ID de la inversión.
-    # .first(): Devuelve el primer resultado o None si no hay resultados.
-    return db.query(DocumentoProyecto).filter(
-        DocumentoProyecto.inversion_id == inversion_id
-    ).all()
+    #Query para obtener el documento asociado a la inversión con DocumentoRequest
+    stmt = (
+        select(DocumentoProyecto)
+        .where(DocumentoProyecto.inversion_id == inversion_id)
+    )
+    documento = db.scalar(stmt)
+    if documento:
+        return DocumentoRequest(
+            id=documento.id,
+            inversion_id=documento.inversion_id,
+            nombre_documento=documento.nombre_documento,
+            descripcion_documento=documento.descripcion_documento,
+            contenido_base64=documento.contenido_base64,
+            tipo_documento=documento.tipo_documento,
+            creado_en=documento.creado_en.isoformat() if documento.creado_en else None,
+            firmado=verificar_firma(documento.id, db),
+            visibilidad=documento.visibilidad
+        )
     
 
     
@@ -146,22 +173,17 @@ def get_documento_contenido(db: Session, documento_id: int) -> str | None:
         str: El contenido en base64 si el documento existe.
         None: Si el documento no se encuentra.
     """
-    # .query(models.DocumentoProyecto.contenido_base64): Selecciona únicamente la columna que necesitamos.
-    # .filter(...): Busca por el ID del documento.
-    # .scalar_one_or_none(): Ejecuta la consulta y devuelve el valor de la única columna de la primera fila,
-    #                       o None si no se encuentra ningún resultado. Es la forma más eficiente para este caso.
-    contenido = db.query(
-        models.DocumentoProyecto.contenido_base64
-    ).filter(
-        models.DocumentoProyecto.id == documento_id
-    ).scalar_one_or_none()
+    stmt = select(models.DocumentoProyecto.contenido_base64).where(
+    models.DocumentoProyecto.id == documento_id
+    )
+    contenido = db.scalar(stmt)
     
     return contenido
 
 def firmar_documento(documento_id: int, db: Session):
     try:
         # Traer el contenido de base64
-        contenido_base64 = get_documento_contenido(documento_id, db)
+        contenido_base64 = get_documento_contenido(db,documento_id)
         # Decodificar y generar hash
         contenido_bytes = base64.b64decode(contenido_base64)
         document_hash = hashlib.sha256(contenido_bytes).hexdigest()
@@ -170,7 +192,7 @@ def firmar_documento(documento_id: int, db: Session):
         tx_hash = sign_document(document_hash)
 
         #Obtener el id de usuario
-        inversor_id = session.query(Inversion.inversor_id)\
+        inversor_id = db.query(Inversion.inversor_id)\
             .join(DocumentoProyecto, DocumentoProyecto.inversion_id == Inversion.id)\
             .filter(DocumentoProyecto.id == documento_id)\
             .scalar()
@@ -178,7 +200,8 @@ def firmar_documento(documento_id: int, db: Session):
         # Guarda en base de datos con SQLAlchemy
         firma = FirmaElectronica(
             documento_id=documento_id,
-            document_hash=document_hash,
+            firmado_en=datetime.now(),
+            documento_hash=document_hash,
             tx_hash=tx_hash,
             tipo_documento="contrato"  # Asumiendo que es un contrato, puedes cambiarlo si es necesario.
         )
@@ -238,3 +261,21 @@ def copiar_contrato(inversion_id: int, db: Session):
     db.refresh(nuevo_documento)
 
     return nuevo_documento.id  # Retornar el ID del nuevo documento creado
+
+
+def verificar_firma(documento_id: int, db: Session) -> bool:
+    """
+    Verifica si un documento ha sido firmado.
+    
+    Args:
+        documento_id (int): ID del documento a verificar.
+        db (Session): Sesión de base de datos.
+
+    Returns:
+        bool: True si el documento está firmado, False en caso contrario.
+    """
+    firma = db.query(FirmaElectronica).filter(
+        FirmaElectronica.documento_id == documento_id
+    ).first()
+    
+    return firma is not None
